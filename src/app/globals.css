@@ -1,0 +1,580 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: var(--font-nunito), "PingFang SC", "Noto Sans CJK SC",
+    "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+  --color-app: var(--app-background);
+  --color-surface: var(--app-surface);
+  --color-surface-raised: var(--app-surface-raised);
+  --color-surface-muted: var(--app-surface-muted);
+  --color-surface-strong: var(--app-surface-strong);
+  --color-foreground: var(--app-foreground);
+  --color-muted: var(--app-muted);
+  --color-subtle: var(--app-subtle);
+  --color-divider: var(--app-border);
+  --color-divider-subtle: var(--app-border-subtle);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-on-primary: var(--on-primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent-text: var(--accent-text);
+  --color-tint-amber: var(--tint-amber);
+  --color-tint-amber-strong: var(--tint-amber-strong);
+  --color-tint-sky: var(--tint-sky);
+  --color-tint-sky-strong: var(--tint-sky-strong);
+  --color-tint-leaf: var(--tint-leaf);
+  --color-tint-berry: var(--tint-berry);
+  --color-income: var(--income);
+  --color-expense: var(--expense);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+}
+
+/* Owl accent themes. Surfaces stay warm and neutral, so the accent is the only
+   thing a theme changes. Keep in sync with mobile/lib/core/theme.dart. */
+:root,
+[data-accent="amber"] {
+  --primary: #f2b33d;
+  --primary-strong: #e6a224;
+  --on-primary: #1f2230;
+  --primary-soft: #fcefd2;
+  --accent-text: #8a5300;
+  --accent-rgb: 242 179 61;
+  --income: #05744b;
+}
+
+[data-accent="night"] {
+  --primary: #3d4a8f;
+  --primary-strong: #33407d;
+  --on-primary: #ffffff;
+  --primary-soft: #e6e9f7;
+  --accent-text: #3d4a8f;
+  --accent-rgb: 61 74 143;
+  --income: #05744b;
+}
+
+/* A green primary would blur with green income, so income turns blue. */
+[data-accent="forest"] {
+  --primary: #2f7a57;
+  --primary-strong: #276a4b;
+  --on-primary: #ffffff;
+  --primary-soft: #dff0e6;
+  --accent-text: #2a6e4e;
+  --accent-rgb: 47 122 87;
+  --income: #1d4ed8;
+}
+
+[data-accent="berry"] {
+  --primary: #b8436f;
+  --primary-strong: #a23a61;
+  --on-primary: #ffffff;
+  --primary-soft: #f8e3eb;
+  --accent-text: #a33a62;
+  --accent-rgb: 184 67 111;
+  --income: #05744b;
+}
+
+.dark,
+.dark[data-accent="amber"] {
+  --primary: #f5bd4f;
+  --primary-strong: #f8ca6a;
+  --on-primary: #1f2230;
+  --primary-soft: #3a2f14;
+  --accent-text: #f5bd4f;
+  --income: #3fd09a;
+}
+
+.dark[data-accent="night"] {
+  --primary: #9aa8ff;
+  --primary-strong: #b3beff;
+  --on-primary: #12162e;
+  --primary-soft: #262b4a;
+  --accent-text: #9aa8ff;
+  --income: #3fd09a;
+}
+
+.dark[data-accent="forest"] {
+  --primary: #6ccb9c;
+  --primary-strong: #86d8ae;
+  --on-primary: #0c2418;
+  --primary-soft: #18352a;
+  --accent-text: #6ccb9c;
+  --income: #8ab8ff;
+}
+
+.dark[data-accent="berry"] {
+  --primary: #f28db2;
+  --primary-strong: #f6a6c4;
+  --on-primary: #2d0f1b;
+  --primary-soft: #43202e;
+  --accent-text: #f28db2;
+  --income: #3fd09a;
+}
+
+:root {
+  --app-background: #f6f1e8;
+  --app-surface: #ffffff;
+  --app-surface-raised: #ffffff;
+  --app-surface-muted: #f7f2ea;
+  --app-surface-strong: #eae2d4;
+  --app-foreground: #1f2230;
+  --app-muted: #6f6a62;
+  --app-subtle: #a8a196;
+  --app-border: #ece4d6;
+  --app-border-subtle: #f3ede3;
+  /* Sticker tints for icon tiles and status surfaces. */
+  --tint-amber: #fcefd2;
+  --tint-amber-strong: #f6d98f;
+  --tint-sky: #e6edf8;
+  --tint-sky-strong: #c9d8f2;
+  --tint-leaf: #e2f1e6;
+  --tint-berry: #f8e3eb;
+  --expense: #1f2230;
+  --danger: #c8243b;
+  --warn: #945600;
+  --chart-grid: #ece4d6;
+  --chart-axis: #6f6a62;
+  --chart-neutral: var(--primary);
+  --chart-dot: #ffffff;
+  --chart-cursor: #a8a196;
+  --chart-cursor-fill: #f7f2ea;
+  --chart-tooltip: #ffffff;
+  --chart-tooltip-border: #ece4d6;
+  --chart-accent: var(--income);
+  --chart-expense: #e9897a;
+  --owl-body: #1e2230;
+  --owl-mask: #2d3345;
+  --owl-rule: #434b66;
+  --owl-amber: #f2b33d;
+  color-scheme: light;
+  background: var(--app-background);
+  color: var(--app-foreground);
+}
+
+.dark {
+  --app-background: #15151b;
+  --app-surface: #1f1f27;
+  --app-surface-raised: #2a2a33;
+  --app-surface-muted: #2a2a33;
+  --app-surface-strong: #383844;
+  --app-foreground: #f4f1ec;
+  --app-muted: #aba59b;
+  --app-subtle: #6e6a63;
+  --app-border: #2c2c35;
+  --app-border-subtle: #25252d;
+  --tint-amber: #3a2f14;
+  --tint-amber-strong: #5a4518;
+  --tint-sky: #1f2a40;
+  --tint-sky-strong: #2c3a58;
+  --tint-leaf: #18352a;
+  --tint-berry: #43202e;
+  --expense: #f4f1ec;
+  --danger: #ff8593;
+  --warn: #fbbf24;
+  --chart-grid: #2c2c35;
+  --chart-axis: #aba59b;
+  --chart-dot: #1f1f27;
+  --chart-cursor: #6e6a63;
+  --chart-cursor-fill: #2a2a33;
+  --chart-tooltip: #2a2a33;
+  --chart-tooltip-border: #2c2c35;
+  --chart-expense: #f0a294;
+  --owl-body: #3a4157;
+  --owl-mask: #4b5370;
+  --owl-rule: #626b8c;
+  --owl-amber: #f5bd4f;
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    border-color: var(--app-border);
+  }
+}
+
+html {
+  min-width: 0;
+  background: var(--app-background);
+}
+
+body {
+  min-height: 100dvh;
+  margin: 0;
+  background: var(--app-background);
+  color: var(--app-foreground);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgb(var(--accent-rgb) / 20%);
+}
+
+/* Keep older page-level utility classes theme-aware while components migrate to
+   semantic tokens. Explicit dark: utilities can still override these mappings. */
+.dark .bg-white {
+  background-color: var(--app-surface);
+}
+
+.dark .bg-slate-50 {
+  background-color: var(--app-surface-muted);
+}
+
+.dark .bg-slate-100 {
+  background-color: var(--app-surface-strong);
+}
+
+.dark .bg-slate-200 {
+  background-color: #334155;
+}
+
+.dark .text-slate-950,
+.dark .text-slate-900,
+.dark .text-slate-800 {
+  color: var(--app-foreground);
+}
+
+.dark .text-slate-700,
+.dark .text-slate-600,
+.dark .text-slate-500,
+.dark .text-slate-400 {
+  color: var(--app-muted);
+}
+
+.dark .text-slate-300 {
+  color: #cbd5e1;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300 {
+  border-color: var(--app-border);
+}
+
+.dark [class~="border-slate-200/80"],
+.dark [class~="border-slate-200/70"] {
+  border-color: rgb(51 65 85 / 85%);
+}
+
+.dark .divide-slate-100 > :not(:last-child),
+.dark .divide-slate-200 > :not(:last-child) {
+  border-color: var(--app-border-subtle);
+}
+
+.dark .ring-slate-200 {
+  --tw-ring-color: var(--app-border);
+}
+
+.dark [class~="ring-slate-200/70"] {
+  --tw-ring-color: rgb(51 65 85 / 80%);
+}
+
+.dark [class~="bg-[#f7f8f6]"],
+.dark [class~="bg-[#f7f8f6]/90"] {
+  background-color: var(--app-background);
+}
+
+.dark [class~="bg-slate-50/80"],
+.dark [class~="bg-slate-50/70"],
+.dark [class~="bg-slate-100/80"] {
+  background-color: rgb(30 41 59 / 82%);
+}
+
+.dark [class~="hover:bg-white"]:hover,
+.dark [class~="hover:bg-slate-50"]:hover,
+.dark [class~="hover:bg-slate-50/70"]:hover,
+.dark [class~="hover:bg-slate-100/80"]:hover {
+  background-color: var(--app-surface-strong);
+}
+
+.dark [class~="hover:text-slate-950"]:hover,
+.dark [class~="hover:text-slate-900"]:hover,
+.dark [class~="hover:text-slate-700"]:hover {
+  color: var(--app-foreground);
+}
+
+.dark [class~="open:bg-white"][open] {
+  background-color: var(--app-surface);
+}
+
+.dark .bg-emerald-50,
+.dark [class~="bg-emerald-50/40"],
+.dark [class~="bg-emerald-50/45"] {
+  background-color: rgb(6 78 59 / 45%);
+}
+
+.dark .bg-emerald-100 {
+  background-color: #064e3b;
+}
+
+.dark .border-emerald-200,
+.dark .border-emerald-300 {
+  border-color: #065f46;
+}
+
+.dark .ring-emerald-200 {
+  --tw-ring-color: #065f46;
+}
+
+.dark .text-emerald-950,
+.dark .text-emerald-900,
+.dark .text-emerald-800,
+.dark .text-emerald-700 {
+  color: #6ee7b7;
+}
+
+.dark .text-emerald-600 {
+  color: #34d399;
+}
+
+.dark [class~="hover:bg-emerald-50"]:hover,
+.dark [class~="hover:bg-emerald-50/40"]:hover {
+  background-color: rgb(6 78 59 / 55%);
+}
+
+.dark [class~="hover:text-emerald-600"]:hover,
+.dark [class~="group-hover:text-emerald-600"]:is(.group:hover *) {
+  color: #34d399;
+}
+
+.dark .bg-rose-50,
+.dark [class~="bg-rose-50/30"],
+.dark [class~="bg-rose-50/40"] {
+  background-color: rgb(76 5 25 / 48%);
+}
+
+.dark .border-rose-200,
+.dark .border-rose-300 {
+  border-color: #9f1239;
+}
+
+.dark .text-rose-950,
+.dark .text-rose-900,
+.dark .text-rose-800,
+.dark .text-rose-700,
+.dark .text-rose-600 {
+  color: #fda4af;
+}
+
+.dark [class~="hover:bg-rose-50"]:hover {
+  background-color: rgb(76 5 25 / 55%);
+}
+
+.dark [class~="hover:text-rose-600"]:hover {
+  color: #fda4af;
+}
+
+.dark .bg-amber-50,
+.dark [class~="bg-amber-50/45"] {
+  background-color: rgb(69 26 3 / 50%);
+}
+
+.dark .bg-amber-100 {
+  background-color: #78350f;
+}
+
+.dark .border-amber-200,
+.dark .border-amber-300 {
+  border-color: #92400e;
+}
+
+.dark .text-amber-950,
+.dark .text-amber-900,
+.dark .text-amber-800,
+.dark .text-amber-700,
+.dark .text-amber-600 {
+  color: #fcd34d;
+}
+
+.dark .bg-sky-50,
+.dark [class~="bg-sky-50/60"] {
+  background-color: rgb(12 74 110 / 48%);
+}
+
+.dark .border-sky-100,
+.dark .border-sky-200 {
+  border-color: #075985;
+}
+
+.dark .text-sky-950,
+.dark .text-sky-900,
+.dark .text-sky-800,
+.dark .text-sky-700,
+.dark .text-sky-600 {
+  color: #7dd3fc;
+}
+
+.dark .bg-violet-50 {
+  background-color: rgb(76 29 149 / 42%);
+}
+
+.dark .border-violet-200 {
+  border-color: #6d28d9;
+}
+
+.dark .text-violet-950,
+.dark .text-violet-900,
+.dark .text-violet-700 {
+  color: #c4b5fd;
+}
+
+/* Soft, rounded shapes everywhere, matching the owl's cards on mobile. */
+.rounded-lg {
+  border-radius: 1rem;
+}
+
+.rounded-xl {
+  border-radius: 1.5rem;
+}
+
+.bg-white {
+  background-color: var(--app-surface);
+}
+
+.bg-slate-50 {
+  background-color: var(--app-surface-muted);
+}
+
+.bg-slate-100 {
+  background-color: var(--app-surface-strong);
+}
+
+.text-slate-950,
+.text-slate-900,
+.text-slate-800 {
+  color: var(--app-foreground);
+}
+
+.text-slate-700,
+.text-slate-600,
+.text-slate-500 {
+  color: var(--app-muted);
+}
+
+.text-slate-400,
+.text-slate-300 {
+  color: var(--app-subtle);
+}
+
+.border-slate-100,
+.border-slate-200,
+.border-slate-300 {
+  border-color: var(--app-border);
+}
+
+.divide-slate-100 > :not(:last-child),
+.divide-slate-200 > :not(:last-child) {
+  border-color: var(--app-border-subtle);
+}
+
+/* Borders are quiet hairlines; structure comes from surfaces, not outlines. */
+.border-2 {
+  border-width: 1px;
+}
+
+/* Storybook scene: sky, branch and owl by time of day. Dark mode is night. */
+.story-scene {
+  --sky-top: #232b4d;
+  --sky-bottom: #4a4f7c;
+  --scene-ink: #ffffff;
+  --scene-muted: #d5d8ee;
+  --scene-branch: #7a5c46;
+  --scene-leaf: #7fa572;
+  background: linear-gradient(var(--sky-top), var(--sky-bottom));
+  color: var(--scene-ink);
+}
+
+.story-scene[data-scene="dawn"] {
+  --sky-top: #fbd5b6;
+  --sky-bottom: #fcecd9;
+  --scene-ink: #1f2230;
+  --scene-muted: #5c4a3c;
+  --scene-branch: #8b6a4f;
+  --scene-leaf: #8db580;
+}
+
+.story-scene[data-scene="day"] {
+  --sky-top: #a5d4f5;
+  --sky-bottom: #dcefd9;
+  --scene-ink: #1f2230;
+  --scene-muted: #3c4c5c;
+  --scene-branch: #8b6a4f;
+  --scene-leaf: #7fae6f;
+}
+
+.story-scene[data-scene="dusk"] {
+  --sky-top: #4e3a6b;
+  --sky-bottom: #b9667a;
+  --scene-muted: #eedde6;
+  --scene-branch: #6f4d43;
+  --scene-leaf: #9ab486;
+}
+
+.dark .story-scene {
+  --sky-top: #232b4d;
+  --sky-bottom: #4a4f7c;
+  --scene-ink: #ffffff;
+  --scene-muted: #d5d8ee;
+  --scene-branch: #7a5c46;
+  --scene-leaf: #7fa572;
+}
+
+/* The owl's feet sit at 189/200 of its height; keep them on the branch,
+   whose top edge is about 35px above the scene's bottom. */
+.story-scene {
+  --owl-size: 96px;
+}
+
+.story-scene .scene-owl {
+  width: var(--owl-size);
+  height: var(--owl-size);
+  bottom: calc(33px - var(--owl-size) * 0.055);
+}
+
+/* On dark skies the owl uses its lighter body so it stays visible. */
+.story-scene[data-scene="night"] .scene-owl,
+.story-scene[data-scene="dusk"] .scene-owl,
+.dark .story-scene .scene-owl {
+  --owl-body: #3a4157;
+  --owl-mask: #4b5370;
+  --owl-rule: #626b8c;
+  --owl-amber: #f5bd4f;
+}
+
+.story-scene .scene-night,
+.story-scene .scene-day,
+.story-scene .scene-moon,
+.story-scene .scene-sun {
+  display: none;
+}
+
+.story-scene[data-scene="night"] .scene-night,
+.story-scene[data-scene="night"] .scene-moon,
+.story-scene[data-scene="dusk"] .scene-night,
+.dark .story-scene .scene-night,
+.dark .story-scene .scene-moon,
+.story-scene[data-scene="day"] .scene-day,
+.story-scene[data-scene="dawn"] .scene-day,
+.story-scene[data-scene="dawn"] .scene-sun {
+  display: block;
+}
+
+.dark .story-scene .scene-day {
+  display: none;
+}
+
+.scene-muted {
+  color: var(--scene-muted);
+}

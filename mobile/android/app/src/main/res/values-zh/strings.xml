@@ -1,0 +1,98 @@
+<resources>
+    <!-- Chinese for every string in values/strings.xml; the language chosen in the app picks one (NativeLanguage.kt). -->
+
+    <string name="local_ocr_tile_label">Zowl识别记账</string>
+    <string name="payment_accessibility_label">Zowl 支付页采集（内测）</string>
+    <string name="payment_accessibility_description">支付自动采集在本机读取微信和支付宝支付成功页，并同步结构化候选。当微信或支付宝的支付流程页面不提供任何可读文字时，会自动截取该窗口并在本机识别，只为找出支付成功页的金额；聊天等非支付页面不会被截图。如果你开启淘宝作为来源，会用同样的方式截取并在本机识别它的付款收银台和支付结果页，不会截取淘宝的其他页面。如果你开启拼多多、京东或朴朴，只读取它们下单和支付页面上的文字，不截图。另一个独立功能「Zowl识别记账」在你主动点击快捷磁贴时截取一次支付应用窗口，用 APK 内置中文模型在本机识别，编辑后须确认才按手动录入记账。截图和识别全文不保存、不上传。不会执行手势或付款，不是屏幕阅读器。可随时关闭任一功能或撤销此服务授权。</string>
+
+    <string name="capture_channel_name">支付采集候选</string>
+    <string name="capture_channel_description">提醒你核对由支付页生成的记账候选</string>
+
+    <string name="capture_source_alipay">支付宝</string>
+    <string name="capture_source_wechat">微信支付</string>
+    <string name="capture_source_taobao">淘宝</string>
+    <string name="capture_source_pinduoduo">拼多多</string>
+    <string name="capture_source_jd">京东</string>
+    <string name="capture_source_pupu">朴朴</string>
+    <string name="capture_source_other">支付</string>
+    <string name="capture_review_title">%1$s支出 %2$s</string>
+    <string name="capture_add_merchant_and_post">输入商户并入账</string>
+    <string name="capture_confirm_and_post">确认入账</string>
+    <string name="capture_group_title">支付采集候选</string>
+    <string name="capture_group_text">展开后可逐笔补充商户并入账</string>
+    <string name="capture_completed_title">已入账</string>
+    <string name="capture_completed_text">支付支出已保存</string>
+    <string name="capture_auto_posted_title">已自动入账 %1$s</string>
+    <string name="capture_auto_duplicate_title">%1$s 已有记录</string>
+    <string name="capture_auto_handled_title">已记录 %1$s</string>
+    <string name="capture_auto_posted_detail">点此查看</string>
+    <string name="capture_auto_duplicate_detail">与已有账目重复，未重复入账</string>
+    <string name="capture_auto_handled_detail">已自动入账或并入已有账目，点此查看</string>
+    <string name="capture_needs_review_title">需要核对疑似重复</string>
+    <string name="capture_needs_review_text">发现疑似重复，请在 App 内核对</string>
+    <string name="capture_quick_entry_rejected_text">快捷输入未通过校验，请在 App 内处理</string>
+    <string name="capture_auth_title">Zowl 登录已过期</string>
+    <plurals name="capture_auth_text">
+        <item quantity="other">%1$d 笔采集到的支付将在重新登录后同步</item>
+    </plurals>
+    <string name="capture_public_title">Zowl 通知</string>
+    <string name="capture_public_text">解锁后查看</string>
+    <string name="payment_page_recognized_toast">Zowl 已识别 %1$s，正在记账</string>
+    <string name="payment_code_reminder_title">刚才用微信付款码付款了吗？</string>
+    <string name="payment_code_reminder_text">付款码页面无法自动识别，点这里记一笔</string>
+
+    <string name="capture_error_session_expired">登录已过期</string>
+    <string name="capture_error_cannot_connect">无法连接服务器</string>
+    <string name="capture_error_some_rejected">部分候选被服务器拒绝（%1$s）</string>
+    <string name="capture_error_protocol">服务器协议或版本不兼容（HTTP %1$d），本地候选已保留</string>
+    <string name="capture_error_sync_failed">同步暂时失败</string>
+    <string name="capture_error_network">网络不可用，等待重试</string>
+    <string name="capture_error_quick_confirm_rejected">快捷确认未通过服务器校验，候选仍可在 App 内处理</string>
+    <string name="capture_error_quick_confirm_retry">快捷确认暂时失败，等待重试</string>
+
+    <string name="capture_log_share_title">分享采集日志</string>
+    <string name="shared_screenshot_unreadable">无法读取分享的截图，请选择小于 8 MiB 的 PNG、JPEG 或 WebP 图片。</string>
+
+    <string name="local_ocr_ready_title">识别完成，点此核对并记账</string>
+    <string name="local_ocr_ready_text">本机识别结果 5 分钟内有效，确认后才会记账</string>
+    <string name="local_ocr_requires_android_14">本地识别需要 Android 14 或以上，请手工填写</string>
+    <string name="local_ocr_unlock_first">请先解锁并返回支付结果页，再点磁贴</string>
+    <string name="local_ocr_disabled">本地识别开关未开启，请在 Zowl 设置中开启</string>
+    <string name="local_ocr_service_not_connected">无障碍服务未连接，请在系统设置中关闭再开启 Zowl 服务</string>
+    <string name="local_ocr_owner_missing">请先打开一次 Zowl 并保持登录，再回到支付结果页点磁贴</string>
+    <string name="local_ocr_busy">已有识别或待确认草稿，请先完成或取消</string>
+    <string name="local_ocr_cannot_start">暂时无法开始识别，请稍后重试</string>
+    <string name="local_ocr_scanning">正在识别支付结果页…</string>
+    <string name="local_ocr_collapse_failed">系统未能收起面板，请重试</string>
+    <string name="local_ocr_no_app_window">面板收起后未检测到支付应用窗口，请停在支付结果页重试</string>
+    <string name="local_ocr_multiple_windows">检测到多个应用窗口（分屏、小窗或弹窗），请关闭后重试</string>
+    <string name="local_ocr_package_empty">系统未提供当前窗口的应用身份，无法确认是微信/支付宝</string>
+    <string name="local_ocr_package_unsupported">面板收起后前台不是微信/支付宝，请回到支付结果页重试</string>
+    <string name="local_ocr_blocked_window">支付窗口被面板、键盘或大面积悬浮窗遮挡，请收起后重试</string>
+    <string name="local_ocr_not_focused">支付窗口未获得前台焦点，请点一下页面后重试</string>
+    <string name="local_ocr_window_unconfirmed">无法确认支付窗口，请返回微信/支付宝重试</string>
+    <string name="local_ocr_service_lost">无障碍服务已断开，请重新启用后再点磁贴</string>
+    <string name="local_ocr_unlock_retry">请解锁并返回支付结果页后重新点磁贴</string>
+    <string name="local_ocr_already_captured">这一页已由自动识别记录，无需再点磁贴</string>
+    <string name="local_ocr_request_expired">识别请求已失效，请重试</string>
+    <string name="local_ocr_timeout">识别超时，请重试或手工填写</string>
+    <string name="local_ocr_window_changed">支付窗口已变化，请重试</string>
+    <string name="local_ocr_window_changed_discarded">支付窗口已变化，已丢弃截图</string>
+    <string name="local_ocr_bitmap_failed">截图处理失败，请手工填写</string>
+    <string name="local_ocr_screenshot_unavailable">截图不可用，请手工填写</string>
+    <string name="local_ocr_secure_window">支付应用保护此窗口，无法截图；请手工填写</string>
+    <string name="local_ocr_screenshot_refused">系统拒绝截图，请重试或手工填写</string>
+    <string name="local_ocr_screenshot_access">截图权限或服务不可用，请检查无障碍设置</string>
+    <string name="local_ocr_model_unavailable">本地中文模型不可用，请手工填写</string>
+    <string name="local_ocr_result_discarded">窗口或账号已变化，已丢弃识别结果</string>
+    <string name="local_ocr_empty_text">未识别到文字，请手工填写</string>
+    <string name="local_ocr_too_much_text">页面内容过多，请手工填写</string>
+    <string name="local_ocr_no_success_marker">已识别到文字，但没找到独立的「支付成功」标题，请手工填写</string>
+    <string name="local_ocr_excluded_content">页面含退款、转账、红包、外币或账单详情字样，不支持，请手工填写</string>
+    <string name="local_ocr_unsupported_page">未识别到支持的人民币支付成功页，请手工填写</string>
+    <string name="local_ocr_recognition_failed">本地文字识别失败，请手工填写</string>
+    <string name="local_ocr_review_opening_notified">识别完成，正在打开确认页；没打开就点 Zowl 的通知</string>
+    <string name="local_ocr_review_opening">识别完成，正在打开确认页；没打开请允许 Zowl 通知或后台弹出界面</string>
+    <string name="local_ocr_review_failed">无法打开确认页，请打开 Zowl 后重试</string>
+    <string name="local_ocr_cancelled_disconnected">无障碍服务已断开，识别已取消</string>
+</resources>

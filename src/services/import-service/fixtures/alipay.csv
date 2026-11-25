@@ -1,0 +1,6 @@
+Alipay transaction details
+Export time,2026-07-15 09:00:00
+Alipay transaction ID,Transaction creation time,Counterparty,Item name,Amount (CNY),Income/Expense,Transaction status,Payment method
+ALI-20260715-001,2026-07-15 12:30:00,Mountain Cafe,Latte coffee,35.80,Expense,Transaction successful,Alipay balance
+ALI-20260715-002,2026-07-14 18:20:10,Galaxy Technology,July salary,18500.00,Income,Transaction successful,Yu’e Bao
+ALI-20260715-003,2026-07-13 09:00:00,Pending merchant,Unpaid order,99.00,Expense,Transaction closed,Huabei

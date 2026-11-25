@@ -1,0 +1,3 @@
+# Posting confirmation is the final audit source
+
+`Ledger Transaction` records one unique confirmation and item outcomes for every completed posting, writing transactions and revisions in the same database transaction. File batches and screenshot tasks manage pre-posting review and then reference the confirmation identity rather than defining separate final facts. Candidate/decision digests make an identity idempotent: identical retries return the original result; different digests are rejected. A unified audit prevents posting semantics drifting across three result models, at the cost of review workflows projecting or linking final state to canonical records.

@@ -1,0 +1,204 @@
+name: Mobile client
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "30 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  FLUTTER_VERSION: "3.38.0"
+  NODE_VERSION: "22"
+
+jobs:
+  gate:
+    name: Analyze, tests, coverage, and API contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: npm ci
+      - name: Install Chromium for the mobile API contract
+        run: npx playwright install --with-deps chromium
+      - run: flutter pub get
+        working-directory: mobile
+      - name: Lint the shared backend
+        run: npm run lint
+      - name: Type-check the shared backend
+        run: npm run typecheck
+      - name: Run backend unit and service tests
+        run: npm test
+      - name: Analyze and run unit, widget, and accessibility tests (goldens compare on macOS)
+        run: npm run test:mobile:quick
+      - name: Run the existing bearer/mobile API contract
+        run: npm run test:mobile:contract
+      - name: Preserve coverage
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mobile-coverage
+          path: mobile/coverage/lcov.info
+          if-no-files-found: warn
+          retention-days: 14
+
+  goldens:
+    name: Golden baselines (macOS)
+    needs: gate
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+        working-directory: mobile
+      - name: Compare golden baselines
+        run: flutter test test/screen_goldens_test.dart test/visual_components_test.dart test/sky_test.dart test/owl_motion_test.dart
+        working-directory: mobile
+      - name: Preserve golden failures
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mobile-golden-failures
+          path: mobile/test/failures
+          if-no-files-found: ignore
+          retention-days: 14
+
+  android-e2e:
+    name: Android API 35 E2E
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          # Gradle 8.14 cannot run on the runner's default JDK 25; match local development (JDK 21).
+          distribution: temurin
+          java-version: "21"
+      - name: Keep Gradle within the runner's memory
+        # The project lets Gradle take 8 GB of heap for local builds. Next to the
+        # emulator that exhausted the runner, which was shut down mid-build.
+        # User-level properties override the project's on CI only.
+        run: |
+          mkdir -p ~/.gradle
+          printf '%s\n' \
+            'org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError' \
+            'kotlin.daemon.jvmargs=-Xmx1536m' >> ~/.gradle/gradle.properties
+          free -h
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: npm ci
+      - run: flutter pub get
+        working-directory: mobile
+      - name: Free runner disk space for the emulator
+        # The emulator needs ~7.4 GB for its data partition; the stock runner has ~6.4 GB left by now.
+        # None of these toolchains are used here (Android SDK/NDK, Node and Flutter are kept).
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/boost /usr/share/swift
+          df -h /
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run isolated Android device scenarios
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: npm run test:mobile:e2e:android
+      - name: Build Android Debug APK
+        if: github.event_name != 'pull_request'
+        run: flutter build apk --debug
+        working-directory: mobile
+      - name: Preserve Android E2E diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mobile-android-e2e-diagnostics
+          path: .artifacts/mobile-e2e/android
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Preserve Android Debug build
+        if: github.event_name != 'pull_request' && success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zemoney-android-debug
+          path: mobile/build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  ios-e2e:
+    name: iOS simulator E2E
+    if: github.event_name != 'pull_request'
+    needs: gate
+    runs-on: macos-15
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: npm ci
+      - run: flutter pub get
+        working-directory: mobile
+      - name: Run isolated iPhone simulator scenarios
+        run: npm run test:mobile:e2e:ios
+      - name: Build iOS Debug simulator app
+        run: flutter build ios --debug --simulator
+        working-directory: mobile
+      - name: Preserve iOS E2E diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mobile-ios-e2e-diagnostics
+          path: .artifacts/mobile-e2e/ios
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Preserve iOS Debug build
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zemoney-ios-debug
+          path: mobile/build/ios/iphonesimulator/Runner.app
+          if-no-files-found: error
+          retention-days: 7

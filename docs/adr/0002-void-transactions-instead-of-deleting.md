@@ -1,0 +1,3 @@
+# Void transactions instead of physically deleting them
+
+Ordinary transaction deletion means voiding: append a terminal revision and exclude the transaction from current lists, statistics, and deduplication while retaining identity, provenance, and history. Physical deletion is reserved for account deletion or explicit permanent erasure. Voiding preserves explanations for disappearing financial facts without affecting the active ledger or preventing new posting. Queries, statistics, and duplicate detection must consistently exclude voided records, with a separate physical-erasure path for privacy.

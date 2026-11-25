@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Non-release builds only. Android cannot express an IP range here, so cleartext is
+  allowed at the platform level and ApiConfig (lib/core/config.dart) decides which
+  plain-HTTP hosts are accepted: Tailscale IPs, plus localhost/127.0.0.1/10.0.2.2 when
+  built with ALLOW_INSECURE_LOCAL_API=true. Release builds use src/main and stay HTTPS-only.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -1,0 +1,85 @@
+name: zemoney
+
+x-zemoney-environment: &zemoney-environment
+  NODE_ENV: production
+  DATABASE_URL: /var/lib/zemoney/data/zemoney.sqlite
+  FILE_STORAGE_ROOT: /var/lib/zemoney/storage
+  ANDROID_RELEASE_ROOT: /var/lib/zemoney/releases/android
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Set PUBLIC_BASE_URL to the public HTTPS URL}
+  INITIAL_ADMIN_SETUP_TOKEN_FILE: /run/zemoney-secrets/initial-admin-setup-token
+  SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
+  RECEIPT_RECOGNITION_PROVIDER: ${RECEIPT_RECOGNITION_PROVIDER:-mock}
+  AI_CATEGORIZATION_PROVIDER: ${AI_CATEGORIZATION_PROVIDER:-off}
+  AI_CATEGORIZATION_RESPONSE_MODE: ${AI_CATEGORIZATION_RESPONSE_MODE:-json_schema}
+  AI_CATEGORIZATION_AUTO_THRESHOLD: ${AI_CATEGORIZATION_AUTO_THRESHOLD:-0.85}
+  AI_CATEGORIZATION_BATCH_SIZE: ${AI_CATEGORIZATION_BATCH_SIZE:-20}
+  AI_CATEGORIZATION_TIMEOUT_MS: ${AI_CATEGORIZATION_TIMEOUT_MS:-30000}
+  AI_CATEGORIZATION_ALLOW_INSECURE_HTTP: ${AI_CATEGORIZATION_ALLOW_INSECURE_HTTP:-false}
+  # Encrypts the AI provider API key a user saves on the settings page. Without
+  # it the page cannot store a key, so a provider that needs one cannot be used.
+  AI_CATEGORIZATION_ENCRYPTION_KEY: ${AI_CATEGORIZATION_ENCRYPTION_KEY:-}
+
+x-zemoney-data-volume: &zemoney-data-volume
+  type: bind
+  source: ${ZEMONEY_DATA_DIR:-./runtime/data}
+  target: /var/lib/zemoney/data
+
+x-zemoney-storage-volume: &zemoney-storage-volume
+  type: bind
+  source: ${ZEMONEY_STORAGE_DIR:-./runtime/storage}
+  target: /var/lib/zemoney/storage
+
+services:
+  app:
+    image: ${ZEMONEY_IMAGE:-zemoney:local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      <<: *zemoney-environment
+    ports:
+      - "127.0.0.1:${ZEMONEY_PORT:-3000}:3000"
+    expose:
+      - "3000"
+    volumes:
+      - *zemoney-data-volume
+      - *zemoney-storage-volume
+      - type: bind
+        source: ${ANDROID_RELEASE_DIR:-./runtime/releases/android}
+        target: /var/lib/zemoney/releases/android
+        read_only: true
+      - type: bind
+        source: ${ZEMONEY_SECRETS_DIR:?Set ZEMONEY_SECRETS_DIR to the persistent secrets directory}
+        target: /run/zemoney-secrets
+        read_only: true
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "${ZEMONEY_TRAEFIK_NETWORK:-traefik-proxy}"
+      traefik.http.routers.zemoney.rule: "Host(`${ZEMONEY_HOST:?Set ZEMONEY_HOST to the public host name}`)"
+      traefik.http.routers.zemoney.entrypoints: "${ZEMONEY_TRAEFIK_ENTRYPOINT:-web}"
+      traefik.http.routers.zemoney.service: "zemoney"
+      traefik.http.services.zemoney.loadbalancer.server.port: "3000"
+    networks:
+      - default
+      - traefik-proxy
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+networks:
+  traefik-proxy:
+    external: true
+    name: ${ZEMONEY_TRAEFIK_NETWORK:-traefik-proxy}

@@ -1,0 +1,2 @@
+/* Shown by iOS when Zowl asks for photo access. Keep in sync with Info.plist. */
+"NSPhotoLibraryUsageDescription" = "Select payment screenshots to recognize transaction fields and record them after your confirmation.";

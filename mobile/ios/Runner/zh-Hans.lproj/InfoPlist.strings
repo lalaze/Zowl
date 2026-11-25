@@ -1,0 +1,2 @@
+/* iOS 请求相册权限时显示。 */
+"NSPhotoLibraryUsageDescription" = "选择支付截图，用于识别交易字段并在你确认后记账。";

@@ -1,0 +1,35 @@
+CREATE TABLE `notification_captures` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`idempotency_key` text NOT NULL,
+	`platform` text NOT NULL,
+	`source_package` text NOT NULL,
+	`notification_posted_at` text NOT NULL,
+	`parser_id` text NOT NULL,
+	`parser_version` integer NOT NULL,
+	`evidence_digest` text NOT NULL,
+	`confidence_basis_points` integer NOT NULL,
+	`normalized_data` text NOT NULL,
+	`validation_errors` text NOT NULL,
+	`warnings` text NOT NULL,
+	`duplicate_status` text DEFAULT 'unique' NOT NULL,
+	`duplicate_transaction_id` text,
+	`duplicate_assessment_digest` text,
+	`decision` text DEFAULT 'pending' NOT NULL,
+	`status` text DEFAULT 'reviewing' NOT NULL,
+	`confirmation_version` integer DEFAULT 1 NOT NULL,
+	`result_transaction_id` text,
+	`result_code` text,
+	`created_at` text NOT NULL,
+	`updated_at` text NOT NULL,
+	`completed_at` text,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`duplicate_transaction_id`) REFERENCES `transactions`(`id`) ON UPDATE no action ON DELETE set null,
+	FOREIGN KEY (`result_transaction_id`) REFERENCES `transactions`(`id`) ON UPDATE no action ON DELETE set null,
+	CONSTRAINT "notification_captures_confidence_range" CHECK("notification_captures"."confidence_basis_points" >= 0 and "notification_captures"."confidence_basis_points" <= 10000),
+	CONSTRAINT "notification_captures_parser_version_positive" CHECK("notification_captures"."parser_version" > 0),
+	CONSTRAINT "notification_captures_confirmation_version_positive" CHECK("notification_captures"."confirmation_version" > 0)
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `notification_captures_user_idempotency_unique` ON `notification_captures` (`user_id`,`idempotency_key`);--> statement-breakpoint
+CREATE INDEX `notification_captures_user_status_created_idx` ON `notification_captures` (`user_id`,`status`,`created_at`);

@@ -1,0 +1,1 @@
+ALTER TABLE `notification_captures` ADD `field_origins` text;

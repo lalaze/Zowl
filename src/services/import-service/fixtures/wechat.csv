@@ -1,0 +1,4 @@
+WeChat Pay statement details
+Transaction time,Transaction type,Counterparty,Item,Income/Expense,Amount(CNY),Payment method,Current status,Transaction number,Notes
+2026-07-15 08:12:00,Merchant purchase,Shanghai Metro,Transit code,Expense,¥6.20,WeChat balance,Payment successful,WX-20260715-001,Commute
+2026-07-14 20:40:00,Refund,Greenfield Bistro,Order refund,Income,¥48.90,CMB debit card,Refund successful,WX-20260714-002,

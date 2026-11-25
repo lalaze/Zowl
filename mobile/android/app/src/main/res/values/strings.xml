@@ -1,0 +1,118 @@
+<resources>
+    <!--
+        Native text follows the language chosen in the app (NativeLanguage.kt), not the phone's;
+        Chinese lives in values-zh. The service labels and description below are also shown by
+        system Settings, which always uses the phone's language for them.
+    -->
+
+    <!-- Names Android shows for the app's services and tile -->
+    <string name="local_ocr_tile_label">Zowl Scan</string>
+    <string name="payment_accessibility_label">Zowl payment page capture (beta)</string>
+    <string name="payment_accessibility_description">Automatic payment capture reads WeChat and Alipay payment success pages on this device and syncs the structured candidates it finds. When a WeChat or Alipay payment screen has no readable text, it takes a screenshot of that window and recognizes the text on this device, only to find the amount on the success page; chats and other screens outside payments are never captured. If you turn on Taobao as a source, its payment cashier and payment result page are captured and recognized on this device in the same way, and no other Taobao screen is. If you turn on Pinduoduo, JD.com or Pupu, only the text of their order and payment pages is read, without screenshots. A separate feature, Zowl Scan, takes one screenshot of the payment app window when you tap its Quick Settings tile, recognizes the text on this device with the Chinese text model built into the app, and records it as a manual entry only after you edit and confirm it. Screenshots and recognized text are never saved or uploaded. This service performs no gestures or payments and is not a screen reader. You can turn off either feature or revoke this permission at any time.</string>
+
+    <!-- Notification channels -->
+    <string name="capture_channel_name">Payment capture candidates</string>
+    <string name="capture_channel_description">Reminders to review transactions captured from payment pages</string>
+
+    <!-- Capture notifications -->
+    <string name="capture_source_alipay">Alipay</string>
+    <string name="capture_source_wechat">WeChat Pay</string>
+    <string name="capture_source_taobao">Taobao</string>
+    <string name="capture_source_pinduoduo">Pinduoduo</string>
+    <string name="capture_source_jd">JD.com</string>
+    <string name="capture_source_pupu">Pupu</string>
+    <string name="capture_source_other">Payment</string>
+    <!-- %1$s: source, %2$s: amount -->
+    <string name="capture_review_title">%1$s expense %2$s</string>
+    <string name="capture_add_merchant_and_post">Add merchant and post</string>
+    <string name="capture_confirm_and_post">Confirm and post</string>
+    <string name="capture_group_title">Payment capture candidates</string>
+    <string name="capture_group_text">Expand to add a merchant and post each one</string>
+    <string name="capture_completed_title">Posted</string>
+    <string name="capture_completed_text">Expense saved</string>
+    <!-- %1$s: amount -->
+    <string name="capture_auto_posted_title">Auto-posted %1$s</string>
+    <string name="capture_auto_duplicate_title">%1$s already recorded</string>
+    <string name="capture_auto_handled_title">Recorded %1$s</string>
+    <string name="capture_auto_posted_detail">Tap to view</string>
+    <string name="capture_auto_duplicate_detail">Matches an existing transaction, so it wasn’t posted again</string>
+    <string name="capture_auto_handled_detail">Posted automatically or linked to an existing transaction. Tap to view</string>
+    <string name="capture_needs_review_title">Review a possible duplicate</string>
+    <string name="capture_needs_review_text">Possible duplicate found. Review it in the app</string>
+    <string name="capture_quick_entry_rejected_text">Quick entry didn’t pass validation. Finish it in the app</string>
+    <string name="capture_auth_title">Zowl sign-in expired</string>
+    <!-- %1$d: number of queued candidates -->
+    <plurals name="capture_auth_text">
+        <item quantity="one">%1$d captured payment will sync after you sign in again</item>
+        <item quantity="other">%1$d captured payments will sync after you sign in again</item>
+    </plurals>
+    <string name="capture_public_title">Zowl notification</string>
+    <string name="capture_public_text">Unlock to view</string>
+    <!-- %1$s: amount -->
+    <string name="payment_page_recognized_toast">Zowl recognized %1$s and is recording it</string>
+    <string name="payment_code_reminder_title">Did you just pay with your WeChat payment code?</string>
+    <string name="payment_code_reminder_text">Zowl can’t read the payment code page. Tap to add the expense</string>
+
+    <!--
+        Sync errors shown in the app's capture settings. They are stored by name
+        (CaptureError.kt) and worded when the app reads them.
+    -->
+    <string name="capture_error_session_expired">Sign-in expired</string>
+    <string name="capture_error_cannot_connect">Can’t connect to the server</string>
+    <!-- %1$s: rejection codes -->
+    <string name="capture_error_some_rejected">The server rejected some candidates (%1$s)</string>
+    <!-- %1$d: HTTP status -->
+    <string name="capture_error_protocol">The server’s protocol or version isn’t compatible (HTTP %1$d). The candidates are kept on this device</string>
+    <string name="capture_error_sync_failed">Couldn’t sync right now</string>
+    <string name="capture_error_network">No network connection. Waiting to retry</string>
+    <string name="capture_error_quick_confirm_rejected">The server didn’t accept the quick confirmation. You can still finish the candidate in the app</string>
+    <string name="capture_error_quick_confirm_retry">Couldn’t send the quick confirmation right now. Waiting to retry</string>
+
+    <!-- Shared screenshots -->
+    <string name="capture_log_share_title">Share capture log</string>
+    <string name="shared_screenshot_unreadable">Couldn’t read the shared screenshot. Choose a PNG, JPEG or WebP image under 8 MiB.</string>
+
+    <!-- Zowl Scan (local OCR) -->
+    <string name="local_ocr_ready_title">Scan complete. Tap to review and post</string>
+    <string name="local_ocr_ready_text">The on-device result is kept for 5 minutes. Nothing is posted until you confirm</string>
+    <string name="local_ocr_requires_android_14">On-device scan needs Android 14 or later. Enter the payment manually</string>
+    <string name="local_ocr_unlock_first">Unlock your phone and go back to the payment result page, then tap the tile</string>
+    <string name="local_ocr_disabled">On-device scan is off. Turn it on in Zowl settings</string>
+    <string name="local_ocr_service_not_connected">The accessibility service isn’t connected. Turn the Zowl service off and on again in system settings</string>
+    <string name="local_ocr_owner_missing">Open Zowl once and stay signed in, then go back to the payment result page and tap the tile</string>
+    <string name="local_ocr_busy">A scan or draft is already waiting. Finish or cancel it first</string>
+    <string name="local_ocr_cannot_start">Can’t start a scan right now. Try again later</string>
+    <string name="local_ocr_scanning">Scanning the payment result page…</string>
+    <string name="local_ocr_collapse_failed">The system couldn’t close the panel. Try again</string>
+    <string name="local_ocr_no_app_window">No payment app window was found after the panel closed. Stay on the payment result page and try again</string>
+    <string name="local_ocr_multiple_windows">Several app windows are open (split screen, pop-up view or dialog). Close them and try again</string>
+    <string name="local_ocr_package_empty">The system didn’t say which app owns this window, so it can’t be confirmed as WeChat or Alipay</string>
+    <string name="local_ocr_package_unsupported">WeChat or Alipay wasn’t in front after the panel closed. Go back to the payment result page and try again</string>
+    <string name="local_ocr_blocked_window">The payment window is covered by a panel, keyboard or large floating window. Close it and try again</string>
+    <string name="local_ocr_not_focused">The payment window isn’t focused. Tap the page and try again</string>
+    <string name="local_ocr_window_unconfirmed">Couldn’t confirm the payment window. Go back to WeChat or Alipay and try again</string>
+    <string name="local_ocr_service_lost">The accessibility service disconnected. Turn it on again, then tap the tile</string>
+    <string name="local_ocr_unlock_retry">Unlock and go back to the payment result page, then tap the tile again</string>
+    <string name="local_ocr_already_captured">Automatic capture already recorded this page. No need to tap the tile</string>
+    <string name="local_ocr_request_expired">The scan request expired. Try again</string>
+    <string name="local_ocr_timeout">The scan timed out. Try again or enter the payment manually</string>
+    <string name="local_ocr_window_changed">The payment window changed. Try again</string>
+    <string name="local_ocr_window_changed_discarded">The payment window changed, so the screenshot was discarded</string>
+    <string name="local_ocr_bitmap_failed">Couldn’t process the screenshot. Enter the payment manually</string>
+    <string name="local_ocr_screenshot_unavailable">The screenshot is unavailable. Enter the payment manually</string>
+    <string name="local_ocr_secure_window">The payment app protects this window from screenshots. Enter the payment manually</string>
+    <string name="local_ocr_screenshot_refused">The system refused the screenshot. Try again or enter the payment manually</string>
+    <string name="local_ocr_screenshot_access">Screenshot permission or service unavailable. Check accessibility settings</string>
+    <string name="local_ocr_model_unavailable">The on-device Chinese text model is unavailable. Enter the payment manually</string>
+    <string name="local_ocr_result_discarded">The window or account changed, so the result was discarded</string>
+    <string name="local_ocr_empty_text">No text was recognized. Enter the payment manually</string>
+    <string name="local_ocr_too_much_text">The page has too much text. Enter the payment manually</string>
+    <string name="local_ocr_no_success_marker">Text was found, but no separate “支付成功” (payment successful) heading. Enter the payment manually</string>
+    <string name="local_ocr_excluded_content">The page mentions a refund, transfer, red packet, foreign currency or bill details, which aren’t supported. Enter the payment manually</string>
+    <string name="local_ocr_unsupported_page">This isn’t a supported CNY payment success page. Enter the payment manually</string>
+    <string name="local_ocr_recognition_failed">On-device text recognition failed. Enter the payment manually</string>
+    <string name="local_ocr_review_opening_notified">Scan complete. Opening the review page; if it doesn’t open, tap the Zowl notification</string>
+    <string name="local_ocr_review_opening">Scan complete. Opening the review page; if it doesn’t open, allow Zowl notifications or opening from the background</string>
+    <string name="local_ocr_review_failed">Couldn’t open the review page. Open Zowl and try again</string>
+    <string name="local_ocr_cancelled_disconnected">The accessibility service disconnected, so the scan was cancelled</string>
+</resources>

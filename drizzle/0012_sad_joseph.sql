@@ -1,0 +1,1 @@
+ALTER TABLE `import_items` ADD `enrichment_data` text;
