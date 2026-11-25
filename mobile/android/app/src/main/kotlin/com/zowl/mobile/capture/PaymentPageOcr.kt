@@ -209,13 +209,15 @@ object PaymentPageOcr {
 
     /**
      * Alipay's own cashier, as accessibility nodes expose it: its one amount is remembered for
-     * [onPaidNotice] if the cashier closes with its overlay. Never a payment by itself.
+     * [onPaidNotice] if the cashier closes with its overlay, and for [paidInCashier] if its own
+     * success page repeats it. Never a payment by itself.
      */
     fun onAlipayCashierText(service: AccessibilityService, windowId: Int, text: String) {
         val frame = AlipayCashierText.apply(cashier("alipay"), windowId, text)
         CaptureTrace.d {
             "cashier-text alipay window=$windowId ${LocalOcrParser.shape(text)} offers=${LocalOcrParser.offerLines(text)} " +
-                "frame=${frame.name.lowercase()}"
+                "frame=${frame.name.lowercase()} foreign=${PaymentPageParser.mentionsForeignCurrency(text)} " +
+                "paid=${paidInCashier(windowId) != null}"
         }
         if (frame == AlipayCashierText.Frame.AMOUNT && cashierAmountReported != windowId) {
             cashierAmountReported = windowId
@@ -223,9 +225,13 @@ object PaymentPageOcr {
         }
     }
 
+    /** What Alipay's cashier in this window showed and then reported as paid, until it is recorded. */
+    fun paidInCashier(windowId: Int): Long? = cashiers["alipay"]?.paidInCashier(windowId)
+
     /** A success page of [platform] was captured: no cashier amount waits for confirmation any more. */
-    fun onPageCaptured(platform: String) {
-        cashiers[platform]?.clear()
+    fun onPageCaptured(platform: String, windowId: Int? = null) {
+        val cashier = cashiers[platform] ?: return
+        if (windowId == null) cashier.clear() else cashier.onPageCaptured(windowId)
     }
 
     /** An order panel whose pay button shows what is about to be paid. Text only, no screenshot. */

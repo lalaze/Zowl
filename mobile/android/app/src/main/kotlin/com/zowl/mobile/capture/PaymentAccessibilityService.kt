@@ -290,7 +290,10 @@ class PaymentAccessibilityService : AccessibilityService() {
             }
             session = session.leaveCheckout()
             if (!preferences.savePageSession(platform, owner, session)) return Look.DONE
-            val evaluation = PaymentPageParser.evaluate(source, texts, System.currentTimeMillis(), session.id, preferences.installationId, partial) ?: return Look.DONE
+            val cashierPaid = if (platform == "alipay") PaymentPageOcr.paidInCashier(windowId) else null
+            session = session.forPage(cashierPaid)
+            val evaluation = PaymentPageParser.evaluate(source, texts, System.currentTimeMillis(), session.id,
+                preferences.installationId, partial, cashierPaid) ?: return Look.DONE
             val captured = evaluation as? PaymentNotificationEvaluation.Captured
             if (captured != null && session.consumed) {
                 CaptureDiagnosticsStore(this).record(PaymentNotificationEvaluation.Rejected(
@@ -303,7 +306,7 @@ class PaymentAccessibilityService : AccessibilityService() {
             if (platform == "wechat") paymentCode.onCaptured()
             // The cashier's own result page was the evidence; its closing must not record it again.
             if (platform == "alipay") {
-                PaymentPageOcr.onPageCaptured(platform)
+                PaymentPageOcr.onPageCaptured(platform, windowId)
                 alipayDialogs.onCashierActive()
             }
             val payment = settleOrderPaidElsewhere(platform, captured.payment)

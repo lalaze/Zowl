@@ -166,25 +166,29 @@ object PaymentPageOcrFacts {
  * therefore the cashier's amount confirmed by either window. Amounts stay in memory only.
  */
 class ShoppingCashierFlow(private val confirmWindow: Long = CONFIRM_WINDOW, private val now: () -> Long) {
-    data class Pending(val windowId: Int, val amountMinor: Long, val seenAt: Long)
+    /** [yuan] is whether the page stated the amount as yuan, rather than as a bare number. */
+    data class Pending(val windowId: Int, val amountMinor: Long, val seenAt: Long, val yuan: Boolean = false)
 
     private var pending: Pending? = null
     // When the amount now on show first appeared, and the amount it replaced on the same window.
     private var pendingSince = 0L
     private var replaced: Pending? = null
     private var settledWindow: Int? = null
+    // What the settled window showed before its success, and the same once its success page repeated it.
+    private var settling: Pending? = null
+    private var paid: Pending? = null
 
     /** A cashier frame showing exactly one amount and no outcome yet. */
-    fun onCashierAmount(windowId: Int, amountMinor: Long) {
+    fun onCashierAmount(windowId: Int, amountMinor: Long, yuan: Boolean = false) {
         if (windowId == settledWindow) return
         val shown = pending
         if (shown != null && shown.windowId == windowId && shown.amountMinor == amountMinor) {
-            pending = shown.copy(seenAt = now())
+            pending = shown.copy(seenAt = now(), yuan = shown.yuan || yuan)
             return
         }
         replaced = shown?.takeIf { it.windowId == windowId }
         pendingSince = now()
-        pending = Pending(windowId, amountMinor, now())
+        pending = Pending(windowId, amountMinor, now(), yuan)
     }
 
     /**
@@ -197,11 +201,32 @@ class ShoppingCashierFlow(private val confirmWindow: Long = CONFIRM_WINDOW, priv
         replaced = null
     }
 
-    /** The cashier itself showed its success state: there is nothing left for the result page to confirm. */
-    fun onCashierSettled(windowId: Int) {
+    /**
+     * The cashier itself showed its success state: there is nothing left for the result page to confirm.
+     * [shownMinor] is the one amount of that success page, which may fill in after its heading.
+     */
+    fun onCashierSettled(windowId: Int, shownMinor: Long? = null, yuan: Boolean = false) {
+        if (windowId != settledWindow) {
+            settling = pending?.takeIf { it.windowId == windowId }
+            paid = null
+        }
         settledWindow = windowId
         pending = null
         replaced = null
+        val before = settling ?: return
+        if (shownMinor == before.amountMinor && (before.yuan || yuan)) paid = before
+    }
+
+    /**
+     * The yuan amount this cashier window showed and then reported as paid on its success page.
+     * The pair is a payment of its own, whichever page was captured last; null once it is recorded.
+     */
+    fun paidInCashier(windowId: Int): Long? = paid?.takeIf { it.windowId == windowId }?.amountMinor
+
+    /** The success page in [windowId] was recorded; nothing this window still shows is another payment. */
+    fun onPageCaptured(windowId: Int) {
+        clear()
+        settledWindow = windowId
     }
 
     /**
@@ -215,6 +240,8 @@ class ShoppingCashierFlow(private val confirmWindow: Long = CONFIRM_WINDOW, priv
         replaced = null
         if (now() - shown.seenAt > confirmWindow) return null
         settledWindow = shown.windowId
+        settling = null
+        paid = null
         // A checkout may redraw as the payment completes (Pinduoduo's panel falls back to its
         // default payment method). What was paid is the amount that stood there when the order
         // was submitted, not one that appeared in the instant before the success.
@@ -232,6 +259,8 @@ class ShoppingCashierFlow(private val confirmWindow: Long = CONFIRM_WINDOW, priv
         pending = null
         replaced = null
         settledWindow = null
+        settling = null
+        paid = null
     }
 
     companion object {
@@ -590,21 +619,24 @@ class CashierOverlayDialogs(private val platform: String, private val now: () ->
 
 /**
  * One accessibility-node read of Alipay's own cashier. The cashier is never a payment by itself:
- * its success page, when it shows one, is the node parser's. Before that, its one amount is what
- * [CashierOverlayDialogs] confirms if the cashier closes with its overlay instead. Offer lines are
- * dropped first, as on Taobao's cashier. Amounts stay in memory only.
+ * its success page, when it shows one, is the node parser's, which is told when that page repeats
+ * the amount the cashier showed ([ShoppingCashierFlow.paidInCashier]). Before that, its one amount
+ * is what [CashierOverlayDialogs] confirms if the cashier closes with its overlay instead. Offer
+ * lines are dropped first, as on Taobao's cashier. Amounts stay in memory only.
  */
 object AlipayCashierText {
     enum class Frame { AMOUNT, SETTLED, AMBIGUOUS, NONE }
 
     fun apply(flow: ShoppingCashierFlow, windowId: Int, shown: String): Frame {
         val text = LocalOcrParser.withoutOffers(shown)
+        val amount = LocalOcrParser.singleAmount(text)?.let(PaymentPageOcrFacts::minor)
+        val yuan = amount != null && PaymentPageParser.statesYuan(text.lines(), amount)
         if (LocalOcrParser.hasSuccessHeading(text)) {
-            flow.onCashierSettled(windowId)
+            flow.onCashierSettled(windowId, amount, yuan)
             return Frame.SETTLED
         }
-        LocalOcrParser.singleAmount(text)?.let(PaymentPageOcrFacts::minor)?.let {
-            flow.onCashierAmount(windowId, it)
+        if (amount != null) {
+            flow.onCashierAmount(windowId, amount, yuan)
             return Frame.AMOUNT
         }
         if (LocalOcrParser.amountCount(text) > 1) {

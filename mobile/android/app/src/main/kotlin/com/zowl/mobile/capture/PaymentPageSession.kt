@@ -12,6 +12,10 @@ data class PaymentPageSession(
     fun observeCheckout(): PaymentPageSession =
         if (checkoutVisible) this else PaymentPageSession(checkoutVisible = true)
 
+    /** A success page whose own cashier showed the amount first is a new payment, not a repeat. */
+    fun forPage(cashierPaidMinor: Long?): PaymentPageSession =
+        if (consumed && cashierPaidMinor != null) PaymentPageSession() else this
+
     fun leaveCheckout(): PaymentPageSession = copy(checkoutVisible = false)
     fun consume(): PaymentPageSession = copy(consumed = true, checkoutVisible = false)
 }

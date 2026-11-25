@@ -22,8 +22,11 @@ object PaymentPageParser {
     private val terminal = setOf("完成", "完成支付", "返回商家", "返回商户")
     private val excluded = listOf(
         "账单详情", "交易详情", "订单详情", "退款", "转账", "红包", "收款成功", "支付失败", "待支付",
-        "按住说话", "聊天信息", "发送消息", "美元", "港币", "欧元", "日元", "USD", "HKD", "EUR", "JPY", "$", "€",
+        "按住说话", "聊天信息", "发送消息",
     )
+    // A yen amount carries the yuan's own sign, so it can never be told apart from one.
+    private val yen = listOf("日元", "JPY")
+    private val foreign = yen + listOf("美元", "港币", "欧元", "USD", "HKD", "EUR", "$", "€")
     private val amountLabels = listOf("实付金额", "付款金额", "支付金额", "实付款")
     private val merchantLabels = listOf("商户全称", "商户名称", "收款方", "收款商户")
 
@@ -96,10 +99,32 @@ object PaymentPageParser {
         val paymentCode = lines.contains("向商家付款") ||
             (lines.any { it == "付款码" || it == "收付款" } &&
                 lines.any { it == "请向商家出示付款码" || it == "优先使用此支付方式付款" })
-        return lines.none { it in success || excluded.any(it::contains) } &&
+        return lines.none { it in success || (excluded + foreign).any(it::contains) } &&
             (paymentCode || lines.any { it in setOf("确认付款", "立即付款", "确认支付", "收银台", "支付方式") })
     }
 
+    /** A page that mentions a foreign currency, for developer tracing only. */
+    fun mentionsForeignCurrency(text: String): Boolean = foreign.any(text::contains)
+
+    /** Whether a page states [amountMinor] as yuan: with its sign, also drawn apart from the number. */
+    fun statesYuan(texts: List<String>, amountMinor: Long): Boolean {
+        val lines = texts.map(PaymentParserSupport::normalizeEvidenceField).filter(String::isNotBlank)
+        return yuanTokens(lines).any {
+            (PaymentParserSupport.evaluateAmounts(listOf(it)) as? AmountEvaluation.Valid)?.amountMinor == amountMinor
+        }
+    }
+
+    private fun yuanTokens(lines: List<String>): List<String> = lines.flatMapIndexed { index, line ->
+        if (line in currencySign) PaymentParserSupport.amountTokens(line + lines.getOrNull(index + 1).orEmpty())
+        else PaymentParserSupport.amountTokens(line)
+    }
+
+    /**
+     * [cashierPaidMinor] is what the cashier showed in this same window before this success page
+     * repeated it ([ShoppingCashierFlow.paidInCashier]). It is then the amount, and neither the
+     * price in a foreign currency beside it nor the page's layout says otherwise; what kind of
+     * page it is still does.
+     */
     fun evaluate(
         packageName: String,
         texts: List<String>,
@@ -107,6 +132,7 @@ object PaymentPageParser {
         sessionId: String,
         installationId: String,
         partial: Boolean = false,
+        cashierPaidMinor: Long? = null,
     ): PaymentNotificationEvaluation? {
         val platform = platform(packageName)?.takeIf { it !in checkoutFlow } ?: return null
         val parserId = "${platform}_payment_page_v1"
@@ -140,19 +166,16 @@ object PaymentPageParser {
         }
         // A cut-off tree can hide a second amount or a failure/refund marker.
         if (partial) return reject(PaymentNotificationRejectionReason.PAGE_READ_LIMIT)
-        if (lines.any { line -> excluded.any(line::contains) }) {
+        val marks = excluded + if (cashierPaidMinor == null) foreign else yen
+        if (lines.any { line -> marks.any(line::contains) }) {
             return reject(PaymentNotificationRejectionReason.EXCLUDED_SEMANTICS)
         }
-        if (lines.none { it in success } || lines.none { it in terminal }) {
+        if (cashierPaidMinor == null && (lines.none { it in success } || lines.none { it in terminal })) {
             return reject(PaymentNotificationRejectionReason.UNSUPPORTED_PAYMENT_PAGE)
         }
         val labelled = valuesForLabels(lines, amountLabels)
         val tokens = if (labelled.isEmpty()) {
-            lines.flatMapIndexed { index, line ->
-                if (line in setOf("¥", "￥", "人民币")) {
-                    PaymentParserSupport.amountTokens(line + lines.getOrNull(index + 1).orEmpty())
-                } else PaymentParserSupport.amountTokens(line)
-            }
+            yuanTokens(lines)
         } else {
             labelled.flatMap { value ->
                 PaymentParserSupport.amountTokens(value).ifEmpty {
@@ -160,7 +183,7 @@ object PaymentPageParser {
                 }
             }
         }
-        val amount = PaymentParserSupport.evaluateAmounts(tokens)
+        val amount = cashierPaidMinor?.let(AmountEvaluation::Valid) ?: PaymentParserSupport.evaluateAmounts(tokens)
         PaymentParserSupport.rejectionFor(amount)?.let { return reject(it) }
         amount as AmountEvaluation.Valid
         val merchants = valuesForLabels(lines, merchantLabels)
