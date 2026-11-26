@@ -200,10 +200,10 @@ class _CategoryBreakdown extends StatelessWidget {
     final scaled = [for (final v in raw) v * 100 / sum];
     final floors = [for (final v in scaled) v.floor()];
     var remaining = 100 - floors.fold<int>(0, (a, b) => a + b);
-    final order = List<int>.generate(raw.length, (i) => i)
-      ..sort(
-        (a, b) => (scaled[b] - floors[b]).compareTo(scaled[a] - floors[a]),
-      );
+    final order = List<int>.generate(
+      raw.length,
+      (i) => i,
+    )..sort((a, b) => (scaled[b] - floors[b]).compareTo(scaled[a] - floors[a]));
     for (var i = 0; i < remaining && i < order.length; i++) {
       floors[order[i]]++;
     }
@@ -314,7 +314,8 @@ class _CategoryBreakdown extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                ranked[index].name ?? tr('Uncategorized', '未分类'),
+                                ranked[index].name ??
+                                    tr('Uncategorized', '未分类'),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context).textTheme.titleSmall,
@@ -445,5 +446,5 @@ class _DonutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DonutPainter oldDelegate) =>
-      oldDelegate.slices != slices;
+      !listEquals(oldDelegate.slices, slices);
 }

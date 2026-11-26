@@ -9,6 +9,7 @@ import 'package:zemoney_mobile/core/api.dart';
 import 'package:zemoney_mobile/core/formatters.dart';
 import 'package:zemoney_mobile/core/l10n.dart';
 import 'package:zemoney_mobile/core/models.dart';
+import 'package:zemoney_mobile/core/providers.dart';
 import 'package:zemoney_mobile/features/statistics/statistics_screen.dart';
 
 import 'support/fixtures.dart';
@@ -447,9 +448,7 @@ void main() {
       await tester.tap(find.byTooltip('Previous month'));
       await tester.pumpAndSettle();
       expect(
-        find.bySemanticsLabel(
-          RegExp(r'^Spending by day 3: ¥50\.00'),
-        ),
+        find.bySemanticsLabel(RegExp(r'^Spending by day 3: ¥50\.00')),
         findsOneWidget,
       );
       final hill = find.bySemanticsLabel(
@@ -467,9 +466,10 @@ void main() {
 
       // Holding briefly then scrolling vertically must not leave a day readout.
       await slowVerticalScroll(-140);
-      final day2 = DateFormat('MMM d', 'en_US').format(
-        DateTime.parse('$prevMonth-02'),
-      );
+      final day2 = DateFormat(
+        'MMM d',
+        'en_US',
+      ).format(DateTime.parse('$prevMonth-02'));
       expect(find.textContaining(' · ¥'), findsNothing);
       await tester.drag(find.byType(CustomScrollView), const Offset(0, 140));
       await tester.pumpAndSettle();
@@ -558,6 +558,132 @@ void main() {
       await tester.tap(find.text('CNY').last);
       await tester.pumpAndSettle();
       expect(find.text('Net spending this month'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'hills and donut painters compare list contents in shouldRepaint',
+    (tester) async {
+      final harness = await MobileTestHarness.create();
+      final now = DateTime.now();
+      final previous = DateTime(now.year, now.month - 1);
+      final beforePrevious = DateTime(now.year, now.month - 2);
+      final prevKey = monthKey(previous);
+      final beforePrevKey = monthKey(beforePrevious);
+
+      var prevDays = [1000, 1000, 1000, 1000, 1000];
+      var behindDays = [1000, 1000, 1000, 1000, 1000];
+      var foodShare = 60.0;
+
+      StatisticsOverview buildOverview(String month, List<int> days) =>
+          StatisticsOverview(
+            month: month,
+            currency: 'CNY',
+            summary: testSummary,
+            categoryDistribution: [
+              DistributionItem(
+                name: 'Food',
+                color: '#f97316',
+                amountMinor: (foodShare * 100).round(),
+                transactionCount: 3,
+                sharePercent: foodShare,
+              ),
+              DistributionItem(
+                name: 'Transit',
+                color: '#3b82f6',
+                amountMinor: ((100 - foodShare) * 100).round(),
+                transactionCount: 2,
+                sharePercent: 100 - foodShare,
+              ),
+            ],
+            dailyTrend: [
+              for (final (index, minor) in days.indexed)
+                TrendPoint(
+                  label: '${index + 1}Day',
+                  date: '$month-${'${index + 1}'.padLeft(2, '0')}',
+                  netExpenseMinor: minor,
+                  incomeMinor: 0,
+                ),
+            ],
+            recentTransactions: const [],
+          );
+
+      harness.repository.statisticsHandler = (month, _) async {
+        if (month == prevKey) return buildOverview(month, [...prevDays]);
+        if (month == beforePrevKey) {
+          return buildOverview(month, [...behindDays]);
+        }
+        return buildOverview(month, const [1000]);
+      };
+
+      final semantics = tester.ensureSemantics();
+      await _show(tester, harness);
+      await tester.tap(find.byTooltip('Previous month'));
+      await tester.pumpAndSettle();
+
+      CustomPainter hillsPainter() => tester
+          .widget<CustomPaint>(
+            find
+                .descendant(
+                  of: find.bySemanticsLabel(RegExp(r'^Spending by day 5:')),
+                  matching: find.byType(CustomPaint),
+                )
+                .first,
+          )
+          .painter!;
+
+      CustomPainter donutPainter() => tester
+          .widget<CustomPaint>(
+            find
+                .ancestor(
+                  of: find.text('categories'),
+                  matching: find.byType(CustomPaint),
+                )
+                .first,
+          )
+          .painter!;
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(StatisticsScreen)),
+      );
+      Future<void> reload() async {
+        container.invalidate(statisticsProvider('$prevKey|CNY'));
+        container.invalidate(statisticsProvider('$beforePrevKey|CNY'));
+        await tester.pumpAndSettle();
+      }
+
+      final hills0 = hillsPainter();
+      final donut0 = donutPainter();
+
+      // Rebuilding with equal-content lists does not repaint either painter.
+      await reload();
+      final hillsSame = hillsPainter();
+      final donutSame = donutPainter();
+      expect(identical(hillsSame, hills0), isFalse);
+      expect(hillsSame.shouldRepaint(hills0), isFalse);
+      expect(identical(donutSame, donut0), isFalse);
+      expect(donutSame.shouldRepaint(donut0), isFalse);
+
+      // Moving spending between middle days keeps climb.length and climb.last
+      // identical, yet must still trigger a hill repaint.
+      prevDays = [1000, 1500, 500, 1000, 1000];
+      await reload();
+      final hillsMovedMiddle = hillsPainter();
+      expect(hillsMovedMiddle.shouldRepaint(hills0), isTrue);
+
+      // Same regression check for last month's ridge (behind).
+      prevDays = [1000, 1000, 1000, 1000, 1000];
+      behindDays = [1000, 1500, 500, 1000, 1000];
+      await reload();
+      final hillsMovedBehind = hillsPainter();
+      expect(hillsMovedBehind.shouldRepaint(hills0), isTrue);
+
+      // Changing a donut slice share triggers a donut repaint.
+      foodShare = 70.0;
+      await reload();
+      final donutChanged = donutPainter();
+      expect(donutChanged.shouldRepaint(donut0), isTrue);
+      semantics.dispose();
     },
   );
 }

@@ -497,11 +497,8 @@ class _HillsPainter extends CustomPainter {
       oldDelegate.paper != paper ||
       oldDelegate.owl != owl ||
       oldDelegate.selectedDay != selectedDay ||
-      oldDelegate.climb.length != climb.length ||
-      oldDelegate.behind.length != behind.length ||
-      (climb.isNotEmpty &&
-          oldDelegate.climb.isNotEmpty &&
-          oldDelegate.climb.last != climb.last);
+      !listEquals(oldDelegate.climb, climb) ||
+      !listEquals(oldDelegate.behind, behind);
 }
 
 /// High-contrast colour key on a frosted sky pill so swatches stay unmistakable
