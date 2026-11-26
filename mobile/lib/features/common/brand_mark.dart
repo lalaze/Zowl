@@ -4,6 +4,7 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 
 import '../../core/l10n.dart';
+import '../../core/theme.dart';
 
 /// Which surface the owl sits on. The mark keeps fixed brand colours across
 /// accent themes and stays ink-black everywhere; on dark surfaces a faint rim
@@ -477,4 +478,41 @@ class OwlPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant OwlPainter oldDelegate) =>
       oldDelegate.variant != variant || oldDelegate.pose != pose;
+}
+
+/// The owl next to the Zowl wordmark.
+class Brand extends StatelessWidget {
+  const Brand({super.key, this.compact = false});
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.ze;
+    final size = compact ? 20.0 : 30.0;
+    return Semantics(
+      label: 'Zowl',
+      excludeSemantics: true,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            OwlMark(size: size * 1.45),
+            SizedBox(width: size * .3),
+            Text(
+              'Zowl',
+              style: TextStyle(
+                color: t.ink,
+                fontSize: size,
+                height: 1,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -size * .02,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

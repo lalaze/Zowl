@@ -9,8 +9,10 @@ import '../../core/payment_capture.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/owl_motion.dart';
+import '../common/page_states.dart';
 import '../common/sky.dart';
-import '../common/widgets.dart';
+import '../common/ze_labels.dart';
+import '../common/ze_surfaces.dart';
 
 class PaymentCaptureSettingsTile extends ConsumerWidget {
   const PaymentCaptureSettingsTile({super.key});
@@ -428,7 +430,9 @@ class _PaymentCaptureSettingsScreenState
                           SwitchListTile(
                             secondary: const Icon(Icons.account_balance_wallet),
                             title: Text(tr('Alipay', '支付宝')),
-                            subtitle: Text(tr('Payment success pages', '支付成功页')),
+                            subtitle: Text(
+                              tr('Payment success pages', '支付成功页'),
+                            ),
                             value: status.alipayEnabled,
                             onChanged: !_busy && status.enabled
                                 ? (value) => _setSource('alipay', value)
@@ -438,14 +442,20 @@ class _PaymentCaptureSettingsScreenState
                           SwitchListTile(
                             secondary: const Icon(Icons.chat_bubble_outline),
                             title: Text(tr('WeChat Pay', '微信支付')),
-                            subtitle: Text(tr('Payment success pages', '支付成功页')),
+                            subtitle: Text(
+                              tr('Payment success pages', '支付成功页'),
+                            ),
                             value: status.wechatEnabled,
                             onChanged: !_busy && status.enabled
                                 ? (value) => _setSource('wechat', value)
                                 : null,
                           ),
                           for (final (platform, label, enabled) in [
-                            ('taobao', tr('Taobao', '淘宝'), status.taobaoEnabled),
+                            (
+                              'taobao',
+                              tr('Taobao', '淘宝'),
+                              status.taobaoEnabled,
+                            ),
                             (
                               'pinduoduo',
                               tr('Pinduoduo', '拼多多'),
@@ -545,7 +555,10 @@ class _PaymentCaptureSettingsScreenState
                             ListTile(
                               leading: const Icon(Icons.speed_outlined),
                               title: Text(
-                                tr('Auto-post limit per transaction', '单笔自动入账上限'),
+                                tr(
+                                  'Auto-post limit per transaction',
+                                  '单笔自动入账上限',
+                                ),
                               ),
                               subtitle: Text(
                                 formatMoneyWithSymbol(
@@ -578,7 +591,9 @@ class _PaymentCaptureSettingsScreenState
                     ],
                     const SizedBox(height: 16),
                     OutlinedButton.icon(
-                      onPressed: _busy ? null : _bridge.openAccessibilitySettings,
+                      onPressed: _busy
+                          ? null
+                          : _bridge.openAccessibilitySettings,
                       icon: const Icon(Icons.settings_outlined),
                       label: Text(
                         tr('Open system accessibility settings', '打开系统无障碍设置'),

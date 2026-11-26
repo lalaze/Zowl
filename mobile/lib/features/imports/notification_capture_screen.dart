@@ -10,8 +10,11 @@ import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/category_visuals.dart';
 import '../common/owl_motion.dart';
+import '../common/page_states.dart';
 import '../common/sky.dart';
-import '../common/widgets.dart';
+import '../common/ze_labels.dart';
+import '../common/ze_rows.dart';
+import '../common/ze_surfaces.dart';
 
 part 'notification_capture_card.dart';
 part 'notification_capture_editor.dart';
@@ -592,9 +595,7 @@ class _NotificationCaptureScreenState
                               ],
                               data: (value) {
                                 final done = value.items
-                                    .where(
-                                      (item) => item.status == 'completed',
-                                    )
+                                    .where((item) => item.status == 'completed')
                                     .toList();
                                 if (done.isEmpty) return const <Widget>[];
                                 return <Widget>[
@@ -602,8 +603,7 @@ class _NotificationCaptureScreenState
                                     children: [
                                       for (final item in done)
                                         _HistoryRow(
-                                          icon:
-                                              item.resultCode == 'AUTO_POSTED'
+                                          icon: item.resultCode == 'AUTO_POSTED'
                                               ? Icons.auto_awesome_rounded
                                               : item.resultTransactionId !=
                                                         null ||
@@ -743,9 +743,9 @@ class _PrivacyBanner extends StatelessWidget {
                       ),
                 maxLines: expanded ? null : 1,
                 overflow: expanded ? null : TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: 12,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontSize: 12),
               ),
             ),
             const SizedBox(width: 4),

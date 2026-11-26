@@ -6,7 +6,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/l10n.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
-import '../common/widgets.dart';
+import '../common/speech_bubble.dart';
+import '../common/ze_labels.dart';
+import '../common/ze_rows.dart';
+import '../common/ze_surfaces.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});

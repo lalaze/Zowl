@@ -15,7 +15,9 @@ import '../../core/theme.dart';
 import '../common/category_visuals.dart';
 import '../common/owl_motion.dart';
 import '../common/sky.dart';
-import '../common/widgets.dart';
+import '../common/ze_controls.dart';
+import '../common/ze_labels.dart';
+import '../common/ze_surfaces.dart';
 import '../../core/l10n.dart';
 
 part 'transaction_form_logic.dart';

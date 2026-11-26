@@ -5,7 +5,7 @@ import 'package:zemoney_mobile/core/formatters.dart';
 import 'package:zemoney_mobile/core/l10n.dart';
 import 'package:zemoney_mobile/core/models.dart';
 import 'package:zemoney_mobile/core/providers.dart';
-import 'package:zemoney_mobile/features/common/widgets.dart';
+import 'package:zemoney_mobile/features/common/ze_labels.dart';
 import 'package:zemoney_mobile/features/imports/notification_capture_screen.dart';
 
 import 'support/fixtures.dart';
@@ -475,7 +475,9 @@ void main() {
                   );
           };
 
-      await tester.pumpWidget(harness.screen(const NotificationCaptureScreen()));
+      await tester.pumpWidget(
+        harness.screen(const NotificationCaptureScreen()),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Batch review'));
@@ -538,54 +540,37 @@ void main() {
       );
 
       var stage = 0;
-      harness.repository.notificationCapturesPageHandler =
-          (status, page) async {
-            if (status == 'completed') return _emptyPage;
-            return switch (stage) {
-              0 => const NotificationCapturePage(
-                items: [_cmbCapture, secondUnique],
-                pagination: Pagination(
-                  page: 1,
-                  limit: 20,
-                  total: 2,
-                  totalPages: 1,
-                ),
-                pendingCount: 2,
-              ),
-              1 => const NotificationCapturePage(
-                items: [_cmbCapture, secondNowDuplicate],
-                pagination: Pagination(
-                  page: 1,
-                  limit: 20,
-                  total: 2,
-                  totalPages: 1,
-                ),
-                pendingCount: 2,
-              ),
-              2 => const NotificationCapturePage(
-                items: [secondNowDuplicate],
-                pagination: Pagination(
-                  page: 1,
-                  limit: 20,
-                  total: 1,
-                  totalPages: 1,
-                ),
-                pendingCount: 1,
-              ),
-              _ => const NotificationCapturePage(
-                items: [thirdUnique],
-                pagination: Pagination(
-                  page: 1,
-                  limit: 20,
-                  total: 1,
-                  totalPages: 1,
-                ),
-                pendingCount: 1,
-              ),
-            };
-          };
+      harness
+          .repository
+          .notificationCapturesPageHandler = (status, page) async {
+        if (status == 'completed') return _emptyPage;
+        return switch (stage) {
+          0 => const NotificationCapturePage(
+            items: [_cmbCapture, secondUnique],
+            pagination: Pagination(page: 1, limit: 20, total: 2, totalPages: 1),
+            pendingCount: 2,
+          ),
+          1 => const NotificationCapturePage(
+            items: [_cmbCapture, secondNowDuplicate],
+            pagination: Pagination(page: 1, limit: 20, total: 2, totalPages: 1),
+            pendingCount: 2,
+          ),
+          2 => const NotificationCapturePage(
+            items: [secondNowDuplicate],
+            pagination: Pagination(page: 1, limit: 20, total: 1, totalPages: 1),
+            pendingCount: 1,
+          ),
+          _ => const NotificationCapturePage(
+            items: [thirdUnique],
+            pagination: Pagination(page: 1, limit: 20, total: 1, totalPages: 1),
+            pendingCount: 1,
+          ),
+        };
+      };
 
-      await tester.pumpWidget(harness.screen(const NotificationCaptureScreen()));
+      await tester.pumpWidget(
+        harness.screen(const NotificationCaptureScreen()),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Batch review'));

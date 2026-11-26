@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zemoney_mobile/core/providers.dart';
-import 'package:zemoney_mobile/features/common/widgets.dart';
+import 'package:zemoney_mobile/features/transactions/transaction_row.dart';
 
 import 'support/fixtures.dart';
 import 'support/test_harness.dart';

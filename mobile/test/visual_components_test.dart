@@ -7,7 +7,12 @@ import 'package:zemoney_mobile/core/models.dart';
 import 'package:zemoney_mobile/core/providers.dart';
 import 'package:zemoney_mobile/core/theme.dart';
 import 'package:zemoney_mobile/features/common/brand_mark.dart';
-import 'package:zemoney_mobile/features/common/widgets.dart';
+import 'package:zemoney_mobile/features/common/page_states.dart';
+import 'package:zemoney_mobile/features/common/ze_charts.dart';
+import 'package:zemoney_mobile/features/common/ze_controls.dart';
+import 'package:zemoney_mobile/features/common/ze_labels.dart';
+import 'package:zemoney_mobile/features/common/ze_surfaces.dart';
+import 'package:zemoney_mobile/features/transactions/transaction_row.dart';
 
 const transaction = TransactionItem(
   id: 'tx-1',
@@ -35,86 +40,88 @@ const income = TransactionItem(
   source: 'manual',
 );
 
-Widget showcase(Brightness brightness, {AccentColor accent = AccentColor.amber}) =>
-    ProviderScope(
-      overrides: [
-        categoriesProvider.overrideWith(
-          (ref) async => const [
-            Category(
-              id: 'food',
-              name: 'Food',
-              kind: 'expense',
-              icon: 'Utensils',
-              color: '#f97316',
-            ),
-          ],
+Widget showcase(
+  Brightness brightness, {
+  AccentColor accent = AccentColor.amber,
+}) => ProviderScope(
+  overrides: [
+    categoriesProvider.overrideWith(
+      (ref) async => const [
+        Category(
+          id: 'food',
+          name: 'Food',
+          kind: 'expense',
+          icon: 'Utensils',
+          color: '#f97316',
         ),
       ],
-      child: MaterialApp(
-        theme: buildTheme(accent, brightness),
-        home: Scaffold(
-          body: SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
+    ),
+  ],
+  child: MaterialApp(
+    theme: buildTheme(accent, brightness),
+    home: Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            const Brand(),
+            const SizedBox(height: 16),
+            const ZeCard(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ZeMetric(
+                      label: 'Income',
+                      value: '¥12,800.00',
+                      dot: Colors.green,
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: ZeMetric(
+                      label: 'Balance this month',
+                      value: '¥10,400.00',
+                      dot: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            ZeSegmented<int>(
+              segments: const [(0, 'All'), (1, 'Expense'), (2, 'Income')],
+              selected: 0,
+              onChanged: (_) {},
+            ),
+            const SizedBox(height: 12),
+            const ZeCard(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                children: [
+                  TransactionRow(item: transaction),
+                  TransactionRow(item: income),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Wrap(
+              spacing: 6,
+              runSpacing: 6,
               children: [
-                const Brand(),
-                const SizedBox(height: 16),
-                const ZeCard(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ZeMetric(
-                          label: 'Income',
-                          value: '¥12,800.00',
-                          dot: Colors.green,
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: ZeMetric(
-                          label: 'Balance this month',
-                          value: '¥10,400.00',
-                          dot: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ZeSegmented<int>(
-                  segments: const [(0, 'All'), (1, 'Expense'), (2, 'Income')],
-                  selected: 0,
-                  onChanged: (_) {},
-                ),
-                const SizedBox(height: 12),
-                const ZeCard(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Column(
-                    children: [
-                      TransactionRow(item: transaction),
-                      TransactionRow(item: income),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    ZeBadge(label: 'Screenshot'),
-                    ZeBadge(label: 'Ready to post', tone: ZeTone.income),
-                    ZeBadge(label: 'Possible duplicate', tone: ZeTone.warn),
-                    ZeBadge(label: 'Disabled', tone: ZeTone.danger),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const ZeProgress(value: .81),
+                ZeBadge(label: 'Screenshot'),
+                ZeBadge(label: 'Ready to post', tone: ZeTone.income),
+                ZeBadge(label: 'Possible duplicate', tone: ZeTone.warn),
+                ZeBadge(label: 'Disabled', tone: ZeTone.danger),
               ],
             ),
-          ),
+            const SizedBox(height: 12),
+            const ZeProgress(value: .81),
+          ],
         ),
       ),
-    );
+    ),
+  ),
+);
 
 void main() {
   testWidgets('core mobile components meet the 390px visual target', (
@@ -160,16 +167,16 @@ void main() {
     }
   });
 
-  testWidgets('a transaction row reads as one labelled button', (
-    tester,
-  ) async {
+  testWidgets('a transaction row reads as one labelled button', (tester) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [categoriesProvider.overrideWith((ref) async => const [])],
         child: MaterialApp(
           theme: buildTheme(AccentColor.amber, Brightness.light),
-          home: Scaffold(body: TransactionRow(item: transaction, onTap: () {})),
+          home: Scaffold(
+            body: TransactionRow(item: transaction, onTap: () {}),
+          ),
         ),
       ),
     );
@@ -294,7 +301,10 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.bySemanticsLabel('Zowl'), findsOneWidget);
       final owls = tester.widgetList<CustomPaint>(
-        find.descendant(of: find.byType(OwlMark), matching: find.byType(CustomPaint)),
+        find.descendant(
+          of: find.byType(OwlMark),
+          matching: find.byType(CustomPaint),
+        ),
       );
       final expected = brightness == Brightness.dark
           ? OwlVariant.onDark

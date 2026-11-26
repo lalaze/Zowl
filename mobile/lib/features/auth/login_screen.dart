@@ -7,7 +7,8 @@ import '../../core/l10n.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/sky.dart';
-import '../common/widgets.dart';
+import '../common/ze_labels.dart';
+import '../common/ze_surfaces.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});

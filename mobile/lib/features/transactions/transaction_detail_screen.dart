@@ -11,8 +11,11 @@ import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/category_visuals.dart';
 import '../common/owl_motion.dart';
+import '../common/page_states.dart';
 import '../common/sky.dart';
-import '../common/widgets.dart';
+import '../common/ze_labels.dart';
+import '../common/ze_rows.dart';
+import '../common/ze_surfaces.dart';
 
 class TransactionDetailScreen extends ConsumerWidget {
   const TransactionDetailScreen({super.key, required this.id, this.initial});
@@ -107,10 +110,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    tr(
-                      'Could not refresh: $inlineError',
-                      '刷新失败：$inlineError',
-                    ),
+                    tr('Could not refresh: $inlineError', '刷新失败：$inlineError'),
                     style: TextStyle(
                       color: t.ink,
                       fontSize: 13,

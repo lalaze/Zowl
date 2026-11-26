@@ -11,8 +11,11 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/owl_motion.dart';
+import '../common/page_states.dart';
 import '../common/sky.dart';
-import '../common/widgets.dart';
+import '../common/ze_labels.dart';
+import '../common/ze_rows.dart';
+import '../common/ze_surfaces.dart';
 
 class ImportScreen extends ConsumerStatefulWidget {
   const ImportScreen({super.key, this.quick = false, this.sharedFiles});
@@ -492,7 +495,10 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                           final jobs = snapshot.data ?? const [];
                           if (jobs.isEmpty) {
                             return EmptyView(
-                              message: tr('No recognition tasks yet', '还没有识别任务'),
+                              message: tr(
+                                'No recognition tasks yet',
+                                '还没有识别任务',
+                              ),
                               subtitle: tr(
                                 'Select your first screenshots to see progress here.',
                                 '选择第一批截图后，进度会显示在这里。',

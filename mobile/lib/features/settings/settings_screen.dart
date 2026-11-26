@@ -8,8 +8,12 @@ import '../../core/l10n.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
+import '../common/avatar_presets.dart';
 import '../common/sky.dart';
-import '../common/widgets.dart';
+import '../common/ze_controls.dart';
+import '../common/ze_labels.dart';
+import '../common/ze_rows.dart';
+import '../common/ze_surfaces.dart';
 import 'payment_capture_settings.dart';
 
 String _avatarName((String, String, IconData) avatar) =>

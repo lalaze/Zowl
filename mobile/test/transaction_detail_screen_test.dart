@@ -9,7 +9,9 @@ import 'package:zemoney_mobile/core/l10n.dart';
 import 'package:zemoney_mobile/core/models.dart';
 import 'package:zemoney_mobile/core/providers.dart';
 import 'package:zemoney_mobile/core/theme.dart';
-import 'package:zemoney_mobile/features/common/widgets.dart';
+import 'package:zemoney_mobile/features/common/page_states.dart';
+import 'package:zemoney_mobile/features/common/ze_rows.dart';
+import 'package:zemoney_mobile/features/common/ze_surfaces.dart';
 import 'package:zemoney_mobile/features/transactions/transaction_detail_screen.dart';
 
 import 'support/fixtures.dart';
@@ -611,13 +613,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: harness.overrides,
-          retry: (count, _) =>
-              count < 2 ? const Duration(seconds: 10) : null,
+          retry: (count, _) => count < 2 ? const Duration(seconds: 10) : null,
           child: const MaterialApp(
-            home: TransactionDetailScreen(
-              id: 'tx-1',
-              initial: testTransaction,
-            ),
+            home: TransactionDetailScreen(id: 'tx-1', initial: testTransaction),
           ),
         ),
       );
