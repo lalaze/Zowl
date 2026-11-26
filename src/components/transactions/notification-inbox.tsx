@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ApiRequestError, requestApi } from "@/lib/client-api";
+import { toDatetimeLocal } from "@/lib/date-time";
 import { localeTag } from "@/lib/i18n/locale";
 import { transactionSourceLabel } from "@/lib/transaction-display";
 import type { notificationCaptureService } from "@/services/notification-capture-service";
@@ -197,13 +198,10 @@ export function NotificationInbox({ initialPage, categories }: { initialPage: Pa
                 {t("Transaction time", "交易时间")}
                 <input
                   className={fieldClass}
-                  defaultValue={new Date(
-                    new Date(editing.transactionTime).getTime() -
-                      new Date(editing.transactionTime).getTimezoneOffset() *
-                        60000,
-                  )
-                    .toISOString()
-                    .slice(0, 16)}
+                  defaultValue={toDatetimeLocal(
+                    editing.transactionTime,
+                    "minutes",
+                  )}
                   name="transactionTime"
                   required
                   type="datetime-local"

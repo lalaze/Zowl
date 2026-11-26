@@ -19,6 +19,7 @@ import { OwlSays } from "@/components/brand/owl";
 import { StatisticsPeriodFilter } from "@/components/statistics/statistics-period-filter";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import { requireCurrentUser } from "@/lib/auth/session";
+import { localDayOfMonth } from "@/lib/date-time";
 import {
   localeTag,
   translator,
@@ -52,15 +53,6 @@ function validMonth(value: string | undefined) {
 
 function validCurrency(value: string | undefined) {
   return Boolean(value && /^[A-Z]{3}$/.test(value));
-}
-
-function localDayOfMonth(now: Date, timeZone: string) {
-  return Number(
-    new Intl.DateTimeFormat("en-US", {
-      day: "numeric",
-      timeZone,
-    }).format(now),
-  );
 }
 
 function ChangeLabel({
@@ -156,15 +148,16 @@ export default async function StatisticsPage({ searchParams }: PageProps) {
       : null,
     peak ? peakSentence(peak, overview.currency, locale) : null,
   ].filter((line): line is string => Boolean(line));
-  const visibleDailyTrend = month === currentMonth
-    ? overview.dailyTrend.slice(0, localDayOfMonth(now, user.timezone))
-    : overview.dailyTrend;
-  const periodNote = month === currentMonth
-    ? t(
-        `Through ${localDayOfMonth(now, user.timezone)} Day`,
-        `截至 ${localDayOfMonth(now, user.timezone)} 日`,
-      )
-    : t("Full calendar month", "完整自然月");
+  const currentDay =
+    month === currentMonth ? localDayOfMonth(now, user.timezone) : null;
+  const visibleDailyTrend =
+    currentDay !== null
+      ? overview.dailyTrend.slice(0, currentDay)
+      : overview.dailyTrend;
+  const periodNote =
+    currentDay !== null
+      ? t(`Through ${currentDay} Day`, `截至 ${currentDay} 日`)
+      : t("Full calendar month", "完整自然月");
 
   return (
     <div className="space-y-4 sm:space-y-8">

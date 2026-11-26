@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, type SelectOption } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { toDatetimeLocal } from "@/lib/date-time";
 import type { Translate } from "@/lib/i18n/locale";
 import type {
   BillEnrichmentData,
@@ -89,15 +90,6 @@ const transactionTypeOptions = (t: Translate): SelectOption[] => [
     ),
   },
 ];
-
-function toDatetimeLocal(value: string | null | undefined) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
-    .toISOString()
-    .slice(0, 19);
-}
 
 export function ImportItemEditor({
   batchId,

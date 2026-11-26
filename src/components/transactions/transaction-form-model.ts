@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { toDatetimeLocal } from "@/lib/date-time";
 import { translator, type Translate } from "@/lib/i18n/locale";
 import { decimalToMinor } from "@/lib/money";
 
@@ -131,12 +132,6 @@ export function duplicateReviewMessage(
   );
 }
 
-function toDatetimeLocal(iso: string) {
-  const date = new Date(iso);
-  const adjusted = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return adjusted.toISOString().slice(0, 16);
-}
-
 export function transactionFormDefaultValues(
   initialValue?: TransactionFormInitialValue,
 ): TransactionFormValues {
@@ -148,7 +143,10 @@ export function transactionFormDefaultValues(
         merchantName: initialValue.merchantName ?? "",
         description: initialValue.description ?? "",
         categoryId: initialValue.categoryId ?? "",
-        transactionTime: toDatetimeLocal(initialValue.transactionTime),
+        transactionTime: toDatetimeLocal(
+          initialValue.transactionTime,
+          "minutes",
+        ),
         paymentMethod: initialValue.paymentMethod ?? "",
         learnCategoryRule: false,
       }
@@ -159,7 +157,7 @@ export function transactionFormDefaultValues(
         merchantName: "",
         description: "",
         categoryId: "",
-        transactionTime: toDatetimeLocal(new Date().toISOString()),
+        transactionTime: toDatetimeLocal(new Date().toISOString(), "minutes"),
         paymentMethod: "",
         learnCategoryRule: false,
       };

@@ -5,6 +5,7 @@ import {
   type SceneTime,
 } from "@/components/brand/story-scene";
 import { companionLine } from "@/components/home/owl-companion";
+import { localDayOfMonth } from "@/lib/date-time";
 import {
   localeTag,
   translator,
@@ -30,15 +31,6 @@ const MONTH_NAMES = [
   "November",
   "December",
 ] as const;
-
-function localDayOfMonth(now: Date, timeZone: string) {
-  return Number(
-    new Intl.DateTimeFormat("en-US", {
-      day: "numeric",
-      timeZone,
-    }).format(now),
-  );
-}
 
 function dateLabel(now: Date, timeZone: string, locale: Locale) {
   return new Intl.DateTimeFormat(localeTag(locale), {

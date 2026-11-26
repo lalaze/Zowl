@@ -1,3 +1,4 @@
+import { toDatetimeLocal } from "@/lib/date-time";
 import { translator, type Locale } from "@/lib/i18n/locale";
 import { localizeServerMessage } from "@/lib/i18n/server-messages";
 import { decimalToMinor, minorToDecimal } from "@/lib/money";
@@ -63,14 +64,7 @@ export function parseAmountToMinor(value: string, currency: string) {
   }
 }
 
-export function toDatetimeLocal(value: string | null) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
-    .toISOString()
-    .slice(0, 19);
-}
+export { toDatetimeLocal };
 
 export function confidenceLabel(confidence: number | null, locale: Locale) {
   if (confidence == null || !Number.isFinite(confidence)) return null;
