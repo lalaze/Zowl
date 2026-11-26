@@ -5,11 +5,9 @@ import {
   ChevronRight,
   FileSpreadsheet,
   Flame,
-  Link2,
   PiggyBank,
   ReceiptText,
   ScanLine,
-  TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -23,7 +21,6 @@ import { CategoryGlyph } from "@/components/categories/category-glyph";
 import { companionLine } from "@/components/home/owl-companion";
 import { ReviewReminderCard } from "@/components/home/review-reminder-card";
 import { DesktopDashboard } from "@/components/home/desktop-dashboard";
-import { HomeCashflowTrend } from "@/components/statistics/home-cashflow-trend";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import { QuickTransactionEntry } from "@/components/transactions/quick-transaction-entry";
 import { Button } from "@/components/ui/button";
@@ -353,8 +350,8 @@ export default async function HomePage() {
         </Card>
       </section>
 
-      {/* Bottom: recent transactions + Right column (trends / imports) */}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-7">
+      {/* Bottom: recent transactions */}
+      <div className="pb-6">
         <section>
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -425,70 +422,6 @@ export default async function HomePage() {
             )}
           </Card>
         </section>
-
-        <aside className="space-y-5">
-          {/* HomeCashflowTrend Desktop only; hide the entire card on mobile */}
-          <Card className="overflow-hidden max-lg:hidden">
-            <div className="flex items-center gap-2 px-5 pt-5 text-sm font-black text-foreground">
-              <TrendingUp className="size-4" />
-              {t("Net spending trend · ", "净支出趋势 · ")}
-              {overview.month}
-              <span className="ml-auto text-xs font-semibold text-muted">
-                {t(
-                  `${summary.transactionCount} transactions`,
-                  `${summary.transactionCount} 笔`,
-                )}
-              </span>
-            </div>
-            <div className="px-2 pb-4 pt-2">
-              <HomeCashflowTrend
-                currency={overview.currency}
-                data={visibleDailyTrend}
-              />
-            </div>
-          </Card>
-
-          <div className="space-y-4 max-lg:hidden">
-            <Link
-              href="/imports/files"
-              className="group flex items-center gap-4 rounded-[24px] border-2 border-divider bg-tint-sky px-5 py-4 outline-none transition focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              <span className="grid size-11 shrink-0 place-items-center rounded-2xl border-2 border-divider bg-surface text-foreground">
-                <FileSpreadsheet className="size-6" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-base font-black text-foreground">
-                  {t("Import a statement file", "导入账单文件")}
-                </span>
-                <span className="mt-0.5 block truncate text-xs font-semibold text-muted">
-                  {t("Alipay, WeChat Pay CSV / XLSX", "支付宝、微信支付 CSV / XLSX")}
-                </span>
-              </span>
-              <ChevronRight className="size-5 text-muted transition group-hover:translate-x-1" />
-            </Link>
-
-            <Link
-              href="/imports"
-              className="group flex items-center gap-4 rounded-[24px] border-2 border-divider bg-tint-leaf px-5 py-4 outline-none transition focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              <span className="grid size-11 shrink-0 place-items-center rounded-2xl border-2 border-divider bg-surface text-foreground">
-                <Link2 className="size-6" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-base font-black text-foreground">
-                  {t("More import options", "更多导入方式")}
-                </span>
-                <span className="mt-0.5 block truncate text-xs font-semibold text-muted">
-                  {t(
-                    "View screenshot recognition and recent imports",
-                    "查看截图识别和最近的导入记录",
-                  )}
-                </span>
-              </span>
-              <ChevronRight className="size-5 text-muted transition group-hover:translate-x-1" />
-            </Link>
-          </div>
-        </aside>
       </div>
       </div>
       </div>

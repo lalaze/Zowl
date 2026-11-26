@@ -1,4 +1,3 @@
-import { OwlSays } from "@/components/brand/owl";
 import { translator, type Locale } from "@/lib/i18n/locale";
 import { formatMoney } from "@/lib/money";
 import type { StatisticsOverview } from "@/services/statistics-service";
@@ -40,18 +39,4 @@ export function companionLine(
         `You have spent ${spent} this month, ${percent}% less than last month. Nicely steady.`,
         `本月已支出 ${spent}，比上月少 ${percent}%，稳稳的。`,
       );
-}
-
-export function OwlCompanion({
-  overview,
-  locale = "en",
-}: {
-  overview: StatisticsOverview;
-  locale?: Locale;
-}) {
-  return (
-    <section aria-label={translator(locale)("Monthly summary", "本月小结")}>
-      <OwlSays>{companionLine(overview, locale)}</OwlSays>
-    </section>
-  );
 }
