@@ -1,12 +1,10 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { QuickTransactionEntry } from "@/components/transactions/quick-transaction-entry";
 import { TransactionFilters } from "@/components/transactions/transaction-filters";
 import { TransactionList } from "@/components/transactions/transaction-list";
-import { Button } from "@/components/ui/button";
+import { PagerNav } from "@/components/ui/pager-nav";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { getT } from "@/lib/i18n/server";
 import { screenshotRecognitionService } from "@/services/screenshot-recognition-service";
@@ -99,57 +97,15 @@ export default async function TransactionsPage({
         key={result.items.map((item) => item.id).join(":")}
         totalCount={result.pagination.total}
       />
-      {result.pagination.totalPages > 1 ? (
-        <nav
-          aria-label={t("Transaction pagination", "交易分页")}
-          className="flex items-center justify-between gap-3 rounded-[20px] border-2 border-divider bg-surface px-3 py-2"
-        >
-          <Button
-            asChild={result.pagination.page > 1}
-            disabled={result.pagination.page <= 1}
-            size="sm"
-            variant="outline"
-          >
-            {result.pagination.page > 1 ? (
-              <Link href={pageHref(query, result.pagination.page - 1)}>
-                <ChevronLeft className="size-4" />
-                {t("Previous", "上一页")}
-              </Link>
-            ) : (
-              <span>
-                <ChevronLeft className="size-4" />
-                {t("Previous", "上一页")}
-              </span>
-            )}
-          </Button>
-          <p className="text-sm font-bold text-muted">
-            {t(
-              `Page ${result.pagination.page} / ${result.pagination.totalPages} page`,
-              `第 ${result.pagination.page} / ${result.pagination.totalPages} 页`,
-            )}
-          </p>
-          <Button
-            asChild={result.pagination.page < result.pagination.totalPages}
-            disabled={
-              result.pagination.page >= result.pagination.totalPages
-            }
-            size="sm"
-            variant="outline"
-          >
-            {result.pagination.page < result.pagination.totalPages ? (
-              <Link href={pageHref(query, result.pagination.page + 1)}>
-                {t("Next", "下一页")}
-                <ChevronRight className="size-4" />
-              </Link>
-            ) : (
-              <span>
-                {t("Next", "下一页")}
-                <ChevronRight className="size-4" />
-              </span>
-            )}
-          </Button>
-        </nav>
-      ) : null}
+      <PagerNav
+        ariaLabel={t("Transaction pagination", "交易分页")}
+        page={result.pagination.page}
+        totalPages={result.pagination.totalPages}
+        previousHref={pageHref(query, result.pagination.page - 1)}
+        nextHref={pageHref(query, result.pagination.page + 1)}
+        t={t}
+        showDisabledChevrons
+      />
     </div>
   );
 }
