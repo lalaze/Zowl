@@ -1063,6 +1063,17 @@ describe("notification capture service", () => {
     expect(held.items[0]).toMatchObject({ reviewStatus: "reviewing", resultCode: null });
   });
 
+  it("still acknowledges a stored capture when the automation settings cannot be read", async () => {
+    database.sqlite.exec("DROP TABLE notification_capture_settings");
+    const result = await service.ingest("user-a", { events: [event()] });
+    expect(result.items[0]).toMatchObject({
+      status: "accepted",
+      reviewStatus: "reviewing",
+      resultCode: null,
+    });
+    expect(database.db.select().from(transactions).all()).toHaveLength(0);
+  });
+
   it("applies high-confidence AI categories to captures local rules cannot classify", async () => {
     seedStationeryCategory();
     const aiService = createNotificationCaptureService(

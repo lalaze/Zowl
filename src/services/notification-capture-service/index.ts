@@ -274,6 +274,20 @@ export function createNotificationCaptureService(
     };
   }
 
+  // Read once per upload: ingest never writes settings. A failed read skips automation, like a
+  // failed automation step, so the upload is still acknowledged.
+  function readAutomationSettings(userId: string) {
+    try {
+      return settings.getSettings(userId);
+    } catch (error) {
+      console.error(
+        "Notification capture automation failed",
+        error instanceof Error ? error.name : "unknown",
+      );
+      return null;
+    }
+  }
+
   /**
    * `locale` is the language of the uploading device (its Accept-Language):
    * generated descriptions, payment methods and AI reasons are written in it.
@@ -307,8 +321,8 @@ export function createNotificationCaptureService(
         error instanceof Error ? error.name : "unknown",
       );
     }
-    if (accepted.length) {
-      const captureSettings = settings.getSettings(userId);
+    const captureSettings = accepted.length ? readAutomationSettings(userId) : null;
+    if (captureSettings) {
       for (const item of accepted) {
         try {
           automation.finalizeAutomation(userId, item, captureSettings);
