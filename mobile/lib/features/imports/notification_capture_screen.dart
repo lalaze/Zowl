@@ -18,6 +18,7 @@ import '../common/ze_surfaces.dart';
 
 part 'notification_capture_card.dart';
 part 'notification_capture_editor.dart';
+part 'notification_capture_sections.dart';
 
 class NotificationCaptureScreen extends ConsumerStatefulWidget {
   const NotificationCaptureScreen({super.key});
@@ -35,13 +36,6 @@ class _NotificationCaptureScreenState
   bool _batchBusy = false;
   bool _batchMode = false;
   bool _privacyExpanded = false;
-
-  String? _categoryName(List<Category> categories, String? categoryId) {
-    for (final category in categories) {
-      if (category.id == categoryId) return category.name;
-    }
-    return null;
-  }
 
   Future<void> _refresh() async {
     refreshLedger(ref);
@@ -411,242 +405,57 @@ class _NotificationCaptureScreenState
                               ),
                             ),
                             const SizedBox(height: 12),
-                            ...jobs.when(
-                              // The owl below stands for everything on the first load.
-                              loading: () => [
-                                if (!page.isLoading)
-                                  const LinearProgressIndicator(),
-                              ],
-                              error: (error, _) => <Widget>[
-                                ErrorView(
-                                  error: error,
-                                  onRetry: () =>
-                                      ref.invalidate(recognitionJobsProvider),
-                                ),
-                              ],
-                              data: (items) {
-                                final open = items
-                                    .where(
-                                      (job) =>
-                                          job.status == 'reviewing' ||
-                                          job.status == 'processing',
-                                    )
-                                    .toList();
-                                if (open.isEmpty) return const <Widget>[];
-                                return <Widget>[
-                                  ZeGroup(
-                                    children: [
-                                      for (final job in open)
-                                        ZeNavRow(
-                                          icon: Icons.collections_rounded,
-                                          tone: job.status == 'processing'
-                                              ? ZeTone.info
-                                              : ZeTone.warn,
-                                          title:
-                                              '${tr(plural(job.totalCount, 'screenshot'), '${job.totalCount} 张截图')} · ${job.status == 'processing' ? tr('Recognizing', '识别中') : tr('Awaiting review', '待核对')}',
-                                          subtitle: formatDateTime(
-                                            job.createdAt,
-                                          ),
-                                          onTap: () async {
-                                            await context.push(
-                                              '/imports/screenshots/${job.id}',
-                                            );
-                                            if (mounted) await _refresh();
-                                          },
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                ];
+                            _RecognitionJobsSection(
+                              jobs: jobs,
+                              pageLoading: page.isLoading,
+                              onRetry: () =>
+                                  ref.invalidate(recognitionJobsProvider),
+                              onOpenJob: (jobId) async {
+                                await context.push(
+                                  '/imports/screenshots/$jobId',
+                                );
+                                if (mounted) await _refresh();
                               },
                             ),
-                            page.when(
-                              loading: () => const OwlLoading(),
-                              error: (error, _) =>
-                                  ErrorView(error: error, onRetry: _refresh),
-                              data: (value) => Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  ZeSectionHeader(
-                                    title: tr('Payment candidates', '支付候选'),
-                                    subtitle: tr(
-                                      '${value.pendingCount} awaiting confirmation',
-                                      '${value.pendingCount} 笔待确认',
-                                    ),
-                                    actionLabel:
-                                        uniqueIds.isEmpty && !activeBatchMode
-                                        ? null
-                                        : activeBatchMode
-                                        ? tr('Cancel', '取消')
-                                        : tr('Batch review', '批量核对'),
-                                    onAction: _batchBusy
-                                        ? null
-                                        : toggleBatchMode,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  if (value.items.isEmpty)
-                                    EmptyView(
-                                      message: tr(
-                                        'No captured payments awaiting confirmation',
-                                        '没有待确认的支付',
-                                      ),
-                                      subtitle: tr(
-                                        'Captured payment pages and debit notifications appear here.',
-                                        '采集到的支付页和扣款通知会显示在这里。',
-                                      ),
-                                    ),
-                                  for (final item in value.items) ...[
-                                    _CaptureCard(
-                                      item: item,
-                                      categoryName: _categoryName(
-                                        categories,
-                                        item.categoryId,
-                                      ),
-                                      busy:
-                                          _batchBusy ||
-                                          _busyIds.contains(item.id),
-                                      onEdit: () => _edit(item, categories),
-                                      onAddMerchant: () =>
-                                          _quickAddMerchant(item),
-                                      onPost: () =>
-                                          _confirm(item, decision: 'post'),
-                                      onSkip: () =>
-                                          _confirm(item, decision: 'skip'),
-                                      batchMode: activeBatchMode,
-                                      selected:
-                                          uniqueIdSet.contains(item.id) &&
-                                          _selected.contains(item.id),
-                                      onSelected:
-                                          item.duplicateStatus != 'unique'
-                                          ? null
-                                          : (checked) => setState(() {
-                                              if (checked) {
-                                                _selected.add(item.id);
-                                              } else {
-                                                _selected.remove(item.id);
-                                              }
-                                            }),
-                                    ),
-                                    const SizedBox(height: 12),
-                                  ],
-                                  if (value.pagination.totalPages > 1)
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        TextButton(
-                                          onPressed: _page > 1 && !_batchBusy
-                                              ? () => setState(() {
-                                                  _page--;
-                                                  _batchMode = false;
-                                                  _selected.clear();
-                                                })
-                                              : null,
-                                          child: Text(tr('Previous', '上一页')),
-                                        ),
-                                        Text(
-                                          tr(
-                                            'Page $_page of ${value.pagination.totalPages}',
-                                            '第 $_page / ${value.pagination.totalPages} 页',
-                                          ),
-                                        ),
-                                        TextButton(
-                                          onPressed:
-                                              _page <
-                                                      value
-                                                          .pagination
-                                                          .totalPages &&
-                                                  !_batchBusy
-                                              ? () => setState(() {
-                                                  _page++;
-                                                  _batchMode = false;
-                                                  _selected.clear();
-                                                })
-                                              : null,
-                                          child: Text(tr('Next', '下一页')),
-                                        ),
-                                      ],
-                                    ),
-                                ],
-                              ),
+                            _CandidatesSection(
+                              page: page,
+                              categories: categories,
+                              currentPage: _page,
+                              batchMode: activeBatchMode,
+                              batchBusy: _batchBusy,
+                              busyIds: _busyIds,
+                              selectedIds: _selected,
+                              uniqueIdSet: uniqueIdSet,
+                              onRetry: _refresh,
+                              onToggleBatchMode: toggleBatchMode,
+                              onEdit: (item) => _edit(item, categories),
+                              onAddMerchant: _quickAddMerchant,
+                              onPost: (item) =>
+                                  _confirm(item, decision: 'post'),
+                              onSkip: (item) =>
+                                  _confirm(item, decision: 'skip'),
+                              onToggleSelected: (id, checked) => setState(() {
+                                if (checked) {
+                                  _selected.add(id);
+                                } else {
+                                  _selected.remove(id);
+                                }
+                              }),
+                              onPageChanged: (nextPage) => setState(() {
+                                _page = nextPage;
+                                _batchMode = false;
+                                _selected.clear();
+                              }),
                             ),
                             const SizedBox(height: 22),
-                            ZeSectionHeader(
-                              title: tr('Recently processed', '最近处理'),
-                              subtitle: tr(
-                                'Posted, linked, or skipped candidates',
-                                '已入账、已关联或已跳过的候选',
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            ...history.when(
-                              // The owl above stands for everything on the first load.
-                              loading: () => [
-                                if (!page.isLoading)
-                                  const LinearProgressIndicator(),
-                              ],
-                              error: (error, _) => <Widget>[
-                                ErrorView(
-                                  error: error,
-                                  onRetry: () => ref.invalidate(
-                                    notificationHistoryProvider,
-                                  ),
-                                ),
-                              ],
-                              data: (value) {
-                                final done = value.items
-                                    .where((item) => item.status == 'completed')
-                                    .toList();
-                                if (done.isEmpty) return const <Widget>[];
-                                return <Widget>[
-                                  ZeGroup(
-                                    children: [
-                                      for (final item in done)
-                                        _HistoryRow(
-                                          icon: item.resultCode == 'AUTO_POSTED'
-                                              ? Icons.auto_awesome_rounded
-                                              : item.resultTransactionId !=
-                                                        null ||
-                                                    item.duplicateTransactionId !=
-                                                        null
-                                              ? Icons.check_rounded
-                                              : Icons.remove_done_rounded,
-                                          tone:
-                                              item.resultTransactionId !=
-                                                      null ||
-                                                  item.duplicateTransactionId !=
-                                                      null
-                                              ? ZeTone.income
-                                              : ZeTone.neutral,
-                                          title:
-                                              item.merchantName ??
-                                              _platformText(item.platform),
-                                          amount: formatMoneyWithSymbol(
-                                            item.amountMinor,
-                                            item.currency,
-                                          ),
-                                          subtitle:
-                                              '${item.resultCode == 'AUTO_POSTED'
-                                                  ? tr('Automatically posted', '已自动入账')
-                                                  : item.resultCode == 'SKIPPED_DUPLICATE'
-                                                  ? tr('Linked to existing transaction', '已关联已有交易')
-                                                  : item.resultTransactionId != null
-                                                  ? tr('Posted', '已入账')
-                                                  : tr('Skipped', '已跳过')} · ${_categoryName(categories, item.categoryId) ?? tr('Other', '其他')} · ${_platformText(item.platform)}',
-                                          onTap:
-                                              item.resultTransactionId !=
-                                                      null ||
-                                                  item.duplicateTransactionId !=
-                                                      null
-                                              ? () => context.push(
-                                                  '/transactions/${item.resultTransactionId ?? item.duplicateTransactionId}',
-                                                )
-                                              : null,
-                                        ),
-                                    ],
-                                  ),
-                                ];
-                              },
+                            _HistorySection(
+                              history: history,
+                              pageLoading: page.isLoading,
+                              categories: categories,
+                              onRetry: () =>
+                                  ref.invalidate(notificationHistoryProvider),
+                              onOpenTransaction: (id) =>
+                                  context.push('/transactions/$id'),
                             ),
                           ],
                         ),
