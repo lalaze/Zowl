@@ -147,6 +147,228 @@ function recordNeedsReview(
   });
 }
 
+function assertStagedItemsConfirmable(stagedItems: StagedItem[]) {
+  const unresolvedInvalidItems = stagedItems.filter(
+    (item) => item.validationErrors.length > 0 && item.decision !== "skip",
+  );
+  if (unresolvedInvalidItems.length) {
+    const visibleIssues = unresolvedInvalidItems
+      .slice(0, 3)
+      .map(
+        (item) =>
+          `Row ${item.rowNumber}: ${item.validationErrors
+            .map((issue) => issue.message)
+            .join(", ")}`,
+      )
+      .join("; ");
+    const remainingCount = unresolvedInvalidItems.length - 3;
+    throw new ImportServiceError(
+      "UNRESOLVED_INVALID_ITEMS",
+      `${visibleIssues}${remainingCount > 0 ? `; Also ${remainingCount} rows` : ""}. Correct it manually or skip`,
+      422,
+    );
+  }
+  if (stagedItems.some((item) => item.decision === "pending")) {
+    throw new ImportServiceError(
+      "UNRESOLVED_DUPLICATES",
+      "Some possible duplicates still need a decision",
+      409,
+    );
+  }
+  if (
+    stagedItems.some(
+      (item) =>
+        item.enrichmentData?.status === "conflict" && item.decision !== "skip",
+    )
+  ) {
+    throw new ImportServiceError(
+      "UNRESOLVED_ENRICHMENT_CONFLICT",
+      "Bill enrichment conflicts still need individual decisions",
+      409,
+    );
+  }
+}
+
+function buildImportCommandItems(
+  stagedItems: StagedItem[],
+  batchId: string,
+  fileId: string,
+) {
+  const normalItems = stagedItems.filter(
+    (item) => !isTargetEnrichment(item.enrichmentData),
+  );
+  return normalItems
+    .filter(
+      (item) =>
+        !(item.decision === "skip" && item.validationErrors.length > 0),
+    )
+    .map((item) => {
+      const normalized = confirmableNormalizedSchema.safeParse(
+        item.normalizedData,
+      );
+      if (!normalized.success) {
+        throw new ImportServiceError(
+          "ITEM_HAS_ERRORS",
+          "Invalid records still need correction",
+          422,
+        );
+      }
+      const data = normalized.data;
+      return {
+        sourceItemRef: item.id,
+        decision:
+          item.decision === "skip" ? ("skip" as const) : ("post" as const),
+        candidate: {
+          facts: stagedCandidateFacts(data),
+          provenance: {
+            kind: "file_import" as const,
+            importItemId: item.id,
+            batchId,
+            fileId,
+            platform: data.source,
+            platformTransactionId: data.platformTransactionId,
+            platformStatus: data.status,
+          },
+        },
+        duplicateOverride: stagedDuplicateOverride(item),
+      };
+    });
+}
+
+function applyBillEnrichmentItem(
+  transactionalDatabase: Database,
+  options: {
+    userId: string;
+    fileId: string;
+    item: StagedItem;
+    enrichment: TargetEnrichment;
+    now: string;
+    ledger: ReturnType<typeof createLedgerTransactionService>;
+    notificationService: ReturnType<typeof createNotificationCaptureService>;
+  },
+) {
+  const { userId, fileId, item, enrichment, now, ledger, notificationService } =
+    options;
+  if (item.decision === "skip") {
+    transactionalDatabase
+      .update(importItems)
+      .set({
+        resultTransactionId: null,
+        resultCode: "SKIPPED_BY_USER",
+        updatedAt: now,
+      })
+      .where(eq(importItems.id, item.id))
+      .run();
+    return;
+  }
+  const normalized = confirmableNormalizedSchema.parse(item.normalizedData);
+  const { resolved, adoptedFields } = resolvedValues(enrichment);
+  let transactionId: string;
+  let resultCode: "ENRICHED_CAPTURE_POSTED" | "ENRICHED_TRANSACTION";
+
+  if (enrichment.targetKind === "notification_capture") {
+    const expectedVersion = Number.parseInt(enrichment.targetVersion, 10);
+    const confirmed = notificationService.confirmBillEnrichment(
+      userId,
+      enrichment.captureId,
+      {
+        expectedConfirmationVersion: expectedVersion,
+        values: resolved,
+        adoptedFields,
+      },
+    );
+    if (
+      confirmed.status !== "completed" ||
+      confirmed.outcome.outcome !== "posted" ||
+      !confirmed.outcome.transactionId
+    ) {
+      throw new ImportServiceError(
+        "ENRICHMENT_NEEDS_REVIEW",
+        "Notification candidate duplicate status changed. Review again",
+        409,
+      );
+    }
+    transactionId = confirmed.outcome.transactionId;
+    resultCode = "ENRICHED_CAPTURE_POSTED";
+  } else {
+    const current = transactionalDatabase
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.id, enrichment.targetId),
+          eq(transactions.userId, userId),
+        ),
+      )
+      .get();
+    if (
+      !current ||
+      current.voidedAt ||
+      current.currentRevisionId !== enrichment.targetVersion ||
+      current.amountMinor !== enrichment.immutable.amountMinor ||
+      current.currency !== enrichment.immutable.currency ||
+      current.transactionTime !== enrichment.immutable.transactionTime
+    ) {
+      throw new ImportServiceError(
+        "ENRICHMENT_TARGET_CHANGED",
+        "Transaction to enrich changed. Review again",
+        409,
+      );
+    }
+    const amendment = ledger.amendTransaction(userId, {
+      transactionId: current.id,
+      expectedRevisionId: current.currentRevisionId,
+      operationId: `file-import-enrichment:${item.id}`,
+      facts: {
+        type: current.type,
+        amountMinor: current.amountMinor,
+        currency: current.currency,
+        merchantName: resolved.merchantName,
+        description: resolved.description,
+        categoryId: resolved.categoryId,
+        transactionTime: current.transactionTime,
+        paymentMethod: resolved.paymentMethod,
+      },
+      learnCategoryRule: false,
+    });
+    if (amendment.status !== "completed") {
+      throw new ImportServiceError(
+        "ENRICHMENT_TARGET_CHANGED",
+        "Revision or duplicate status of the transaction to enrich changed. Review again",
+        409,
+      );
+    }
+    transactionId = current.id;
+    resultCode = "ENRICHED_TRANSACTION";
+  }
+
+  transactionalDatabase
+    .insert(transactionSupplementalEvidence)
+    .values({
+      id: randomUUID(),
+      userId,
+      transactionId,
+      importItemId: item.id,
+      fileId,
+      source: normalized.source,
+      platformTransactionId: normalized.platformTransactionId,
+      platformStatus: normalized.status,
+      createdAt: now,
+    })
+    .run();
+  transactionalDatabase
+    .update(importItems)
+    .set({
+      resultTransactionId: transactionId,
+      resultCode,
+      duplicateStatus: "unique",
+      duplicateTransactionId: null,
+      updatedAt: now,
+    })
+    .where(eq(importItems.id, item.id))
+    .run();
+}
+
 export function createImportPostingWorkflow(
   database: Database,
   runtimeFor: AiCategorizationRuntimeResolver,
@@ -169,86 +391,12 @@ export function createImportPostingWorkflow(
       batchId,
       configurationFingerprint,
     );
-    const unresolvedInvalidItems = stagedItems.filter(
-      (item) => item.validationErrors.length > 0 && item.decision !== "skip",
+    assertStagedItemsConfirmable(stagedItems);
+    const commandItems = buildImportCommandItems(
+      stagedItems,
+      batchId,
+      batch.fileId,
     );
-    if (unresolvedInvalidItems.length) {
-      const visibleIssues = unresolvedInvalidItems
-        .slice(0, 3)
-        .map(
-          (item) =>
-            `Row ${item.rowNumber}: ${item.validationErrors
-              .map((issue) => issue.message)
-              .join(", ")}`,
-        )
-        .join("; ");
-      const remainingCount = unresolvedInvalidItems.length - 3;
-      throw new ImportServiceError(
-        "UNRESOLVED_INVALID_ITEMS",
-        `${visibleIssues}${remainingCount > 0 ? `; Also ${remainingCount} rows` : ""}. Correct it manually or skip`,
-        422,
-      );
-    }
-    if (stagedItems.some((item) => item.decision === "pending")) {
-      throw new ImportServiceError(
-        "UNRESOLVED_DUPLICATES",
-        "Some possible duplicates still need a decision",
-        409,
-      );
-    }
-    if (
-      stagedItems.some(
-        (item) =>
-          item.enrichmentData?.status === "conflict" &&
-          item.decision !== "skip",
-      )
-    ) {
-      throw new ImportServiceError(
-        "UNRESOLVED_ENRICHMENT_CONFLICT",
-        "Bill enrichment conflicts still need individual decisions",
-        409,
-      );
-    }
-
-    const normalItems = stagedItems.filter(
-      (item) => !isTargetEnrichment(item.enrichmentData),
-    );
-    const commandItems = normalItems
-      .filter(
-        (item) =>
-          !(item.decision === "skip" && item.validationErrors.length > 0),
-      )
-      .map((item) => {
-        const normalized = confirmableNormalizedSchema.safeParse(
-          item.normalizedData,
-        );
-        if (!normalized.success) {
-          throw new ImportServiceError(
-            "ITEM_HAS_ERRORS",
-            "Invalid records still need correction",
-            422,
-          );
-        }
-        const data = normalized.data;
-        return {
-          sourceItemRef: item.id,
-          decision:
-            item.decision === "skip" ? ("skip" as const) : ("post" as const),
-          candidate: {
-            facts: stagedCandidateFacts(data),
-            provenance: {
-              kind: "file_import" as const,
-              importItemId: item.id,
-              batchId,
-              fileId: batch.fileId,
-              platform: data.source,
-              platformTransactionId: data.platformTransactionId,
-              platformStatus: data.status,
-            },
-          },
-          duplicateOverride: stagedDuplicateOverride(item),
-        };
-      });
 
     try {
       database.transaction((tx) => {
@@ -315,131 +463,15 @@ export function createImportPostingWorkflow(
 
           const enrichment = item.enrichmentData;
           if (isTargetEnrichment(enrichment)) {
-            if (item.decision === "skip") {
-              transactionalDatabase
-                .update(importItems)
-                .set({
-                  resultTransactionId: null,
-                  resultCode: "SKIPPED_BY_USER",
-                  updatedAt: now,
-                })
-                .where(eq(importItems.id, item.id))
-                .run();
-              continue;
-            }
-            const normalized = confirmableNormalizedSchema.parse(
-              item.normalizedData,
-            );
-            const { resolved, adoptedFields } = resolvedValues(enrichment);
-            let transactionId: string;
-            let resultCode:
-              | "ENRICHED_CAPTURE_POSTED"
-              | "ENRICHED_TRANSACTION";
-
-            if (enrichment.targetKind === "notification_capture") {
-              const expectedVersion = Number.parseInt(
-                enrichment.targetVersion,
-                10,
-              );
-              const confirmed = notificationService.confirmBillEnrichment(
-                userId,
-                enrichment.captureId,
-                {
-                  expectedConfirmationVersion: expectedVersion,
-                  values: resolved,
-                  adoptedFields,
-                },
-              );
-              if (
-                confirmed.status !== "completed" ||
-                confirmed.outcome.outcome !== "posted" ||
-                !confirmed.outcome.transactionId
-              ) {
-                throw new ImportServiceError(
-                  "ENRICHMENT_NEEDS_REVIEW",
-                  "Notification candidate duplicate status changed. Review again",
-                  409,
-                );
-              }
-              transactionId = confirmed.outcome.transactionId;
-              resultCode = "ENRICHED_CAPTURE_POSTED";
-            } else {
-              const current = transactionalDatabase
-                .select()
-                .from(transactions)
-                .where(
-                  and(
-                    eq(transactions.id, enrichment.targetId),
-                    eq(transactions.userId, userId),
-                  ),
-                )
-                .get();
-              if (
-                !current ||
-                current.voidedAt ||
-                current.currentRevisionId !== enrichment.targetVersion ||
-                current.amountMinor !== enrichment.immutable.amountMinor ||
-                current.currency !== enrichment.immutable.currency ||
-                current.transactionTime !== enrichment.immutable.transactionTime
-              ) {
-                throw new ImportServiceError(
-                  "ENRICHMENT_TARGET_CHANGED",
-                  "Transaction to enrich changed. Review again",
-                  409,
-                );
-              }
-              const amendment = ledger.amendTransaction(userId, {
-                transactionId: current.id,
-                expectedRevisionId: current.currentRevisionId,
-                operationId: `file-import-enrichment:${item.id}`,
-                facts: {
-                  type: current.type,
-                  amountMinor: current.amountMinor,
-                  currency: current.currency,
-                  merchantName: resolved.merchantName,
-                  description: resolved.description,
-                  categoryId: resolved.categoryId,
-                  transactionTime: current.transactionTime,
-                  paymentMethod: resolved.paymentMethod,
-                },
-                learnCategoryRule: false,
-              });
-              if (amendment.status !== "completed") {
-                throw new ImportServiceError(
-                  "ENRICHMENT_TARGET_CHANGED",
-                  "Revision or duplicate status of the transaction to enrich changed. Review again",
-                  409,
-                );
-              }
-              transactionId = current.id;
-              resultCode = "ENRICHED_TRANSACTION";
-            }
-
-            transactionalDatabase
-              .insert(transactionSupplementalEvidence)
-              .values({
-                id: randomUUID(),
-                userId,
-                transactionId,
-                importItemId: item.id,
-                fileId: batch.fileId,
-                source: normalized.source,
-                platformTransactionId: normalized.platformTransactionId,
-                platformStatus: normalized.status,
-                createdAt: now,
-              })
-              .run();
-            transactionalDatabase
-              .update(importItems)
-              .set({
-                resultTransactionId: transactionId,
-                resultCode,
-                duplicateStatus: "unique",
-                duplicateTransactionId: null,
-                updatedAt: now,
-              })
-              .where(eq(importItems.id, item.id))
-              .run();
+            applyBillEnrichmentItem(transactionalDatabase, {
+              userId,
+              fileId: batch.fileId,
+              item,
+              enrichment,
+              now,
+              ledger,
+              notificationService,
+            });
             continue;
           }
 
