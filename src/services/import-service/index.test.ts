@@ -1308,4 +1308,109 @@ describe("import service", () => {
         .get(),
     ).toEqual({ categoryId: "other" });
   });
+
+  it("records every IMPORTED and SKIPPED_* result code and outcome column on confirm", async () => {
+    const existing = {
+      source: "alipay" as const,
+      type: "expense" as const,
+      amountMinor: 4200,
+      currency: "CNY",
+      merchantName: "Harbor Bakery",
+      transactionTime: "2026-07-16T02:00:00.000Z",
+    };
+    database.db
+      .insert(transactions)
+      .values({
+        id: "existing-pin-tx",
+        userId: "import-user",
+        ...existing,
+        description: "Existing bun",
+        categoryId: "food",
+        platformTransactionId: "ALI-PIN-DUP",
+        createdAt: existing.transactionTime,
+        updatedAt: existing.transactionTime,
+        fingerprint: createTransactionFingerprint(existing),
+        duplicateStatus: "unique",
+        needsReview: false,
+      })
+      .run();
+
+    const csv = [
+      "Alipay transaction details",
+      "Alipay transaction ID,Transaction creation time,Counterparty,Item name,Amount (CNY),Income/Expense,Transaction status",
+      "ALI-PIN-OK,2026-07-16 09:00:00,Cedar Tea House,Green tea,18.00,Expense,Transaction successful",
+      "ALI-PIN-DUP,2026-07-16 10:00:00,Harbor Bakery,Existing bun,42.00,Expense,Transaction successful",
+      "ALI-PIN-POSS-SKIP,2026-07-16 10:02:00,Harbor Bakery,Another bun,42.00,Expense,Transaction successful",
+      "ALI-PIN-POSS-OVERRIDE,2026-07-16 10:03:00,Harbor Bakery,Override bun,42.00,Expense,Transaction successful",
+      "ALI-PIN-USER-SKIP,2026-07-16 11:00:00,Maple Bookshop,Notebook,25.00,Expense,Transaction successful",
+      "ALI-PIN-INVALID,2026-07-16 12:00:00,Broken Row Shop,Missing type,15.00,UnknownType,Transaction successful",
+    ].join("\n");
+    const staged = await service.upload(
+      "import-user",
+      new File([csv], "result-codes.csv", { type: "text/csv" }),
+    );
+    const review = service.getReview("import-user", staged.batchId);
+    const byRow = new Map(review.items.map((item) => [item.rowNumber, item]));
+
+    service.setItemDecision("import-user", staged.batchId, byRow.get(5)!.id, "skip");
+    service.setItemDecision(
+      "import-user",
+      staged.batchId,
+      byRow.get(6)!.id,
+      "import_anyway",
+    );
+    service.setItemDecision("import-user", staged.batchId, byRow.get(7)!.id, "skip");
+    service.setItemDecision("import-user", staged.batchId, byRow.get(8)!.id, "skip");
+
+    const completed = service.confirm("import-user", staged.batchId);
+    const resultsByRow = new Map(
+      completed.items.map((item) => [item.rowNumber, item]),
+    );
+
+    expect(resultsByRow.get(3)).toMatchObject({
+      resultCode: "IMPORTED",
+      duplicateStatus: "unique",
+      duplicateTransactionId: null,
+      decision: "import",
+    });
+    expect(resultsByRow.get(3)?.resultTransactionId).toBeTruthy();
+
+    expect(resultsByRow.get(4)).toMatchObject({
+      resultCode: "SKIPPED_DUPLICATE",
+      resultTransactionId: null,
+      duplicateStatus: "duplicate",
+      duplicateTransactionId: "existing-pin-tx",
+      decision: "skip",
+    });
+
+    expect(resultsByRow.get(5)).toMatchObject({
+      resultCode: "SKIPPED_POSSIBLE_DUPLICATE",
+      resultTransactionId: null,
+      duplicateStatus: "possible_duplicate",
+      duplicateTransactionId: "existing-pin-tx",
+      decision: "skip",
+    });
+
+    expect(resultsByRow.get(6)).toMatchObject({
+      resultCode: "IMPORTED",
+      duplicateStatus: "possible_duplicate",
+      duplicateTransactionId: "existing-pin-tx",
+      decision: "import_anyway",
+    });
+    expect(resultsByRow.get(6)?.resultTransactionId).toBeTruthy();
+
+    expect(resultsByRow.get(7)).toMatchObject({
+      resultCode: "SKIPPED_BY_USER",
+      resultTransactionId: null,
+      duplicateStatus: "unique",
+      duplicateTransactionId: null,
+      decision: "skip",
+    });
+
+    expect(resultsByRow.get(8)).toMatchObject({
+      resultCode: "SKIPPED_INVALID",
+      resultTransactionId: null,
+      decision: "skip",
+    });
+  });
 });

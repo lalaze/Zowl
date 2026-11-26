@@ -1399,4 +1399,158 @@ describe("screenshot recognition service", () => {
     expect(database.db.select().from(storedFiles).all().filter((file) => !file.deletedAt)).toHaveLength(1);
   });
 
+  it("records every IMPORTED and SKIPPED_* result code and outcome column on confirm", async () => {
+    const existing = {
+      source: "screenshot" as const,
+      type: "expense" as const,
+      amountMinor: 4200,
+      currency: "CNY",
+      merchantName: "Harbor Bakery",
+      transactionTime: "2026-07-16T02:00:00.000Z",
+    };
+    database.db
+      .insert(transactions)
+      .values({
+        id: "existing-shot-pin-tx",
+        userId: "user-a",
+        ...existing,
+        description: "Existing bun",
+        categoryId: "food-a",
+        platformTransactionId: "SHOT-PIN-DUP",
+        createdAt: existing.transactionTime,
+        updatedAt: existing.transactionTime,
+        fingerprint: createTransactionFingerprint(existing),
+        duplicateStatus: "unique",
+        needsReview: false,
+      })
+      .run();
+
+    const service = createScreenshotRecognitionService(
+      database.db,
+      storage,
+      new SequenceReceiptProvider([
+        {
+          ...recognizedReceipt,
+          amount: 18,
+          merchantName: "Cedar Tea House",
+          description: "Green tea",
+          transactionTime: "2026-07-16T01:00:00.000Z",
+          platformTransactionId: "SHOT-PIN-OK",
+        },
+        {
+          ...recognizedReceipt,
+          amount: 42,
+          merchantName: "Harbor Bakery",
+          description: "Existing bun",
+          transactionTime: "2026-07-16T02:00:00.000Z",
+          platformTransactionId: "SHOT-PIN-DUP",
+        },
+        {
+          ...recognizedReceipt,
+          amount: 42,
+          merchantName: "Harbor Bakery",
+          description: "Another bun",
+          transactionTime: "2026-07-16T02:02:00.000Z",
+          platformTransactionId: "SHOT-PIN-POSS-SKIP",
+        },
+        {
+          ...recognizedReceipt,
+          amount: 42,
+          merchantName: "Harbor Bakery",
+          description: "Override bun",
+          transactionTime: "2026-07-16T02:03:00.000Z",
+          platformTransactionId: "SHOT-PIN-POSS-OVERRIDE",
+        },
+        {
+          ...recognizedReceipt,
+          amount: 25,
+          merchantName: "Maple Bookshop",
+          description: "Notebook",
+          transactionTime: "2026-07-16T03:00:00.000Z",
+          platformTransactionId: "SHOT-PIN-USER-SKIP",
+        },
+        {
+          ...recognizedReceipt,
+          type: null,
+          amount: null,
+          merchantName: "Broken Shot Shop",
+          description: "Missing fields",
+          transactionTime: null,
+          platformTransactionId: "SHOT-PIN-INVALID",
+        },
+      ]),
+    );
+
+    const uploaded = await service.upload("user-a", [
+      screenshot("pin-1.png", pngVariant(41)),
+      screenshot("pin-2.png", pngVariant(42)),
+      screenshot("pin-3.png", pngVariant(43)),
+      screenshot("pin-4.png", pngVariant(44)),
+      screenshot("pin-5.png", pngVariant(45)),
+      screenshot("pin-6.png", pngVariant(46)),
+    ]);
+
+    service.setDecision("user-a", uploaded.jobId, uploaded.items[2]!.id, "skip");
+    service.setDecision(
+      "user-a",
+      uploaded.jobId,
+      uploaded.items[3]!.id,
+      "import_anyway",
+    );
+    service.setDecision("user-a", uploaded.jobId, uploaded.items[4]!.id, "skip");
+    service.setDecision("user-a", uploaded.jobId, uploaded.items[5]!.id, "skip");
+
+    expect(service.confirm("user-a", uploaded.jobId)).toMatchObject({
+      createdCount: 2,
+      skippedCount: 4,
+    });
+
+    const completed = service.getReview("user-a", uploaded.jobId);
+    expect(completed.items[0]).toMatchObject({
+      resultCode: "IMPORTED",
+      duplicateKind: "unique",
+      duplicateTransactionId: null,
+      decision: "import",
+    });
+    expect(completed.items[0]?.resultTransactionId).toBeTruthy();
+
+    expect(completed.items[1]).toMatchObject({
+      resultCode: "SKIPPED_DUPLICATE",
+      resultTransactionId: null,
+      duplicateKind: "duplicate",
+      duplicateTransactionId: "existing-shot-pin-tx",
+      decision: "skip",
+    });
+
+    expect(completed.items[2]).toMatchObject({
+      resultCode: "SKIPPED_POSSIBLE_DUPLICATE",
+      resultTransactionId: null,
+      duplicateKind: "possible_duplicate",
+      duplicateTransactionId: "existing-shot-pin-tx",
+      decision: "skip",
+    });
+
+    expect(completed.items[3]).toMatchObject({
+      resultCode: "IMPORTED",
+      duplicateKind: "possible_duplicate",
+      duplicateTransactionId: "existing-shot-pin-tx",
+      decision: "import_anyway",
+    });
+    expect(completed.items[3]?.resultTransactionId).toBeTruthy();
+
+    expect(completed.items[4]).toMatchObject({
+      resultCode: "SKIPPED_BY_USER",
+      resultTransactionId: null,
+      duplicateKind: "unique",
+      duplicateTransactionId: null,
+      decision: "skip",
+    });
+
+    expect(completed.items[5]).toMatchObject({
+      resultCode: "SKIPPED_INVALID",
+      resultTransactionId: null,
+      decision: "skip",
+    });
+  });
+
 });
