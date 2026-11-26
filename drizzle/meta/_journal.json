@@ -141,6 +141,13 @@
       "when": 1795143353762,
       "tag": "0020_capture-order-details",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1795687865939,
+      "tag": "0021_typical_tyger_tiger",
+      "breakpoints": true
     }
   ]
 }

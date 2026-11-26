@@ -1,0 +1,3 @@
+CREATE INDEX `notification_captures_user_platform_posted_idx` ON `notification_captures` (`user_id`,`platform`,`notification_posted_at`);--> statement-breakpoint
+CREATE INDEX `notification_captures_user_result_transaction_idx` ON `notification_captures` (`user_id`,`result_transaction_id`);--> statement-breakpoint
+CREATE INDEX `transactions_user_platform_id_idx` ON `transactions` (`user_id`,`platform_transaction_id`) WHERE "transactions"."platform_transaction_id" is not null;

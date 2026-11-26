@@ -413,6 +413,9 @@ export const transactions = sqliteTable(
     uniqueIndex("transactions_user_source_platform_id_unique")
       .on(table.userId, table.source, table.platformTransactionId)
       .where(sql`${table.platformTransactionId} is not null`),
+    index("transactions_user_platform_id_idx")
+      .on(table.userId, table.platformTransactionId)
+      .where(sql`${table.platformTransactionId} is not null`),
   ],
 );
 
@@ -866,6 +869,15 @@ export const notificationCaptures = sqliteTable(
       table.userId,
       table.status,
       table.createdAt,
+    ),
+    index("notification_captures_user_platform_posted_idx").on(
+      table.userId,
+      table.platform,
+      table.notificationPostedAt,
+    ),
+    index("notification_captures_user_result_transaction_idx").on(
+      table.userId,
+      table.resultTransactionId,
     ),
   ],
 );
