@@ -7,22 +7,15 @@ import {
   LoaderCircle,
   Pencil,
   SkipForward,
-  X,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Owl } from "@/components/brand/owl";
 import { useLocale, useT } from "@/components/i18n/i18n-provider";
-import {
-  ImportItemEditor,
-  type CategoryOption,
-  type ReviewItem,
-} from "@/components/imports/import-review-list";
 import { Button } from "@/components/ui/button";
-import { formatMoney } from "@/lib/money";
 import { localizeServerMessage } from "@/lib/i18n/server-messages";
+import { formatMoney } from "@/lib/money";
 import {
   formatTransactionDate,
   transactionSourceLabel,
@@ -31,6 +24,17 @@ import {
 import { cn } from "@/lib/utils";
 import type { NormalizedImportTransaction } from "@/services/import-service/types";
 import type { TransactionView } from "@/types/transaction";
+
+import {
+  ImportItemEditor,
+  type CategoryOption,
+  type ReviewItem,
+} from "./import-item-editor";
+import { patchImportItem } from "./import-review-api";
+import {
+  ImportReviewDialogShell,
+  useImportReviewDialog,
+} from "./import-review-dialog-shell";
 
 export type DuplicateMatchTransaction = Pick<
   TransactionView,
@@ -166,8 +170,7 @@ export function ImportDuplicateReviewDialog({
   categories: CategoryOption[];
   remainingCount: number;
 }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { close, router } = useImportReviewDialog(batchId, "reviewDuplicates");
   const t = useT();
   const locale = useLocale();
   const [editing, setEditing] = useState(false);
@@ -177,51 +180,28 @@ export function ImportDuplicateReviewDialog({
   >(null);
   const [error, setError] = useState<string | null>(null);
 
-  const close = useCallback(() => {
-    const nextParams = new URLSearchParams(searchParams.toString());
-    nextParams.delete("reviewDuplicates");
-    const query = nextParams.toString();
-    router.replace(
-      `/imports/files/${batchId}/review${query ? `?${query}` : ""}`,
-    );
-  }, [batchId, router, searchParams]);
-
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [close]);
-
   async function decide(decision: "skip" | "import_anyway") {
     if (!item) return;
     setPendingDecision(decision);
     setError(null);
     try {
-      const response = await fetch(
-        `/api/imports/files/${batchId}/items/${item.id}`,
+      const result = await patchImportItem(
+        batchId,
+        item.id,
+        { action: "decision", decision },
         {
-          method: "PATCH",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ action: "decision", decision }),
+          fallback: t("Processing failed. Try again later", "处理失败，请稍后重试"),
+          network: t(
+            "Network connection failed. Try again later",
+            "网络连接失败，请稍后重试",
+          ),
         },
       );
-      const payload = (await response.json()) as {
-        error?: { message?: string };
-      };
-      if (!response.ok) {
-        setError(payload.error?.message ?? t("Processing failed. Try again later", "处理失败，请稍后重试"));
+      if (!result.ok) {
+        setError(result.error);
         return;
       }
       router.refresh();
-    } catch {
-      setError(t("Network connection failed. Try again later", "网络连接失败，请稍后重试"));
     } finally {
       setPendingDecision(null);
     }
@@ -240,203 +220,193 @@ export function ImportDuplicateReviewDialog({
   )?.message;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center p-0 sm:items-center sm:p-6">
-      <button
-        type="button"
-        aria-label={t("Close duplicate review", "关闭重复核对")}
-        className="absolute inset-0 bg-slate-950/55"
-        onClick={close}
-      />
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="import-duplicate-dialog-title"
-        aria-describedby="import-duplicate-dialog-description"
-        className="relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[24px] border-2 border-divider bg-surface sm:max-w-3xl sm:rounded-[24px]"
-      >
-        <div className="z-10 flex shrink-0 items-start justify-between gap-4 border-b-2 border-divider bg-surface px-5 py-4 sm:px-6">
+    <ImportReviewDialogShell
+      backdropLabel={t("Close duplicate review", "关闭重复核对")}
+      titleId="import-duplicate-dialog-title"
+      descriptionId="import-duplicate-dialog-description"
+      badge={
+        <span
+          className={cn(
+            "inline-flex items-center rounded-full border-2 border-divider px-2.5 py-0.5 text-[11px] font-extrabold",
+            item
+              ? "bg-tint-amber-strong text-foreground"
+              : "bg-tint-leaf text-foreground",
+          )}
+        >
+          {item
+            ? t(
+                `Remaining: ${remainingCount} transactions`,
+                `还剩 ${remainingCount} 笔`,
+              )
+            : t("Review complete", "核对完成")}
+        </span>
+      }
+      subtitle={t("Review possible duplicates", "逐笔核对疑似重复")}
+      title={
+        item
+          ? t(
+              `Row ${item.rowNumber} may be a duplicate`,
+              `第 ${item.rowNumber} 行可能重复`,
+            )
+          : t("All possible duplicates resolved", "所有疑似重复均已处理")
+      }
+      description={
+        item
+          ? t(
+              "Compare the transactions, then skip, edit, or import anyway.",
+              "请对比两笔交易，选择跳过、修改或仍然导入。",
+            )
+          : t(
+              "Return to review to continue checking or confirm the import.",
+              "现在可以返回核对页，继续检查或确认导入。",
+            )
+      }
+      onClose={close}
+    >
+      {!item ? (
+        <div className="grid min-h-72 place-items-center px-6 py-12 text-center">
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={cn("inline-flex items-center rounded-full border-2 border-divider px-2.5 py-0.5 text-[11px] font-extrabold", item ? "bg-tint-amber-strong text-foreground" : "bg-tint-leaf text-foreground")}>
-                {item
-                  ? t(`Remaining: ${remainingCount} transactions`, `还剩 ${remainingCount} 笔`)
-                  : t("Review complete", "核对完成")}
-              </span>
-              <span className="text-xs font-semibold text-subtle">
-                {t("Review possible duplicates", "逐笔核对疑似重复")}
-              </span>
-            </div>
-            <h2
-              id="import-duplicate-dialog-title"
-              className="mt-2 text-xl font-black text-foreground"
+            <Owl className="mx-auto w-20" />
+            <p className="mt-4 font-black text-foreground">
+              {t("All possible duplicates reviewed", "疑似重复已逐笔核对完毕")}
+            </p>
+            <Button
+              type="button"
+              variant="default"
+              className="mt-5"
+              onClick={close}
             >
-              {item
-                ? t(`Row ${item.rowNumber} may be a duplicate`, `第 ${item.rowNumber} 行可能重复`)
-                : t("All possible duplicates resolved", "所有疑似重复均已处理")}
-            </h2>
-            <p
-              id="import-duplicate-dialog-description"
-              className="mt-1 text-sm font-medium text-muted"
-            >
-              {item
-                ? t(
-                    "Compare the transactions, then skip, edit, or import anyway.",
-                    "请对比两笔交易，选择跳过、修改或仍然导入。",
-                  )
+              {t("Back to transaction review", "返回交易核对")}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="p-5 sm:p-6">
+          <div className="rounded-2xl border-2 border-divider bg-tint-amber p-4">
+            <p className="flex items-center gap-2 text-sm font-black text-foreground">
+              <AlertTriangle className="size-4 text-amber-700 dark:text-amber-300" />
+              {t("Reason for possible duplicate", "疑似重复依据")}
+            </p>
+            <p className="mt-2 text-sm font-medium text-foreground/80">
+              {duplicateReason
+                ? localizeServerMessage(duplicateReason, locale)
                 : t(
-                    "Return to review to continue checking or confirm the import.",
-                    "现在可以返回核对页，继续检查或确认导入。",
+                    "Key fields in these transactions are very similar",
+                    "两笔交易的关键字段高度相似",
                   )}
             </p>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={t("Close", "关闭")}
-            onClick={close}
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth">
-          {!item ? (
-            <div className="grid min-h-72 place-items-center px-6 py-12 text-center">
-              <div>
-                <Owl className="mx-auto w-20" />
-                <p className="mt-4 font-black text-foreground">
-                  {t("All possible duplicates reviewed", "疑似重复已逐笔核对完毕")}
-                </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <ComparisonCard
+              label={t("Current import", "本次导入")}
+              description={t(`File row ${item.rowNumber}`, `文件第 ${item.rowNumber} 行`)}
+              data={currentData}
+              tone="current"
+            />
+            <ComparisonCard
+              label={t("Potential duplicate", "可能重复的交易")}
+              description={
+                matchedItem
+                  ? t(
+                      `Batch row ${matchedItem.rowNumber}`,
+                      `本批次第 ${matchedItem.rowNumber} 行`,
+                    )
+                  : t("Existing ledger record", "账本中的已有记录")
+              }
+              data={matchedData}
+              transactionId={matchedTransaction?.id}
+              tone="matched"
+            />
+          </div>
+
+          <div
+            aria-hidden={!editing}
+            inert={!editing}
+            className={cn(
+              "grid transition-[grid-template-rows,opacity] duration-[360ms] ease-in-out motion-reduce:transition-none",
+              editing
+                ? "grid-rows-[1fr] opacity-100"
+                : "pointer-events-none grid-rows-[0fr] opacity-0",
+            )}
+          >
+            <div
+              className={cn(
+                "min-h-0 overflow-hidden transition-transform duration-[360ms] ease-in-out motion-reduce:transition-none",
+                editing ? "translate-y-0" : "translate-y-3",
+              )}
+            >
+              <ImportItemEditor
+                key={`${item.id}-${editorSession}`}
+                batchId={batchId}
+                item={item}
+                categories={categories}
+                onClose={() => setEditing(false)}
+              />
+            </div>
+          </div>
+
+          {error ? (
+            <p className="mt-4 text-sm text-rose-600">{error}</p>
+          ) : null}
+
+          <div
+            aria-hidden={editing}
+            inert={editing}
+            className={cn(
+              "grid transition-[grid-template-rows,opacity] duration-[240ms] ease-in-out motion-reduce:transition-none",
+              editing
+                ? "pointer-events-none grid-rows-[0fr] opacity-0"
+                : "grid-rows-[1fr] opacity-100",
+            )}
+          >
+            <div className="min-h-0 overflow-hidden">
+              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button
                   type="button"
-                  variant="default"
-                  className="mt-5"
-                  onClick={close}
+                  variant="secondary"
+                  disabled={pendingDecision !== null}
+                  onClick={() => decide("skip")}
                 >
-                  {t("Back to transaction review", "返回交易核对")}
+                  {pendingDecision === "skip" ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : (
+                    <SkipForward className="size-4" />
+                  )}
+                  {pendingDecision === "skip"
+                    ? t("Skipping…", "正在跳过…")
+                    : t("Skip this item", "跳过此笔")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={pendingDecision !== null}
+                  onClick={startEditing}
+                >
+                  <Pencil className="size-4" />
+                  {t("Edit manually", "手动修改")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="bg-amber-500 hover:bg-amber-600 active:bg-amber-700"
+                  disabled={pendingDecision !== null}
+                  onClick={() => decide("import_anyway")}
+                >
+                  {pendingDecision === "import_anyway" ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : (
+                    <CircleHelp className="size-4" />
+                  )}
+                  {pendingDecision === "import_anyway"
+                    ? t("Confirming…", "正在确认…")
+                    : t("Import anyway", "仍然导入")}
                 </Button>
               </div>
             </div>
-          ) : (
-            <div className="p-5 sm:p-6">
-              <div className="rounded-2xl border-2 border-divider bg-tint-amber p-4">
-                <p className="flex items-center gap-2 text-sm font-black text-foreground">
-                  <AlertTriangle className="size-4 text-amber-700 dark:text-amber-300" />{t("Reason for possible duplicate", "疑似重复依据")}
-                </p>
-                <p className="mt-2 text-sm font-medium text-foreground/80">
-                  {duplicateReason
-                    ? localizeServerMessage(duplicateReason, locale)
-                    : t("Key fields in these transactions are very similar", "两笔交易的关键字段高度相似")}
-                </p>
-              </div>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <ComparisonCard
-                  label={t("Current import", "本次导入")}
-                  description={t(`File row ${item.rowNumber}`, `文件第 ${item.rowNumber} 行`)}
-                  data={currentData}
-                  tone="current"
-                />
-                <ComparisonCard
-                  label={t("Potential duplicate", "可能重复的交易")}
-                  description={
-                    matchedItem
-                      ? t(`Batch row ${matchedItem.rowNumber}`, `本批次第 ${matchedItem.rowNumber} 行`)
-                      : t("Existing ledger record", "账本中的已有记录")
-                  }
-                  data={matchedData}
-                  transactionId={matchedTransaction?.id}
-                  tone="matched"
-                />
-              </div>
-
-              <div
-                aria-hidden={!editing}
-                inert={!editing}
-                className={cn(
-                  "grid transition-[grid-template-rows,opacity] duration-[360ms] ease-in-out motion-reduce:transition-none",
-                  editing
-                    ? "grid-rows-[1fr] opacity-100"
-                    : "pointer-events-none grid-rows-[0fr] opacity-0",
-                )}
-              >
-                <div
-                  className={cn(
-                    "min-h-0 overflow-hidden transition-transform duration-[360ms] ease-in-out motion-reduce:transition-none",
-                    editing ? "translate-y-0" : "translate-y-3",
-                  )}
-                >
-                  <ImportItemEditor
-                    key={`${item.id}-${editorSession}`}
-                    batchId={batchId}
-                    item={item}
-                    categories={categories}
-                    onClose={() => setEditing(false)}
-                  />
-                </div>
-              </div>
-
-              {error ? (
-                <p className="mt-4 text-sm text-rose-600">{error}</p>
-              ) : null}
-
-              <div
-                aria-hidden={editing}
-                inert={editing}
-                className={cn(
-                  "grid transition-[grid-template-rows,opacity] duration-[240ms] ease-in-out motion-reduce:transition-none",
-                  editing
-                    ? "pointer-events-none grid-rows-[0fr] opacity-0"
-                    : "grid-rows-[1fr] opacity-100",
-                )}
-              >
-                <div className="min-h-0 overflow-hidden">
-                  <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pendingDecision !== null}
-                      onClick={() => decide("skip")}
-                    >
-                      {pendingDecision === "skip" ? (
-                        <LoaderCircle className="size-4 animate-spin" />
-                      ) : (
-                        <SkipForward className="size-4" />
-                      )}
-                      {pendingDecision === "skip" ? t("Skipping…", "正在跳过…") : t("Skip this item", "跳过此笔")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={pendingDecision !== null}
-                      onClick={startEditing}
-                    >
-                      <Pencil className="size-4" />{t("Edit manually", "手动修改")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="primary"
-                      className="bg-amber-500 hover:bg-amber-600 active:bg-amber-700"
-                      disabled={pendingDecision !== null}
-                      onClick={() => decide("import_anyway")}
-                    >
-                      {pendingDecision === "import_anyway" ? (
-                        <LoaderCircle className="size-4 animate-spin" />
-                      ) : (
-                        <CircleHelp className="size-4" />
-                      )}
-                      {pendingDecision === "import_anyway"
-                        ? t("Confirming…", "正在确认…")
-                        : t("Import anyway", "仍然导入")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
-      </section>
-    </div>
+      )}
+    </ImportReviewDialogShell>
   );
 }
