@@ -557,4 +557,150 @@ void main() {
       expect(harness.repository.createInputs.single['currency'], 'GBP');
     },
   );
+
+  testWidgets(
+    'back navigation prompts only when the draft differs from its initial value',
+    (tester) async {
+      Future<(GoRouter, void Function())> openForm({
+        TransactionItem? initial,
+      }) async {
+        final harness = await MobileTestHarness.create();
+        final router = GoRouter(
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, _) => Scaffold(
+                body: TextButton(
+                  onPressed: () => context.push('/form'),
+                  child: const Text('OPEN'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: '/form',
+              builder: (_, _) => TransactionFormScreen(initial: initial),
+            ),
+          ],
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: harness.overrides,
+            retry: (_, _) => null,
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('OPEN'));
+        await tester.pumpAndSettle();
+        return (router, router.dispose);
+      }
+
+      // Unedited form pops immediately without a discard dialog.
+      var (router, dispose) = await openForm();
+      addTearDown(dispose);
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Discard unfinished changes?'), findsNothing);
+      expect(find.text('OPEN'), findsOneWidget);
+
+      // Editing triggers the discard dialog; keeping editing preserves the draft,
+      // and editing back to the original value allows popping without a prompt.
+      await tester.tap(find.text('OPEN'));
+      await tester.pumpAndSettle();
+      await tester.enterText(_amount, '12.50');
+      await tester.pump();
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Discard unfinished changes?'), findsOneWidget);
+      await tester.tap(find.text('Keep editing'));
+      await tester.pumpAndSettle();
+      expect(find.text('Discard unfinished changes?'), findsNothing);
+      expect(tester.widget<TextFormField>(_amount).controller!.text, '12.50');
+
+      await tester.enterText(_amount, '');
+      await tester.pump();
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Discard unfinished changes?'), findsNothing);
+      expect(find.text('OPEN'), findsOneWidget);
+
+      // Confirming discard pops even with unsaved edits.
+      await tester.tap(find.text('OPEN'));
+      await tester.pumpAndSettle();
+      await tester.enterText(_amount, '99.00');
+      await tester.pump();
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Discard draft'));
+      await tester.pumpAndSettle();
+      expect(find.text('OPEN'), findsOneWidget);
+
+      // Editing an existing transaction behaves the same when restored to original.
+      final (_, disposeEdit) = await openForm(initial: testTransaction);
+      addTearDown(disposeEdit);
+      expect(find.byType(TransactionFormScreen), findsOneWidget);
+      await _reveal(tester, _field('Merchant name (optional)'));
+      await tester.enterText(_field('Merchant name (optional)'), 'Other Cafe');
+      await tester.pump();
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Discard unfinished changes?'), findsOneWidget);
+      await tester.tap(find.text('Keep editing'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        _field('Merchant name (optional)'),
+        testTransaction.merchantName!,
+      );
+      await tester.pump();
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Discard unfinished changes?'), findsNothing);
+      expect(find.text('OPEN'), findsOneWidget);
+    },
+  );
+
+  testWidgets('typing while already dirty does not rebuild the whole form', (
+    tester,
+  ) async {
+    final harness = await MobileTestHarness.create();
+    final (widget, router) = _app(harness);
+    addTearDown(router.dispose);
+    await tester.pumpWidget(widget);
+    await _settle(tester);
+
+    PopScope<dynamic> currentPopScope() => tester.widget<PopScope<dynamic>>(
+      find.byWidgetPredicate((widget) => widget is PopScope).last,
+    );
+
+    final clean = currentPopScope();
+    expect(clean.canPop, isTrue);
+
+    await tester.enterText(_amount, '1');
+    await tester.pump();
+    final dirty = currentPopScope();
+    expect(dirty.canPop, isFalse);
+    expect(identical(dirty, clean), isFalse);
+
+    await tester.enterText(_amount, '12.50');
+    await tester.pump();
+    expect(identical(currentPopScope(), dirty), isTrue);
+
+    await _reveal(tester, _field('Merchant name (optional)'));
+    await tester.enterText(_field('Merchant name (optional)'), 'Cafe');
+    await tester.pump();
+    expect(identical(currentPopScope(), dirty), isTrue);
+
+    await tester.enterText(_field('Merchant name (optional)'), '');
+    await tester.pump();
+    expect(identical(currentPopScope(), dirty), isTrue);
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 600));
+    await tester.pumpAndSettle();
+    await tester.enterText(_amount, '');
+    await tester.pump();
+    final restored = currentPopScope();
+    expect(restored.canPop, isTrue);
+    expect(identical(restored, dirty), isFalse);
+  });
 }

@@ -170,16 +170,18 @@ extension _TransactionFormLogic on _TransactionFormScreenState {
       refreshLedger(ref);
       ref.invalidate(transactionProvider(id));
       if (!_editing && _postAnother) {
-        _amount.clear();
-        _merchant.clear();
-        _description.clear();
-        _payment.clear();
-        _time = DateTime.now();
-        _lastSignature = null;
-        _operationId = const Uuid().v4();
-        _initialDraft = jsonEncode(_facts());
+        _update(() {
+          _amount.clear();
+          _merchant.clear();
+          _description.clear();
+          _payment.clear();
+          _time = DateTime.now();
+          _lastSignature = null;
+          _operationId = const Uuid().v4();
+          _initialDraft = jsonEncode(_facts());
+          _posted = true;
+        });
         _amountFocus.requestFocus();
-        _posted = true;
       } else {
         _discardAllowed = true;
         context.go('/transactions/$id');

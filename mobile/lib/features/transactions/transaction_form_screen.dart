@@ -48,6 +48,8 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   bool _postAnother = false;
   bool _posted = false;
   bool _discardAllowed = false;
+  bool _hasUnsavedChanges = false;
+  bool _updatingDraft = false;
   late String _initialDraft;
   String? _error;
   String? _lastSignature;
@@ -83,8 +85,14 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     }
   }
 
+  bool _hasDraftChanges() => jsonEncode(_facts()) != _initialDraft;
+
   void _draftChanged() {
-    if (mounted) setState(() {});
+    if (_updatingDraft || !mounted) return;
+    final dirty = _hasDraftChanges();
+    if (dirty != _hasUnsavedChanges) {
+      setState(() => _hasUnsavedChanges = dirty);
+    }
   }
 
   Future<void> _confirmLeave() async {
@@ -155,12 +163,21 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
 
   String? _nullable(String input) => input.trim().isEmpty ? null : input.trim();
 
-  void _update(VoidCallback mutation) => setState(mutation);
+  void _update(VoidCallback mutation) {
+    _updatingDraft = true;
+    try {
+      setState(() {
+        mutation();
+        _hasUnsavedChanges = _hasDraftChanges();
+      });
+    } finally {
+      _updatingDraft = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) => PopScope(
-    canPop:
-        _discardAllowed || (!_saving && jsonEncode(_facts()) == _initialDraft),
+    canPop: _discardAllowed || (!_saving && !_hasUnsavedChanges),
     onPopInvokedWithResult: (didPop, _) {
       if (!didPop) _confirmLeave();
     },
