@@ -187,6 +187,17 @@ class _ZeMoneyAppState extends ConsumerState<ZeMoneyApp>
   XFile? _pendingScreenshot;
   late SceneTime _time;
   Timer? _skyTimer;
+  (AccentColor, SceneTime)? _themeKey;
+  late ThemeData _lightTheme;
+  late ThemeData _darkTheme;
+
+  void _ensureThemes(AccentColor accent) {
+    final key = (accent, _time);
+    if (_themeKey == key) return;
+    _themeKey = key;
+    _lightTheme = buildTheme(accent, Brightness.light, time: _time);
+    _darkTheme = buildTheme(accent, Brightness.dark, time: _time);
+  }
 
   @override
   void initState() {
@@ -341,12 +352,13 @@ class _ZeMoneyAppState extends ConsumerState<ZeMoneyApp>
     ref.listen(languageProvider, (_, _) => _showNewLanguage());
     ref.watch(languageProvider);
     final appearance = ref.watch(appearanceProvider);
+    _ensureThemes(appearance.accent);
     return MaterialApp.router(
       title: 'Zowl',
       debugShowCheckedModeBanner: false,
       themeMode: appearance.mode,
-      theme: buildTheme(appearance.accent, Brightness.light, time: _time),
-      darkTheme: buildTheme(appearance.accent, Brightness.dark, time: _time),
+      theme: _lightTheme,
+      darkTheme: _darkTheme,
       routerConfig: ref.watch(routerProvider),
       locale: appLocale,
       supportedLocales: supportedAppLocales,

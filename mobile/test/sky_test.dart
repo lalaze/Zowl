@@ -141,6 +141,49 @@ void main() {
     expect(shown(), SceneTime.night);
   });
 
+  testWidgets(
+    'resuming in the same hour keeps the exact ThemeData, and a new hour replaces it',
+    (tester) async {
+      var now = DateTime(2026, 11, 12, 10, 0);
+      final pinned = debugStoryClock;
+      debugStoryClock = () => now;
+      addTearDown(() => debugStoryClock = pinned);
+      final harness = await MobileTestHarness.create(token: null);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: harness.overrides,
+          retry: (_, _) => null,
+          child: const ZeMoneyApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      ThemeData currentTheme() =>
+          Theme.of(tester.element(find.byType(Scaffold).first));
+
+      final before = currentTheme();
+      expect(before.extension<ZeTokens>()!.time, SceneTime.day);
+
+      // Resume within the same hour bucket: no new ThemeData or lerp.
+      now = DateTime(2026, 11, 12, 10, 30);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(identical(currentTheme(), before), isTrue);
+      await tester.pumpAndSettle();
+      expect(identical(currentTheme(), before), isTrue);
+
+      // Resume after crossing into dusk: ThemeData updates to the new bucket.
+      now = DateTime(2026, 11, 12, 17, 15);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      final after = currentTheme();
+      expect(identical(after, before), isFalse);
+      expect(after.extension<ZeTokens>()!.time, SceneTime.dusk);
+    },
+  );
+
   testWidgets('the owl stays ink-black, with a rim only where it is dark', (
     tester,
   ) async {
