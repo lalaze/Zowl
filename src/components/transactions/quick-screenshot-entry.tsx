@@ -15,11 +15,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useLocale, useT } from "@/components/i18n/i18n-provider";
 import { Button } from "@/components/ui/button";
-import {
-  getApiError,
-  readApiPayload,
-  unwrapApiData,
-} from "@/lib/client-api";
+import { ApiRequestError, requestApi } from "@/lib/client-api";
 import type { Translate } from "@/lib/i18n/locale";
 import { localizeServerMessage } from "@/lib/i18n/server-messages";
 import { cn } from "@/lib/utils";
@@ -153,29 +149,30 @@ export function QuickScreenshotEntry({
       }
 
       try {
-        const response = await fetch("/api/imports/screenshots", {
+        const result = await requestApi<
+          QuickScreenshotCompletedResult | QuickScreenshotNeedsReviewResult
+        >("/api/imports/screenshots", {
           method: "POST",
           body: formData,
+          fallbackError: t(
+            "Screenshot recognition or automatic posting failed. Try again",
+            "截图识别或自动入账失败，请重试",
+          ),
+          requireData: true,
         });
-        const payload = await readApiPayload(response);
-        const result = unwrapApiData<
-          QuickScreenshotCompletedResult | QuickScreenshotNeedsReviewResult
-        >(payload);
-        if (!response.ok || !result) {
-          setError(getApiError(payload, t("Screenshot recognition or automatic posting failed. Try again", "截图识别或自动入账失败，请重试")));
-          return;
-        }
         if (result.status === "needs_review") {
           setNeedsReview(result);
           return;
         }
         onCompleted(result);
-      } catch {
+      } catch (caught) {
         setError(
-          t(
-            "Result unknown: the screenshot may already have been posted. Retry this submission or check task history",
-            "结果未知：截图可能已经入账。请重试本次提交，或查看任务记录",
-          ),
+          caught instanceof ApiRequestError
+            ? caught.message
+            : t(
+                "Result unknown: the screenshot may already have been posted. Retry this submission or check task history",
+                "结果未知：截图可能已经入账。请重试本次提交，或查看任务记录",
+              ),
         );
       } finally {
         setPending(false);

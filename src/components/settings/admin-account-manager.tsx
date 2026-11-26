@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getApiError, readApiPayload, unwrapApiData } from "@/lib/client-api";
+import { requestApi } from "@/lib/client-api";
 
 export type AdminAccount = {
   id: string;
@@ -89,20 +89,15 @@ export function AdminAccountManager({
 
     setCreating(true);
     try {
-      const response = await fetch("/api/admin/accounts", {
+      const account = await requestApi<AdminAccount>("/api/admin/accounts", {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
+        json: {
           email: String(data.get("email") ?? ""),
           displayName: String(data.get("displayName") ?? "") || undefined,
           password,
-        }),
+        },
+        fallbackError: t("Failed to create account", "账号创建失败"),
       });
-      const payload = await readApiPayload(response);
-      if (!response.ok) {
-        throw new Error(getApiError(payload, t("Failed to create account", "账号创建失败")));
-      }
-      const account = unwrapApiData<AdminAccount>(payload);
       if (!account) {
         throw new Error(t("Invalid account creation response", "账号创建响应无效"));
       }
@@ -139,19 +134,14 @@ export function AdminAccountManager({
     setMessage(null);
     setError(null);
     try {
-      const response = await fetch(
+      const updated = await requestApi<AdminAccount>(
         `/api/admin/accounts/${account.id}/status`,
         {
           method: "PATCH",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ disabled }),
+          json: { disabled },
+          fallbackError: t("Failed to update account status", "账号状态更新失败"),
         },
       );
-      const payload = await readApiPayload(response);
-      if (!response.ok) {
-        throw new Error(getApiError(payload, t("Failed to update account status", "账号状态更新失败")));
-      }
-      const updated = unwrapApiData<AdminAccount>(payload);
       if (!updated) {
         throw new Error(t("Invalid account status response", "账号状态响应无效"));
       }
@@ -489,21 +479,14 @@ function PasswordResetDialog({
     setPending(true);
     setDialogError(null);
     try {
-      const response = await fetch(
-        `/api/admin/accounts/${target.id}/password`,
-        {
-          method: "PATCH",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            adminPassword: String(data.get("adminPassword") ?? ""),
-            newPassword,
-          }),
+      await requestApi(`/api/admin/accounts/${target.id}/password`, {
+        method: "PATCH",
+        json: {
+          adminPassword: String(data.get("adminPassword") ?? ""),
+          newPassword,
         },
-      );
-      const payload = await readApiPayload(response);
-      if (!response.ok) {
-        throw new Error(getApiError(payload, t("Failed to update password", "密码更新失败")));
-      }
+        fallbackError: t("Failed to update password", "密码更新失败"),
+      });
       onSuccess(currentUserId === target.id, target.email);
     } catch (reason) {
       const message =

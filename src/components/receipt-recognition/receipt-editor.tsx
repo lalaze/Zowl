@@ -23,11 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  getApiError,
-  readApiPayload,
-  unwrapApiData,
-} from "@/lib/client-api";
+import { requestApi } from "@/lib/client-api";
 import { localizeServerMessage } from "@/lib/i18n/server-messages";
 import { transactionTypeLabel } from "@/lib/transaction-display";
 import { cn } from "@/lib/utils";
@@ -146,18 +142,15 @@ export function ReceiptEditor({
     dispatch({ type: "change", key, value });
   }
 
-  async function patch(body: Record<string, unknown>, fallback: string) {
-    const response = await fetch(
+  function patch(body: Record<string, unknown>, fallback: string) {
+    return requestApi<ReceiptRecognitionItem>(
       `/api/imports/screenshots/${jobId}/items/${item.id}`,
       {
         method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+        json: body,
+        fallbackError: fallback,
       },
     );
-    const payload = await readApiPayload(response);
-    if (!response.ok) throw new Error(getApiError(payload, fallback));
-    return unwrapApiData<ReceiptRecognitionItem>(payload);
   }
 
   async function save() {

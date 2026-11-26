@@ -1,11 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { useT } from "@/components/i18n/i18n-provider";
-import {
-  getApiError,
-  readApiPayload,
-  unwrapApiData,
-} from "@/lib/client-api";
+import { requestApi } from "@/lib/client-api";
 
 import {
   initialHistoricalSelections,
@@ -66,19 +62,18 @@ export function useHistoricalAiReview() {
 
     try {
       while (cursor !== null) {
-        const response = await fetch(
+        const data: HistoricalPreviewResult | null =
+          await requestApi<HistoricalPreviewResult>(
           "/api/categories/ai-reclassification/preview",
           {
             method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ cursor, limit: 20 }),
+            json: { cursor, limit: 20 },
+            fallbackError: t(
+              "Failed to scan historical transactions",
+              "历史交易扫描失败",
+            ),
           },
         );
-        const payload = await readApiPayload(response);
-        if (!response.ok) {
-          throw new Error(getApiError(payload, t("Failed to scan historical transactions", "历史交易扫描失败")));
-        }
-        const data = unwrapApiData<HistoricalPreviewResult>(payload);
         if (!data) throw new Error(t("Invalid historical scan results", "历史交易扫描结果无效"));
         if (data.failed) {
           throw new Error(
@@ -147,22 +142,17 @@ export function useHistoricalAiReview() {
 
     try {
       for (let index = 0; index < changes.length; index += 500) {
-        const response = await fetch(
+        const data = await requestApi<HistoricalApplyResult>(
           "/api/categories/ai-reclassification/apply",
           {
             method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({
+            json: {
               operationId: createOperationId(),
               changes: changes.slice(index, index + 500),
-            }),
+            },
+            fallbackError: t("Bulk category update failed", "批量修改分类失败"),
           },
         );
-        const payload = await readApiPayload(response);
-        if (!response.ok) {
-          throw new Error(getApiError(payload, t("Bulk category update failed", "批量修改分类失败")));
-        }
-        const data = unwrapApiData<HistoricalApplyResult>(payload);
         if (!data) throw new Error(t("Invalid bulk update result", "批量修改结果无效"));
         appliedCount += data.appliedCount;
         conflictCount += data.conflictCount;

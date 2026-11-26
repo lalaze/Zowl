@@ -1,11 +1,7 @@
 import { useState } from "react";
 
 import { useT } from "@/components/i18n/i18n-provider";
-import {
-  getApiError,
-  readApiPayload,
-  unwrapApiData,
-} from "@/lib/client-api";
+import { requestApi } from "@/lib/client-api";
 import type { AiCategorizationSettingsState } from "@/services/ai-categorization-service";
 
 import {
@@ -67,21 +63,17 @@ export function useAiCategorizationSettings(
     setError(null);
     setMessage(null);
     try {
-      const response = await fetch("/api/settings/ai-categorization", {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(aiSettingsFormPayload(form)),
-      });
-      const payload = await readApiPayload(response);
-      if (!response.ok) {
-        throw new Error(
-          getApiError(
-            payload,
-            t("AI Failed to save categorization configuration", "AI 分类配置保存失败"),
+      const next = await requestApi<AiCategorizationSettingsState>(
+        "/api/settings/ai-categorization",
+        {
+          method: "PUT",
+          json: aiSettingsFormPayload(form),
+          fallbackError: t(
+            "AI Failed to save categorization configuration",
+            "AI 分类配置保存失败",
           ),
-        );
-      }
-      const next = unwrapApiData<AiCategorizationSettingsState>(payload);
+        },
+      );
       if (!next) {
         throw new Error(
           t("AI Invalid categorization configuration response", "AI 分类配置响应无效"),
@@ -115,25 +107,20 @@ export function useAiCategorizationSettings(
     setError(null);
     setMessage(null);
     try {
-      const response = await fetch("/api/settings/ai-categorization/test", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(
-          source === "effective"
-            ? { source }
-            : { source, config: aiSettingsFormPayload(form) },
-        ),
-      });
-      const payload = await readApiPayload(response);
-      if (!response.ok) {
-        throw new Error(
-          getApiError(
-            payload,
-            t("AI Categorization connection test failed", "AI 分类连接测试失败"),
+      const result = await requestApi<ConnectionTestResult>(
+        "/api/settings/ai-categorization/test",
+        {
+          method: "POST",
+          json:
+            source === "effective"
+              ? { source }
+              : { source, config: aiSettingsFormPayload(form) },
+          fallbackError: t(
+            "AI Categorization connection test failed",
+            "AI 分类连接测试失败",
           ),
-        );
-      }
-      const result = unwrapApiData<ConnectionTestResult>(payload);
+        },
+      );
       if (!result) {
         throw new Error(t("AI Invalid categorization test response", "AI 分类测试响应无效"));
       }
@@ -169,19 +156,16 @@ export function useAiCategorizationSettings(
     setError(null);
     setMessage(null);
     try {
-      const response = await fetch("/api/settings/ai-categorization", {
-        method: "DELETE",
-      });
-      const payload = await readApiPayload(response);
-      if (!response.ok) {
-        throw new Error(
-          getApiError(
-            payload,
-            t("Failed to restore deployment defaults", "恢复部署默认配置失败"),
+      const next = await requestApi<AiCategorizationSettingsState>(
+        "/api/settings/ai-categorization",
+        {
+          method: "DELETE",
+          fallbackError: t(
+            "Failed to restore deployment defaults",
+            "恢复部署默认配置失败",
           ),
-        );
-      }
-      const next = unwrapApiData<AiCategorizationSettingsState>(payload);
+        },
+      );
       if (!next) {
         throw new Error(
           t("AI Invalid categorization configuration response", "AI 分类配置响应无效"),

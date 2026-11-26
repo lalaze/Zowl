@@ -16,11 +16,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useLocale, useT } from "@/components/i18n/i18n-provider";
 import { Button } from "@/components/ui/button";
-import {
-  getApiError,
-  readApiPayload,
-  unwrapApiData,
-} from "@/lib/client-api";
+import { ApiRequestError, requestApi } from "@/lib/client-api";
 import type { Translate } from "@/lib/i18n/locale";
 import { localizeServerMessage } from "@/lib/i18n/server-messages";
 import { cn } from "@/lib/utils";
@@ -163,36 +159,36 @@ export function ScreenshotUploadForm({
     images.forEach(({ file }) => formData.append("images", file));
     if (thirdParty) formData.set("consentToThirdParty", "true");
 
+    const fallbackError = t(
+      "Image upload or recognition startup failed. Try again later",
+      "图片上传或识别启动失败，请稍后重试",
+    );
     try {
-      const response = await fetch("/api/imports/screenshots", {
-        method: "POST",
-        body: formData,
-      });
-      const payload = await readApiPayload(response);
-      const data = unwrapApiData<{ jobId?: string; id?: string }>(payload);
+      const data = await requestApi<{ jobId?: string; id?: string }>(
+        "/api/imports/screenshots",
+        {
+          method: "POST",
+          body: formData,
+          fallbackError,
+        },
+      );
       const jobId = data?.jobId ?? data?.id;
 
-      if (!response.ok || !jobId) {
-        setError(
-          getApiError(
-            payload,
-            t(
-              "Image upload or recognition startup failed. Try again later",
-              "图片上传或识别启动失败，请稍后重试",
-            ),
-          ),
-        );
+      if (!jobId) {
+        setError(fallbackError);
         return;
       }
 
       router.push(`/imports/screenshots/${jobId}/review`);
       router.refresh();
-    } catch {
+    } catch (caught) {
       setError(
-        t(
-          "Network connection failed. Images remain on this page; retry directly.",
-          "网络连接失败。图片仍保留在当前页面，可以直接重试。",
-        ),
+        caught instanceof ApiRequestError
+          ? caught.message
+          : t(
+              "Network connection failed. Images remain on this page; retry directly.",
+              "网络连接失败。图片仍保留在当前页面，可以直接重试。",
+            ),
       );
     } finally {
       setPending(false);

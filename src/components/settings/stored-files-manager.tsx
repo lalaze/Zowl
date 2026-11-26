@@ -22,7 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getApiError, readApiPayload } from "@/lib/client-api";
+import { requestApi } from "@/lib/client-api";
 import { localeTag, type Locale } from "@/lib/i18n/locale";
 
 export type ManagedStoredFile = {
@@ -99,13 +99,13 @@ export function StoredFilesManager({
     setError(null);
     setMessage(null);
     try {
-      const response = await fetch(`/api/settings/files/${file.id}`, {
+      await requestApi(`/api/settings/files/${file.id}`, {
         method: "DELETE",
+        fallbackError: t(
+          "Failed to delete file. Try again later",
+          "文件删除失败，请稍后重试",
+        ),
       });
-      const payload = await readApiPayload(response);
-      if (!response.ok) {
-        throw new Error(getApiError(payload, t("Failed to delete file. Try again later", "文件删除失败，请稍后重试")));
-      }
       setFiles((current) => current.filter((item) => item.id !== file.id));
       setMessage(
         references

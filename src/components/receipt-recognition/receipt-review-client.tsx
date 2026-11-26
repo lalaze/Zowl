@@ -23,6 +23,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   getApiError,
   readApiPayload,
+  requestApi,
   unwrapApiData,
 } from "@/lib/client-api";
 import { cn } from "@/lib/utils";
@@ -168,17 +169,17 @@ export function ReceiptReviewClient({
     setConfirming(true);
     setError(null);
     try {
-      const response = await fetch(`/api/imports/screenshots/${jobId}/confirm`, { method: "POST" });
-      const payload = await readApiPayload(response);
-      const result = unwrapApiData<ReceiptConfirmResult>(payload);
-      if (!response.ok || !result) {
-        throw new Error(
-          getApiError(
-            payload,
-            t("Import confirmation failed. Try again later", "确认导入失败，请稍后重试"),
+      const result = await requestApi<ReceiptConfirmResult>(
+        `/api/imports/screenshots/${jobId}/confirm`,
+        {
+          method: "POST",
+          fallbackError: t(
+            "Import confirmation failed. Try again later",
+            "确认导入失败，请稍后重试",
           ),
-        );
-      }
+          requireData: true,
+        },
+      );
 
       const query = new URLSearchParams({
         created: String(result.createdCount ?? 0),

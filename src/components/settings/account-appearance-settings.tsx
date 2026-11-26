@@ -20,7 +20,7 @@ import { useAccentTheme } from "@/components/theme/use-accent-theme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getApiError, readApiPayload, unwrapApiData } from "@/lib/client-api";
+import { requestApi } from "@/lib/client-api";
 import { accentColors } from "@/lib/accent-theme";
 import { isAvatarPreset, type AvatarPreset } from "@/lib/avatar-presets";
 import { cn } from "@/lib/utils";
@@ -73,17 +73,11 @@ export function AccountAppearanceSettings({
     input: { displayName?: string; avatarPreset?: AvatarPreset },
     fallbackMessage: string,
   ) {
-    const response = await fetch("/api/settings/profile", {
+    const updated = await requestApi<ProfileResponse>("/api/settings/profile", {
       method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(input),
+      json: input,
+      fallbackError: fallbackMessage,
     });
-    const payload = await readApiPayload(response);
-    if (!response.ok) {
-      throw new Error(getApiError(payload, fallbackMessage));
-    }
-
-    const updated = unwrapApiData<ProfileResponse>(payload);
     if (!updated) throw new Error(t("Invalid profile save response", "个人资料保存响应无效"));
     return updated;
   }

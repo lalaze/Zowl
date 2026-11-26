@@ -1,11 +1,7 @@
 import { useState } from "react";
 
 import { useT } from "@/components/i18n/i18n-provider";
-import {
-  getApiError,
-  readApiPayload,
-  unwrapApiData,
-} from "@/lib/client-api";
+import { requestApi } from "@/lib/client-api";
 
 import {
   emptyCategoryForm,
@@ -40,16 +36,12 @@ export function useCategoryManager(
     setError(null);
     setMessage(null);
     try {
-      const response = await fetch("/api/categories", {
+      const created = await requestApi<ManagedCategory>("/api/categories", {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(createForm),
+        json: createForm,
+        fallbackError: t("Failed to create category", "分类创建失败"),
+        requireData: true,
       });
-      const payload = await readApiPayload(response);
-      const created = unwrapApiData<ManagedCategory>(payload);
-      if (!response.ok || !created) {
-        throw new Error(getApiError(payload, t("Failed to create category", "分类创建失败")));
-      }
       setCategories((current) => [...current, created]);
       setCreateForm(emptyCategoryForm);
       setMessage(t(`Created category “${created.name}”`, `已创建分类「${created.name}」`));
@@ -77,16 +69,12 @@ export function useCategoryManager(
     setPending(`edit-${id}`);
     setError(null);
     try {
-      const response = await fetch(`/api/categories/${id}`, {
+      const updated = await requestApi<ManagedCategory>(`/api/categories/${id}`, {
         method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(editForm),
+        json: editForm,
+        fallbackError: t("Failed to save category", "分类保存失败"),
+        requireData: true,
       });
-      const payload = await readApiPayload(response);
-      const updated = unwrapApiData<ManagedCategory>(payload);
-      if (!response.ok || !updated) {
-        throw new Error(getApiError(payload, t("Failed to save category", "分类保存失败")));
-      }
       setCategories((current) =>
         current.map((category) =>
           category.id === updated.id ? updated : category,
@@ -135,13 +123,10 @@ export function useCategoryManager(
     setPending(`delete-${category.id}`);
     setError(null);
     try {
-      const response = await fetch(`/api/categories/${category.id}`, {
+      await requestApi(`/api/categories/${category.id}`, {
         method: "DELETE",
+        fallbackError: t("Failed to delete category", "分类删除失败"),
       });
-      const payload = await readApiPayload(response);
-      if (!response.ok) {
-        throw new Error(getApiError(payload, t("Failed to delete category", "分类删除失败")));
-      }
       setCategories((current) =>
         current.filter((item) => item.id !== category.id),
       );
@@ -167,16 +152,12 @@ export function useCategoryManager(
     setPending("reorder");
     setError(null);
     try {
-      const response = await fetch("/api/categories/reorder", {
+      const saved = await requestApi<ManagedCategory[]>("/api/categories/reorder", {
         method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ids: reordered.map((item) => item.id) }),
+        json: { ids: reordered.map((item) => item.id) },
+        fallbackError: t("Failed to save order", "顺序保存失败"),
+        requireData: true,
       });
-      const payload = await readApiPayload(response);
-      const saved = unwrapApiData<ManagedCategory[]>(payload);
-      if (!response.ok || !saved) {
-        throw new Error(getApiError(payload, t("Failed to save order", "顺序保存失败")));
-      }
       setCategories(saved);
       setMessage(t("Category order saved", "分类顺序已保存"));
     } catch (caught) {
@@ -192,16 +173,15 @@ export function useCategoryManager(
     setError(null);
     setMessage(null);
     try {
-      const response = await fetch("/api/categories/built-in-names", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ locale: builtInNames.locale }),
-      });
-      const payload = await readApiPayload(response);
-      const result = unwrapApiData<BuiltInNamesResult>(payload);
-      if (!response.ok || !result) {
-        throw new Error(getApiError(payload, t("Failed to rename built-in categories", "内置分类改名失败")));
-      }
+      const result = await requestApi<BuiltInNamesResult>(
+        "/api/categories/built-in-names",
+        {
+          method: "POST",
+          json: { locale: builtInNames.locale },
+          fallbackError: t("Failed to rename built-in categories", "内置分类改名失败"),
+          requireData: true,
+        },
+      );
       setCategories(result.categories);
       setRules(result.rules);
       setBuiltInNames({ ...builtInNames, renamable: 0, conflicting: result.skipped });
@@ -243,13 +223,10 @@ export function useCategoryManager(
     setPending(`rule-${rule.id}`);
     setError(null);
     try {
-      const response = await fetch(`/api/categories/rules/${rule.id}`, {
+      await requestApi(`/api/categories/rules/${rule.id}`, {
         method: "DELETE",
+        fallbackError: t("Failed to delete rule", "规则删除失败"),
       });
-      const payload = await readApiPayload(response);
-      if (!response.ok) {
-        throw new Error(getApiError(payload, t("Failed to delete rule", "规则删除失败")));
-      }
       setRules((current) => current.filter((item) => item.id !== rule.id));
       setMessage(t(`Stopped remembering “${rule.normalizedMerchantName}”`, `已不再记住「${rule.normalizedMerchantName}」`));
     } catch (caught) {

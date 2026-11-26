@@ -11,7 +11,7 @@ import { useT } from "@/components/i18n/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getApiError, readApiPayload } from "@/lib/client-api";
+import { ApiRequestError, requestApi } from "@/lib/client-api";
 import type { Translate } from "@/lib/i18n/locale";
 
 function createFormSchema(t: Translate) {
@@ -60,20 +60,26 @@ export function SetupForm() {
 
   async function onSubmit(values: FormValues) {
     setServerError(null);
-    const response = await fetch("/api/setup/admin", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        setupToken: values.setupToken,
-        email: values.email,
-        displayName: values.displayName || undefined,
-        password: values.password,
-      }),
-    });
-    const payload = await readApiPayload(response);
-    if (!response.ok) {
-      setServerError(getApiError(payload, t("Administrator initialization failed", "管理员初始化失败")));
-      return;
+    try {
+      await requestApi("/api/setup/admin", {
+        method: "POST",
+        json: {
+          setupToken: values.setupToken,
+          email: values.email,
+          displayName: values.displayName || undefined,
+          password: values.password,
+        },
+        fallbackError: t(
+          "Administrator initialization failed",
+          "管理员初始化失败",
+        ),
+      });
+    } catch (caught) {
+      if (caught instanceof ApiRequestError) {
+        setServerError(caught.message);
+        return;
+      }
+      throw caught;
     }
 
     router.replace("/");

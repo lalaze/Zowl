@@ -9,7 +9,7 @@ import { useLocale, useT } from "@/components/i18n/i18n-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getApiError, readApiPayload, unwrapApiData } from "@/lib/client-api";
+import { ApiRequestError, requestApi } from "@/lib/client-api";
 import { localeTag } from "@/lib/i18n/locale";
 import { transactionSourceLabel } from "@/lib/transaction-display";
 import type { notificationCaptureService } from "@/services/notification-capture-service";
@@ -34,29 +34,35 @@ export function NotificationInbox({ initialPage, categories }: { initialPage: Pa
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const formatError = (caught: unknown) =>
+    caught instanceof ApiRequestError
+      ? `Error: ${caught.message}`
+      : String(caught);
   async function load(number = page.pagination.page, completed = history) {
-    const response = await fetch(`/api/captures/notifications?page=${number}&status=${completed ? "completed" : "reviewing"}`);
-    const payload = await readApiPayload(response);
-    const next = unwrapApiData<Page>(payload);
-    if (!response.ok || !next) throw new Error(getApiError(payload, t("Could not refresh inbox", "无法刷新收件箱")));
+    const next = await requestApi<Page>(
+      `/api/captures/notifications?page=${number}&status=${completed ? "completed" : "reviewing"}`,
+      {
+        fallbackError: t("Could not refresh inbox", "无法刷新收件箱"),
+        requireData: true,
+      },
+    );
     if (number > next.pagination.totalPages) return load(next.pagination.totalPages, completed);
     setPage(next); setSelected(new Set()); setHistory(completed);
   }
   async function navigate(number: number, completed = history) {
     setBusy(true); setError(null);
-    try { await load(number, completed); } catch (error) { setError(String(error)); } finally { setBusy(false); }
+    try { await load(number, completed); } catch (error) { setError(formatError(error)); } finally { setBusy(false); }
   }
   async function confirm(items: Item[], decision = "post") {
     setBusy(true); setError(null); setMessage(null);
     try {
       const single = items[0]!;
       const batch = decision === "post" && items.every((item) => item.duplicateStatus === "unique");
-      const response = await fetch(!batch ? `/api/captures/notifications/${single.id}/confirm` : "/api/captures/notifications/confirm", {
-        method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify(!batch ? { decision, assessmentDigest: single.duplicateStatus === "possible_duplicate" ? single.duplicateAssessmentDigest : undefined } : { items: items.map((item) => ({ id: item.id, version: item.confirmationVersion })) }),
+      await requestApi(!batch ? `/api/captures/notifications/${single.id}/confirm` : "/api/captures/notifications/confirm", {
+        method: "POST",
+        json: !batch ? { decision, assessmentDigest: single.duplicateStatus === "possible_duplicate" ? single.duplicateAssessmentDigest : undefined } : { items: items.map((item) => ({ id: item.id, version: item.confirmationVersion })) },
+        fallbackError: t("Review changed candidates individually before posting", "候选已变化，请逐条核对后再入账"),
       });
-      const payload = await readApiPayload(response);
-      if (!response.ok) throw new Error(getApiError(payload, t("Review changed candidates individually before posting", "候选已变化，请逐条核对后再入账")));
       setReview(null);
       setMessage(
         decision === "skip"
@@ -66,7 +72,7 @@ export function NotificationInbox({ initialPage, categories }: { initialPage: Pa
             : t("Posting confirmed", "已确认入账"),
       );
       router.refresh();
-    } catch (error) { setReview(null); setError(String(error)); }
+    } catch (error) { setReview(null); setError(formatError(error)); }
     finally {
       try { await load(); } catch { setError(t("Result may be complete. Refresh the inbox to check before retrying.", "操作可能已完成。请先刷新收件箱确认，再决定是否重试。")); }
       setBusy(false);
@@ -78,17 +84,16 @@ export function NotificationInbox({ initialPage, categories }: { initialPage: Pa
     const form = new FormData(event.currentTarget);
     setBusy(true); setError(null);
     try {
-      const response = await fetch(`/api/captures/notifications/${editing.id}`, {
-        method: "PATCH", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ amountMinor: decimalToMinor(String(form.get("amount")), editing.currency),
+      await requestApi(`/api/captures/notifications/${editing.id}`, {
+        method: "PATCH",
+        json: { amountMinor: decimalToMinor(String(form.get("amount")), editing.currency),
           merchantName: form.get("merchantName") || null, categoryId: form.get("categoryId") || null,
           transactionTime: new Date(String(form.get("transactionTime"))).toISOString(),
-          description: editing.description, paymentMethod: editing.paymentMethod }),
+          description: editing.description, paymentMethod: editing.paymentMethod },
+        fallbackError: t("Could not update candidate", "无法更新候选"),
       });
-      const payload = await readApiPayload(response);
-      if (!response.ok) throw new Error(getApiError(payload, t("Could not update candidate", "无法更新候选")));
       setEditing(null); await load();
-    } catch (error) { setError(String(error)); } finally { setBusy(false); }
+    } catch (error) { setError(formatError(error)); } finally { setBusy(false); }
   }
   const categoryName = (id: string | null) =>
     categories.find((category) => category.id === id)?.name ?? t("Uncategorized", "未分类");
