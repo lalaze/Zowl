@@ -67,10 +67,9 @@ class _MonthHillsState extends State<_MonthHills> {
         ? const <int>[]
         : _climb(widget.previous!, widget.previous!.dailyTrend.length);
     final spent = climb.isNotEmpty && climb.last > 0;
-    final selected =
-        _selectedDay != null && _selectedDay! <= climb.length
-            ? _selectedDay
-            : null;
+    final selected = _selectedDay != null && _selectedDay! <= climb.length
+        ? _selectedDay
+        : null;
     return Semantics(
       label: _semantics(climb, behind),
       image: true,
@@ -108,41 +107,43 @@ class _MonthHillsState extends State<_MonthHills> {
               onHorizontalDragEnd: spent
                   ? (_) => setState(() => _selectedDay = null)
                   : null,
-              child: CustomPaint(
-                painter: _HillsPainter(
-                  palette: palette,
-                  paper: paper,
-                  hills: spent ? hills : null,
-                  owl: owl,
-                  selectedDay: selected,
-                  climb: climb,
-                  behind: behind,
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: owl.dx - _HillGeometry.owlSize / 2,
-                      top: owl.dy - _HillGeometry.owlSize * 189 / 200 + 1,
-                      child: SkyOwl(
-                        size: _HillGeometry.owlSize,
-                        busy: widget.busy,
-                      ),
-                    ),
-                    if (selected != null)
+              child: RepaintBoundary(
+                child: CustomPaint(
+                  painter: _HillsPainter(
+                    palette: palette,
+                    paper: paper,
+                    hills: spent ? hills : null,
+                    owl: owl,
+                    selectedDay: selected,
+                    climb: climb,
+                    behind: behind,
+                  ),
+                  child: Stack(
+                    children: [
                       Positioned(
-                        left: 24,
-                        top: 6,
-                        child: _DayReadout(
-                          month: widget.data.month,
-                          day: selected,
-                          totalMinor: climb[selected - 1],
-                          previousMinor: selected <= behind.length
-                              ? behind[selected - 1]
-                              : null,
-                          currency: widget.currency,
+                        left: owl.dx - _HillGeometry.owlSize / 2,
+                        top: owl.dy - _HillGeometry.owlSize * 189 / 200 + 1,
+                        child: SkyOwl(
+                          size: _HillGeometry.owlSize,
+                          busy: widget.busy,
                         ),
                       ),
-                  ],
+                      if (selected != null)
+                        Positioned(
+                          left: 24,
+                          top: 6,
+                          child: _DayReadout(
+                            month: widget.data.month,
+                            day: selected,
+                            totalMinor: climb[selected - 1],
+                            previousMinor: selected <= behind.length
+                                ? behind[selected - 1]
+                                : null,
+                            currency: widget.currency,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -449,11 +450,7 @@ class _HillsPainter extends CustomPainter {
           ..color = palette.foreground.withValues(alpha: .55)
           ..strokeWidth = 1.5,
       );
-      canvas.drawCircle(
-        Offset(sx, sy),
-        5,
-        Paint()..color = palette.sun,
-      );
+      canvas.drawCircle(Offset(sx, sy), 5, Paint()..color = palette.sun);
       canvas.drawCircle(
         Offset(sx, sy),
         5,
@@ -524,7 +521,8 @@ class _HillsKey extends StatelessWidget {
         color: fill,
         shape: BoxShape.circle,
         border: Border.all(
-          color: crest ?? palette.foreground.withValues(alpha: dashed ? .65 : .9),
+          color:
+              crest ?? palette.foreground.withValues(alpha: dashed ? .65 : .9),
           width: crest != null ? 2 : 1.5,
         ),
       ),
@@ -558,10 +556,7 @@ class _HillsKey extends StatelessWidget {
             tr('This month', '本月'),
           ),
           if (hasPrevious)
-            item(
-              swatch(palette.far, dashed: true),
-              tr('Last month', '上月'),
-            ),
+            item(swatch(palette.far, dashed: true), tr('Last month', '上月')),
         ],
       ),
     );

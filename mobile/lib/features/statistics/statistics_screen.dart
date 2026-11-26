@@ -467,90 +467,92 @@ class _SpendingSky extends StatelessWidget {
       fontSize: 13.5,
       fontWeight: FontWeight.w700,
     );
-    return CustomPaint(
-      painter: SkyPainter(
-        palette: palette,
-        layout: _skyLayout,
-        top: skyBarExtent(context),
-        landscape: false,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  spacing: 8,
-                  children: [
-                    Expanded(
-                      child: Wrap(
-                        spacing: 8,
-                        children: [
-                          Text(
-                            tr('Net spending this month', '本月净支出'),
-                            style: label,
-                          ),
-                          Text(
-                            tr(
-                              plural(summary.transactionCount, 'transaction'),
-                              '${summary.transactionCount} 笔交易',
-                            ),
-                            style: label,
-                          ),
-                        ],
-                      ),
-                    ),
-                    _CurrencyPicker(
-                      currency: currency,
-                      currencies: currencies,
-                      onCurrency: onCurrency,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                SkyAmount(
-                  formatMoneyWithSymbol(summary.netExpenseMinor, currency),
-                  size: 44,
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 6,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    if (_change(data) case final change?)
-                      SkyPill(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          spacing: 4,
+    return RepaintBoundary(
+      child: CustomPaint(
+        painter: SkyPainter(
+          palette: palette,
+          layout: _skyLayout,
+          top: skyBarExtent(context),
+          landscape: false,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    spacing: 8,
+                    children: [
+                      Expanded(
+                        child: Wrap(
+                          spacing: 8,
                           children: [
-                            Icon(
-                              change.$1,
-                              size: 13,
-                              color: palette.foreground,
+                            Text(
+                              tr('Net spending this month', '本月净支出'),
+                              style: label,
                             ),
-                            Flexible(child: Text(change.$2)),
+                            Text(
+                              tr(
+                                plural(summary.transactionCount, 'transaction'),
+                                '${summary.transactionCount} 笔交易',
+                              ),
+                              style: label,
+                            ),
                           ],
                         ),
                       ),
-                    _HillsKey(
-                      hasPrevious: previous?.dailyTrend.isNotEmpty ?? false,
-                    ),
-                  ],
-                ),
-              ],
+                      _CurrencyPicker(
+                        currency: currency,
+                        currencies: currencies,
+                        onCurrency: onCurrency,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  SkyAmount(
+                    formatMoneyWithSymbol(summary.netExpenseMinor, currency),
+                    size: 44,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (_change(data) case final change?)
+                        SkyPill(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                change.$1,
+                                size: 13,
+                                color: palette.foreground,
+                              ),
+                              Flexible(child: Text(change.$2)),
+                            ],
+                          ),
+                        ),
+                      _HillsKey(
+                        hasPrevious: previous?.dailyTrend.isNotEmpty ?? false,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          _MonthHills(
-            data: data,
-            previous: previous,
-            currency: currency,
-            busy: busy,
-          ),
-        ],
+            _MonthHills(
+              data: data,
+              previous: previous,
+              currency: currency,
+              busy: busy,
+            ),
+          ],
+        ),
       ),
     );
   }

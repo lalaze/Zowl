@@ -719,64 +719,66 @@ class SkyBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = SkyPalette.of(context);
     final scrolled = SkyScrollScope.isScrolledOf(context);
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: palette.overlay,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        curve: Curves.easeOut,
-        decoration: BoxDecoration(
-          boxShadow: scrolled
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(
-                      alpha: context.ze.dark ? .28 : .08,
-                    ),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : const [],
-        ),
-        child: CustomPaint(
-          painter: SkyPainter(
-            palette: palette,
-            layout: layout,
-            landscape: false,
-            bleed: 600,
-          ),
-          foregroundPainter: scrolled
-              ? _SkyBarEdgePainter(
-                  palette.onDark
-                      ? Colors.white.withValues(alpha: .10)
-                      : Colors.black.withValues(alpha: .07),
-                )
-              : null,
-          child: SizedBox(
-            height: skyBarExtent(context),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                leading == null ? 24 : 6,
-                MediaQuery.paddingOf(context).top,
-                // Actions are 38 px circles in 48 px targets, so the last one
-                // ends on the 24 px page margin.
-                19,
-                0,
-              ),
-              child: _OnSky(
-                palette: palette,
-                child: Row(
-                  children: [
-                    ?leading,
-                    Expanded(
-                      // Large type already; let it grow only as far as the bar.
-                      child: MediaQuery.withClampedTextScaling(
-                        maxScaleFactor: 1.5,
-                        child: title,
+    return RepaintBoundary(
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: palette.overlay,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            boxShadow: scrolled
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: context.ze.dark ? .28 : .08,
                       ),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
                     ),
-                    const SizedBox(width: 8),
-                    ...actions,
-                  ],
+                  ]
+                : const [],
+          ),
+          child: CustomPaint(
+            painter: SkyPainter(
+              palette: palette,
+              layout: layout,
+              landscape: false,
+              bleed: 600,
+            ),
+            foregroundPainter: scrolled
+                ? _SkyBarEdgePainter(
+                    palette.onDark
+                        ? Colors.white.withValues(alpha: .10)
+                        : Colors.black.withValues(alpha: .07),
+                  )
+                : null,
+            child: SizedBox(
+              height: skyBarExtent(context),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  leading == null ? 24 : 6,
+                  MediaQuery.paddingOf(context).top,
+                  // Actions are 38 px circles in 48 px targets, so the last one
+                  // ends on the 24 px page margin.
+                  19,
+                  0,
+                ),
+                child: _OnSky(
+                  palette: palette,
+                  child: Row(
+                    children: [
+                      ?leading,
+                      Expanded(
+                        // Large type already; let it grow only as far as the bar.
+                        child: MediaQuery.withClampedTextScaling(
+                          maxScaleFactor: 1.5,
+                          child: title,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ...actions,
+                    ],
+                  ),
                 ),
               ),
             ),
