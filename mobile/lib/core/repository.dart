@@ -256,14 +256,6 @@ class ZeMoneyRepository {
     decode: _map,
   );
 
-  Future<NotificationCaptureItem> notificationCapture(String id) =>
-      api.requestData<NotificationCaptureItem>(
-        '/api/captures/notifications/$id',
-        decode: (json) => NotificationCaptureItem.fromJson(
-          Map<String, dynamic>.from(json as Map),
-        ),
-      );
-
   Future<NotificationCaptureItem> updateNotificationCapture(
     String id,
     Map<String, dynamic> input,
