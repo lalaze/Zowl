@@ -4,12 +4,12 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { Card, CardContent } from "@/components/ui/card";
-import { requireCurrentUser } from "@/lib/auth/session";
-import { getT } from "@/lib/i18n/server";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
+import { getTForRender } from "@/lib/i18n/server";
 import { transactionService } from "@/services/transaction-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Edit transaction", "编辑交易") };
 }
 
@@ -18,12 +18,12 @@ export default async function EditTransactionPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const user = await requireCurrentUser();
+  const user = await requireCurrentUserForRender();
   const { id } = await params;
   const item = transactionService.get(user.id, id);
   if (!item) notFound();
   const categories = transactionService.listCategories(user.id);
-  const t = await getT();
+  const t = await getTForRender();
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

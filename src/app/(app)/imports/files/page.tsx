@@ -7,10 +7,10 @@ import { ImportStepper } from "@/components/imports/import-stepper";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getT } from "@/lib/i18n/server";
+import { getTForRender } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("File import", "文件导入") };
 }
 
@@ -21,7 +21,7 @@ const limits = [
 ] as const;
 
 export default async function FileImportPage() {
-  const t = await getT();
+  const t = await getTForRender();
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <Button asChild variant="ghost" size="sm" className="-ml-2"><Link href="/imports"><ArrowLeft className="size-4" />{t("Back to import", "返回导入")}</Link></Button>

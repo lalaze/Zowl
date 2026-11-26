@@ -5,20 +5,20 @@ import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { NotificationInbox } from "@/components/transactions/notification-inbox";
 import { Card } from "@/components/ui/card";
-import { requireCurrentUser } from "@/lib/auth/session";
-import { getT } from "@/lib/i18n/server";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
+import { getTForRender } from "@/lib/i18n/server";
 import { notificationCaptureService } from "@/services/notification-capture-service";
 import { screenshotRecognitionService } from "@/services/screenshot-recognition-service";
 import { transactionService } from "@/services/transaction-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Review inbox", "待核对") };
 }
 
 export default async function ReviewInboxPage() {
-  const user = await requireCurrentUser();
-  const t = await getT();
+  const user = await requireCurrentUserForRender();
+  const t = await getTForRender();
   const pending = screenshotRecognitionService.pendingJobs(user.id);
   const categories = transactionService
     .listCategories(user.id)

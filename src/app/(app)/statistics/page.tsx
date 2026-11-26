@@ -18,7 +18,7 @@ import {
 import { OwlSays } from "@/components/brand/owl";
 import { StatisticsPeriodFilter } from "@/components/statistics/statistics-period-filter";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
-import { requireCurrentUser } from "@/lib/auth/session";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
 import { localDayOfMonth } from "@/lib/date-time";
 import {
   localeTag,
@@ -26,7 +26,7 @@ import {
   type Locale,
   type Translate,
 } from "@/lib/i18n/locale";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { getLocaleForRender, getTForRender } from "@/lib/i18n/server";
 import { formatMoney } from "@/lib/money";
 import {
   getCurrentMonthInTimeZone,
@@ -35,7 +35,7 @@ import {
 } from "@/services/statistics-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Statistics", "统计") };
 }
 
@@ -113,8 +113,8 @@ function FlowLegend({ t }: { t: Translate }) {
 }
 
 export default async function StatisticsPage({ searchParams }: PageProps) {
-  const user = await requireCurrentUser();
-  const locale = await getLocale();
+  const user = await requireCurrentUserForRender();
+  const locale = await getLocaleForRender();
   const t = translator(locale);
   const params = await searchParams;
   const requestedMonth = first(params.month);

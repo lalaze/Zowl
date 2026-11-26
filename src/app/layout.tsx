@@ -9,7 +9,10 @@ import {
   defaultAccentColor,
 } from "@/lib/accent-theme";
 import { localeTag } from "@/lib/i18n/locale";
-import { getLocaleState, getT } from "@/lib/i18n/server";
+import {
+  getLocaleStateForRender,
+  getTForRender,
+} from "@/lib/i18n/server";
 
 import "./globals.css";
 
@@ -28,7 +31,7 @@ const nunito = localFont({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return {
     title: {
       default: t(
@@ -56,7 +59,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const { locale, preference } = await getLocaleState();
+  const { locale, preference } = await getLocaleStateForRender();
   return (
     <html
       className={nunito.variable}

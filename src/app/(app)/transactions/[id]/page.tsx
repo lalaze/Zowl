@@ -9,9 +9,9 @@ import { TransactionTypeBadge } from "@/components/transactions/transaction-type
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireCurrentUser } from "@/lib/auth/session";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
 import { localeTag, translator } from "@/lib/i18n/locale";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { getLocaleForRender, getTForRender } from "@/lib/i18n/server";
 import { formatMoney, formatSignedMoney } from "@/lib/money";
 import { transactionTitle } from "@/lib/order-details";
 import {
@@ -22,7 +22,7 @@ import {
 import { transactionService } from "@/services/transaction-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Transaction details", "交易详情") };
 }
 
@@ -31,11 +31,11 @@ export default async function TransactionDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const user = await requireCurrentUser();
+  const user = await requireCurrentUserForRender();
   const { id } = await params;
   const item = transactionService.get(user.id, id);
   if (!item) notFound();
-  const locale = await getLocale();
+  const locale = await getLocaleForRender();
   const t = translator(locale);
   const sourceLabel = transactionSourceLabel(item.source, locale);
   // A payment whose goods are known is titled by them, with the shop beneath.

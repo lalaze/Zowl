@@ -3,10 +3,10 @@ import Link from "next/link";
 
 import { Owl } from "@/components/brand/owl";
 import { Button } from "@/components/ui/button";
-import { getT } from "@/lib/i18n/server";
+import { getTForRender } from "@/lib/i18n/server";
 
 export default async function NotFound() {
-  const t = await getT();
+  const t = await getTForRender();
   return (
     <main className="grid min-h-[60dvh] place-items-center p-6 text-center">
       <div className="w-full max-w-md rounded-[28px] border-2 border-divider bg-surface p-8">

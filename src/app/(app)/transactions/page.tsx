@@ -5,8 +5,8 @@ import { QuickTransactionEntry } from "@/components/transactions/quick-transacti
 import { TransactionFilters } from "@/components/transactions/transaction-filters";
 import { TransactionList } from "@/components/transactions/transaction-list";
 import { PagerNav } from "@/components/ui/pager-nav";
-import { requireCurrentUser } from "@/lib/auth/session";
-import { getT } from "@/lib/i18n/server";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
+import { getTForRender } from "@/lib/i18n/server";
 import { screenshotRecognitionService } from "@/services/screenshot-recognition-service";
 import { transactionService } from "@/services/transaction-service";
 import {
@@ -15,7 +15,7 @@ import {
 } from "@/services/transaction-service/schema";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Transactions", "交易") };
 }
 
@@ -47,8 +47,8 @@ export default async function TransactionsPage({
 }: {
   searchParams: Promise<TransactionsSearchParams>;
 }) {
-  const user = await requireCurrentUser();
-  const t = await getT();
+  const user = await requireCurrentUserForRender();
+  const t = await getTForRender();
   const rawQuery = await searchParams;
   const parsedQuery = transactionListQuerySchema.safeParse({
     dateFrom: firstValue(rawQuery.dateFrom),

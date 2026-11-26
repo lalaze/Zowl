@@ -20,13 +20,13 @@ import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { translator } from "@/lib/i18n/locale";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { getLocaleForRender, getTForRender } from "@/lib/i18n/server";
 import { readAndroidRelease } from "@/services/android-release-service";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return {
     title: t("Get Zowl for Android", "下载 Zowl Android 版"),
     description: t(
@@ -83,7 +83,7 @@ function formatSize(sizeBytes: number) {
 }
 
 export default async function AndroidDownloadPage() {
-  const locale = await getLocale();
+  const locale = await getLocaleForRender();
   const t = translator(locale);
   const release = await readAndroidRelease();
   const apk = release

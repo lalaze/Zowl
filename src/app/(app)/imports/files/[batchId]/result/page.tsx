@@ -9,16 +9,16 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { requireCurrentUser } from "@/lib/auth/session";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
 import { translator, type Translate } from "@/lib/i18n/locale";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { getLocaleForRender, getTForRender } from "@/lib/i18n/server";
 import { importSourceLabel } from "@/lib/import-display";
 import { formatMoney } from "@/lib/money";
 import { importService } from "@/services/import-service";
 import type { NormalizedImportTransaction } from "@/services/import-service/types";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Import results", "导入结果") };
 }
 
@@ -52,13 +52,13 @@ export default async function ImportResultPage({
   params: Promise<{ batchId: string }>;
   searchParams: Promise<{ page?: string }>;
 }) {
-  const user = await requireCurrentUser();
+  const user = await requireCurrentUserForRender();
   const { batchId } = await params;
   const query = await searchParams;
   const page = Number.parseInt(query.page ?? "1", 10);
   const review = importService.getReview(user.id, batchId, { page: Number.isFinite(page) ? page : 1 });
   if (review.batch.status !== "completed") redirect(`/imports/files/${batchId}/review`);
-  const locale = await getLocale();
+  const locale = await getLocaleForRender();
   const t = translator(locale);
   const sourceLabel = importSourceLabel(review.batch.source, locale);
   const stats = [

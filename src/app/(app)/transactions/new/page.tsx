@@ -2,18 +2,18 @@ import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { ManualTransactionEntry } from "@/components/transactions/manual-transaction-entry";
-import { requireCurrentUser } from "@/lib/auth/session";
-import { getT } from "@/lib/i18n/server";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
+import { getTForRender } from "@/lib/i18n/server";
 import { transactionService } from "@/services/transaction-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Manual entry", "手动记账") };
 }
 
 export default async function NewTransactionPage() {
-  const user = await requireCurrentUser();
-  const t = await getT();
+  const user = await requireCurrentUserForRender();
+  const t = await getTForRender();
   const categories = transactionService.listCategories(user.id);
 
   return (

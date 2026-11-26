@@ -6,20 +6,20 @@ import { LoginForm } from "@/components/auth/login-form";
 import { StoryScene, sceneTimeFor } from "@/components/brand/story-scene";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
-import { getCurrentUser } from "@/lib/auth/session";
-import { getT } from "@/lib/i18n/server";
+import { getCurrentUserForRender } from "@/lib/auth/session";
+import { getTForRender } from "@/lib/i18n/server";
 import { setupService } from "@/services/setup-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Sign in", "登录") };
 }
 
 export default async function LoginPage() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUserForRender();
   if (user) redirect("/");
   if (!setupService.isInitialized()) redirect("/setup");
-  const t = await getT();
+  const t = await getTForRender();
 
   const isDevelopment = process.env.NODE_ENV === "development";
   const defaultEmail = isDevelopment

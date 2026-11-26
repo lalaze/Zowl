@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { transactionSources } from "@/db/schema";
 import { translator } from "@/lib/i18n/locale";
-import { getLocale } from "@/lib/i18n/server";
+import { getLocaleForRender } from "@/lib/i18n/server";
 import {
   transactionSourceLabel,
   transactionTypeLabel,
@@ -31,7 +31,7 @@ export async function TransactionFilters({
   query: TransactionListQuery;
   categories: CategoryOption[];
 }) {
-  const locale = await getLocale();
+  const locale = await getLocaleForRender();
   const t = translator(locale);
   const activeCount = [
     query.dateFrom,

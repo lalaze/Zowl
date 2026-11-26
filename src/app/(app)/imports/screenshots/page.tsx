@@ -7,14 +7,14 @@ import { ScreenshotUploadForm } from "@/components/receipt-recognition/screensho
 import { RecognitionStepper } from "@/components/receipt-recognition/recognition-stepper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireCurrentUser } from "@/lib/auth/session";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
 import { translator } from "@/lib/i18n/locale";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { getLocaleForRender, getTForRender } from "@/lib/i18n/server";
 import { localizeServerMessage } from "@/lib/i18n/server-messages";
 import { screenshotRecognitionService } from "@/services/screenshot-recognition-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Screenshot recognition", "截图识别") };
 }
 
@@ -25,8 +25,8 @@ const limits = [
 ] as const;
 
 export default async function ScreenshotImportPage() {
-  await requireCurrentUser();
-  const locale = await getLocale();
+  await requireCurrentUserForRender();
+  const locale = await getLocaleForRender();
   const t = translator(locale);
   const provider = screenshotRecognitionService.providerInfo();
   const providerMode = provider.sendsImagesToThirdParty

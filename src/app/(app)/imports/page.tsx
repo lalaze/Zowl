@@ -6,9 +6,9 @@ import { Owl } from "@/components/brand/owl";
 import { ReviewReminderCard } from "@/components/home/review-reminder-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card } from "@/components/ui/card";
-import { requireCurrentUser } from "@/lib/auth/session";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
 import { translator } from "@/lib/i18n/locale";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { getLocaleForRender, getTForRender } from "@/lib/i18n/server";
 import { importSourceLabel, importStatusLabel } from "@/lib/import-display";
 import { formatTransactionDate } from "@/lib/transaction-display";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,7 @@ import { notificationCaptureService } from "@/services/notification-capture-serv
 import { screenshotRecognitionService } from "@/services/screenshot-recognition-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Import", "导入") };
 }
 
@@ -25,8 +25,8 @@ const pillBase =
   "inline-flex items-center rounded-full border-2 border-divider px-2 py-0.5 text-[10px] font-extrabold";
 
 export default async function ImportsPage() {
-  const user = await requireCurrentUser();
-  const locale = await getLocale();
+  const user = await requireCurrentUserForRender();
+  const locale = await getLocaleForRender();
   const t = translator(locale);
   const notificationCount = notificationCaptureService.list(user.id, { limit: 1 }).pendingCount;
   const batches = importService.listBatches(user.id);

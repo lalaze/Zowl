@@ -23,8 +23,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { requireCurrentUser } from "@/lib/auth/session";
-import { getT } from "@/lib/i18n/server";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
+import { getTForRender } from "@/lib/i18n/server";
 import {
   accountSettingsService,
   getRecognitionProviderMetadata,
@@ -33,7 +33,7 @@ import {
 import { aiCategorizationSettingsService } from "@/services/ai-categorization-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Settings", "设置") };
 }
 
@@ -42,8 +42,8 @@ export default async function SettingsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requireCurrentUser();
-  const t = await getT();
+  const user = await requireCurrentUserForRender();
+  const t = await getTForRender();
   const params = await searchParams;
   const pageValue = Array.isArray(params.page) ? params.page[0] : params.page;
   const parsedQuery = storedFilesQuerySchema.safeParse({ page: pageValue });

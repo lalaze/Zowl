@@ -5,12 +5,12 @@ import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { ReceiptReviewClient } from "@/components/receipt-recognition/receipt-review-client";
 import { Button } from "@/components/ui/button";
-import { requireCurrentUser } from "@/lib/auth/session";
-import { getT } from "@/lib/i18n/server";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
+import { getTForRender } from "@/lib/i18n/server";
 import { screenshotRecognitionService } from "@/services/screenshot-recognition-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Review screenshot recognition", "核对截图识别") };
 }
 
@@ -19,9 +19,9 @@ export default async function ScreenshotReviewPage({
 }: {
   params: Promise<{ jobId: string }>;
 }) {
-  const user = await requireCurrentUser();
+  const user = await requireCurrentUserForRender();
   const { jobId } = await params;
-  const t = await getT();
+  const t = await getTForRender();
   const aiMetadata =
     screenshotRecognitionService.getAiCategorizationMetadata(user.id);
 

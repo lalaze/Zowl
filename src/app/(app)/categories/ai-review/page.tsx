@@ -5,19 +5,19 @@ import Link from "next/link";
 import { HistoricalAiReview } from "@/components/categories/historical-ai-review";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { requireCurrentUser } from "@/lib/auth/session";
-import { getT } from "@/lib/i18n/server";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
+import { getTForRender } from "@/lib/i18n/server";
 import { historicalAiReclassificationService } from "@/services/ai-categorization-service";
 import { categoryManagementService } from "@/services/category-management-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("AI Historical reclassification", "AI 历史重分类") };
 }
 
 export default async function HistoricalAiReviewPage() {
-  const user = await requireCurrentUser();
-  const t = await getT();
+  const user = await requireCurrentUserForRender();
+  const t = await getTForRender();
   const categories = categoryManagementService.list(user.id).map((category) => ({
     id: category.id,
     name: category.name,

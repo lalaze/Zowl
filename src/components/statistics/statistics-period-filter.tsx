@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { translator } from "@/lib/i18n/locale";
-import { getLocale } from "@/lib/i18n/server";
+import { getLocaleForRender } from "@/lib/i18n/server";
 
 import { monthLabel } from "./month-label";
 
@@ -17,7 +17,7 @@ export async function StatisticsPeriodFilter({
   currency: string;
   currencies: string[];
 }) {
-  const locale = await getLocale();
+  const locale = await getLocaleForRender();
   const t = translator(locale);
   const currentMonth = monthLabel(month, locale);
   return (

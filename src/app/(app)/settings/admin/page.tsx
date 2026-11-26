@@ -5,15 +5,15 @@ import {
   type AdminAccount,
 } from "@/components/settings/admin-account-manager";
 import { PageHeader } from "@/components/layout/page-header";
-import { requireAdministrator } from "@/lib/auth/session";
-import { getT } from "@/lib/i18n/server";
+import { requireAdministratorForRender } from "@/lib/auth/session";
+import { getTForRender } from "@/lib/i18n/server";
 import {
   accountListQuerySchema,
   accountManagementService,
 } from "@/services/account-management-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Account management", "账号管理") };
 }
 
@@ -22,12 +22,12 @@ export default async function AdminSettingsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requireAdministrator();
+  const user = await requireAdministratorForRender();
   const params = await searchParams;
   const page = Array.isArray(params.page) ? params.page[0] : params.page;
   const query = accountListQuerySchema.parse({ page, limit: 20 });
   const result = accountManagementService.list(user.id, query);
-  const t = await getT();
+  const t = await getTForRender();
 
   return (
     <div className="space-y-6">

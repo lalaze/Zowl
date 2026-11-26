@@ -2,6 +2,7 @@ import "server-only";
 
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { db } from "@/db/client";
 import {
@@ -70,14 +71,32 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   return credentials.token ? sessionStore.findUser(credentials.token) : null;
 }
 
+/**
+ * Per-request memoized variant for React Server Component rendering only.
+ * Leave API route handlers and session-mutating paths on `getCurrentUser()`.
+ */
+export const getCurrentUserForRender = cache(getCurrentUser);
+
 export async function requireCurrentUser() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   return user;
 }
 
+export async function requireCurrentUserForRender() {
+  const user = await getCurrentUserForRender();
+  if (!user) redirect("/login");
+  return user;
+}
+
 export async function requireAdministrator() {
   const user = await requireCurrentUser();
+  if (user.role !== "admin") redirect("/settings");
+  return user;
+}
+
+export async function requireAdministratorForRender() {
+  const user = await requireCurrentUserForRender();
   if (user.role !== "admin") redirect("/settings");
   return user;
 }

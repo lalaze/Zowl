@@ -3,15 +3,15 @@ import { notFound, redirect } from "next/navigation";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { ReceiptResultSummary } from "@/components/receipt-recognition/receipt-result-summary";
-import { requireCurrentUser } from "@/lib/auth/session";
-import { getT } from "@/lib/i18n/server";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
+import { getTForRender } from "@/lib/i18n/server";
 import {
   screenshotRecognitionService,
   ScreenshotRecognitionServiceError,
 } from "@/services/screenshot-recognition-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Screenshot import results", "截图导入结果") };
 }
 
@@ -20,7 +20,7 @@ export default async function ScreenshotResultPage({
 }: {
   params: Promise<{ jobId: string }>;
 }) {
-  const user = await requireCurrentUser();
+  const user = await requireCurrentUserForRender();
   const { jobId } = await params;
   let review;
   try {
@@ -37,7 +37,7 @@ export default async function ScreenshotResultPage({
   if (review.job.status !== "completed") {
     redirect(`/imports/screenshots/${jobId}/review`);
   }
-  const t = await getT();
+  const t = await getTForRender();
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">

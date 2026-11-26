@@ -7,22 +7,22 @@ import { Owl } from "@/components/brand/owl";
 import { BrandMark } from "@/components/layout/brand-mark";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
-import { getCurrentUser } from "@/lib/auth/session";
+import { getCurrentUserForRender } from "@/lib/auth/session";
 import { translator } from "@/lib/i18n/locale";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { getLocaleForRender, getTForRender } from "@/lib/i18n/server";
 import { setupService } from "@/services/setup-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const t = await getTForRender();
   return { title: t("Initialize administrator", "初始化管理员") };
 }
 export const dynamic = "force-dynamic";
 
 export default async function SetupPage() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUserForRender();
   if (user) redirect("/");
   if (setupService.isInitialized()) redirect("/login");
-  const locale = await getLocale();
+  const locale = await getLocaleForRender();
   const t = translator(locale);
 
   return (

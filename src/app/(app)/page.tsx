@@ -1,8 +1,8 @@
 import { DesktopDashboard } from "@/components/home/desktop-dashboard";
 import { buildHomeModel } from "@/components/home/home-model";
 import { MobileHome } from "@/components/home/mobile-home";
-import { requireCurrentUser } from "@/lib/auth/session";
-import { getLocale } from "@/lib/i18n/server";
+import { requireCurrentUserForRender } from "@/lib/auth/session";
+import { getLocaleForRender } from "@/lib/i18n/server";
 import { importService } from "@/services/import-service";
 import { notificationCaptureService } from "@/services/notification-capture-service";
 import { screenshotRecognitionService } from "@/services/screenshot-recognition-service";
@@ -13,8 +13,8 @@ import {
 import { transactionService } from "@/services/transaction-service";
 
 export default async function HomePage() {
-  const user = await requireCurrentUser();
-  const locale = await getLocale();
+  const user = await requireCurrentUserForRender();
+  const locale = await getLocaleForRender();
   const now = new Date();
   const month = getCurrentMonthInTimeZone(now, user.timezone);
   const overview = statisticsService.overview({
