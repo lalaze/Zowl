@@ -1,6 +1,5 @@
 package com.zowl.mobile.capture
 
-import com.zowl.mobile.ocr.LocalOcrParser
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -90,8 +89,8 @@ class XianyuCaptureTest {
                     xianyuDialogs.onCashierActive()
                 }
                 if (texts.isNotEmpty() && !partial && ocrRole("xianyu", windowId) == PaymentPageOcrGate.Role.CASHIER) {
-                    val clean = LocalOcrParser.withoutOffers(joined)
-                    val fields = LocalOcrParser.parse(clean)
+                    val clean = PaymentOcrText.withoutOffers(joined)
+                    val fields = PaymentOcrText.parse(clean)
                     val amount = PaymentPageOcrFacts.amountMinor(fields)
                     if (fields.warning == null && amount != null) {
                         if (ocrSessions.onSuccessPage(windowId, amount) != null) {
@@ -99,7 +98,7 @@ class XianyuCaptureTest {
                             settle("xianyu", amount, "xianyu_payment_page_v1")
                         }
                     } else {
-                        LocalOcrParser.singleAmount(clean)?.let(PaymentPageOcrFacts::minor)?.let {
+                        PaymentOcrText.singleAmount(clean)?.let(PaymentPageOcrFacts::minor)?.let {
                             xianyuCashier.onCashierAmount(windowId, it)
                         }
                     }

@@ -1,12 +1,11 @@
 package com.zowl.mobile.capture
 
-import com.zowl.mobile.ocr.LocalOcrParser
 import org.junit.Assert.*
 import org.junit.Test
 
 class PaymentPageOcrTest {
     private fun candidate(text: String, windowId: Int = 7, generation: Int = 0, boot: Int = 3) =
-        PaymentPageOcrFacts.candidate(LocalOcrParser.parse(text), text, "wechat", "com.tencent.mm",
+        PaymentPageOcrFacts.candidate(PaymentOcrText.parse(text), text, "wechat", "com.tencent.mm",
             "install-1", boot, windowId, generation, 1_800_000_000_000)
 
     @Test fun pendingTransferPageBecomesAnExpenseToThePayeeUnderTheOcrIdentity() {
@@ -401,19 +400,19 @@ class PaymentPageOcrTest {
     private val resultPage = "支付成功\n本单确认收货后预计可+5.0淘气值\n帆布手提包\n查看订单\n100淘金币,立省!\n¥59\n¥79"
 
     @Test fun taobaoCashierShowsTheAmountAndBrieflyTheOutcomeOnOneWindow() {
-        assertNull(LocalOcrParser.parse(cashierPaying).amount)
-        assertEquals("96.00", LocalOcrParser.singleAmount(cashierPaying))
-        val paid = PaymentPageOcrFacts.candidate(LocalOcrParser.parse(cashierPaid), cashierPaid, "taobao",
+        assertNull(PaymentOcrText.parse(cashierPaying).amount)
+        assertEquals("96.00", PaymentOcrText.singleAmount(cashierPaying))
+        val paid = PaymentPageOcrFacts.candidate(PaymentOcrText.parse(cashierPaid), cashierPaid, "taobao",
             "com.taobao.taobao", "install-1", 3, 41, 0, 1_800_000_000_000)!!
         assertEquals(9_600L, paid.amountMinor)
         assertEquals("taobao_payment_page_ocr_v1", paid.parserId)
         assertNull(paid.merchantName)
         // The result page has the heading but never a usable amount of its own.
-        assertTrue(LocalOcrParser.hasSuccessHeading(resultPage))
-        assertNull(LocalOcrParser.singleAmount(resultPage))
-        assertFalse(LocalOcrParser.hasSuccessHeading("订单支付成功通知\n¥96.00"))
-        assertNull(LocalOcrParser.singleAmount("¥32.00 x 3期\n¥96.00"))
-        assertNull(LocalOcrParser.singleAmount(LocalOcrParser.withoutOffers("¥32.00 x 3期\n¥96.00")))
+        assertTrue(PaymentOcrText.hasSuccessHeading(resultPage))
+        assertNull(PaymentOcrText.singleAmount(resultPage))
+        assertFalse(PaymentOcrText.hasSuccessHeading("订单支付成功通知\n¥96.00"))
+        assertNull(PaymentOcrText.singleAmount("¥32.00 x 3期\n¥96.00"))
+        assertNull(PaymentOcrText.singleAmount(PaymentOcrText.withoutOffers("¥32.00 x 3期\n¥96.00")))
         // Whichever window confirms the payment, the candidate has one identity.
         val confirmed = PaymentPageOcrFacts.candidate(PaymentPageOcrFacts.fields(9_600L), resultPage, "taobao",
             "com.taobao.taobao", "install-1", 3, 41, 0, 1_800_000_000_500)!!
@@ -426,18 +425,18 @@ class PaymentPageOcrTest {
         // amount kept the cashier from remembering any amount, so payments were missed.
         val cashier = "关闭\n更改付款方式\n淘宝闪购商户\n¥28.80\n有立减0.50元可选\n招商银行储蓄卡(1234)\n" +
             "优先使用此方式，按支付顺序完成付款\n极速付款"
-        assertNull(LocalOcrParser.singleAmount(cashier))
-        assertEquals(1, LocalOcrParser.offerLines(cashier))
-        assertEquals("28.80", LocalOcrParser.singleAmount(LocalOcrParser.withoutOffers(cashier)))
+        assertNull(PaymentOcrText.singleAmount(cashier))
+        assertEquals(1, PaymentOcrText.offerLines(cashier))
+        assertEquals("28.80", PaymentOcrText.singleAmount(PaymentOcrText.withoutOffers(cashier)))
         // An applied offer: the amount charged is still the one standing alone.
-        assertEquals("28.30", LocalOcrParser.singleAmount(LocalOcrParser.withoutOffers(
+        assertEquals("28.30", PaymentOcrText.singleAmount(PaymentOcrText.withoutOffers(
             "淘宝闪购商户\n¥28.30\n已立减0.50元\n招商银行储蓄卡(1234)")))
         // A struck-through original price stands alone too: two amounts, nothing is guessed.
-        assertNull(LocalOcrParser.singleAmount(LocalOcrParser.withoutOffers(
+        assertNull(PaymentOcrText.singleAmount(PaymentOcrText.withoutOffers(
             "淘宝闪购商户\n¥28.30\n¥28.80\n已优惠0.50元\n招商银行储蓄卡(1234)")))
         // Other offers seen on cashiers.
         listOf("红包抵扣¥5.00", "满20减3元", "使用优惠券 -¥2.00", "返现1.00元")
-            .forEach { assertEquals(it, "12.00", LocalOcrParser.singleAmount(LocalOcrParser.withoutOffers("¥12.00\n$it"))) }
+            .forEach { assertEquals(it, "12.00", PaymentOcrText.singleAmount(PaymentOcrText.withoutOffers("¥12.00\n$it"))) }
     }
 
     @Test fun taobaoResultPageConfirmsTheCashierAmountOnceAndOnlySoonAfter() {

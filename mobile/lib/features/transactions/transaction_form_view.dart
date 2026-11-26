@@ -17,9 +17,7 @@ extension _TransactionFormView on _TransactionFormScreenState {
         )
         .take(4)
         .toList();
-    final title = widget.localOcr != null
-        ? tr('On-device scan · Confirm manually', '本地识别 · 手动确认')
-        : _editing
+    final title = _editing
         ? tr('Amend transaction', '修改交易')
         : tr('Add transaction', '记一笔');
     return Scaffold(
@@ -37,7 +35,7 @@ extension _TransactionFormView on _TransactionFormScreenState {
                         leading: const SkyBackButton(),
                         title: SkyTitle(title, small: true),
                         actions: [
-                          if (!_editing && widget.localOcr == null)
+                          if (!_editing)
                             IconButton(
                               tooltip: tr('Recognize screenshots', '识别截图'),
                               onPressed: () =>
@@ -127,29 +125,6 @@ extension _TransactionFormView on _TransactionFormScreenState {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (widget.localOcr != null)
-          ZeCard(
-            tone: ZeTone.warn,
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              tr(
-                    'On-device OCR prefilled this manual entry; nothing is posted yet. Check the amount and merchant and choose the time. Only the fields you confirm are submitted, recorded as a manual entry; the screenshot and recognized text are never saved. The draft expires in 5 minutes.',
-                    '本地 OCR 辅助手动录入，尚未记账。请核对金额、商户并选择交易时间。仅确认后提交编辑后的字段，账本来源为手动录入；不保存截图或 OCR 全文。草稿 5 分钟后失效。',
-                  ) +
-                  switch (widget.localOcr!.warning) {
-                    'multiple_amounts' => tr(
-                      '\nSeveral amounts were found, so the amount is blank. Enter it yourself.',
-                      '\n识别到多个金额：金额已留空，请人工填写。',
-                    ),
-                    'missing_amount' => tr(
-                      '\nNo clear amount was found. Enter it yourself.',
-                      '\n未识别到明确金额，请人工填写。',
-                    ),
-                    _ => '',
-                  },
-            ),
-          ),
         if (_posted)
           Semantics(
             liveRegion: true,
@@ -177,7 +152,7 @@ extension _TransactionFormView on _TransactionFormScreenState {
             _categoryId = null;
           }),
         ),
-        if (!_editing && widget.localOcr == null && templates.isNotEmpty) ...[
+        if (!_editing && templates.isNotEmpty) ...[
           const SizedBox(height: 14),
           _recentTemplates(context, templates),
         ],
@@ -456,9 +431,7 @@ extension _TransactionFormView on _TransactionFormScreenState {
 
   Widget _details(BuildContext context) {
     final t = context.ze;
-    final timeLabel = widget.localOcr != null && !_ocrTimeConfirmed
-        ? tr('Choose when the payment happened (required)', '请选择实际交易时间（必填）')
-        : DateFormat('yyyy-MM-dd HH:mm').format(_time);
+    final timeLabel = DateFormat('yyyy-MM-dd HH:mm').format(_time);
     return Column(
       children: [
         TextFormField(
@@ -482,12 +455,7 @@ extension _TransactionFormView on _TransactionFormScreenState {
           title: Text(tr('Transaction time', '交易时间')),
           subtitle: Text(
             timeLabel,
-            style: TextStyle(
-              color: widget.localOcr != null && !_ocrTimeConfirmed
-                  ? t.warn
-                  : t.sub,
-              fontFeatures: tabularFigures,
-            ),
+            style: TextStyle(color: t.sub, fontFeatures: tabularFigures),
           ),
           trailing: const ZeChevron(),
           onTap: _pickTime,

@@ -84,17 +84,6 @@ class ApiClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await _tokenStore.read();
-          final expectedToken = options.extra.remove('expectedSessionToken');
-          if (expectedToken != null && token != expectedToken) {
-            handler.reject(
-              DioException(
-                requestOptions: options,
-                type: DioExceptionType.cancel,
-                error: 'SESSION_CHANGED',
-              ),
-            );
-            return;
-          }
           if (token != null) options.headers['authorization'] = 'Bearer $token';
           options.headers['accept-language'] = acceptLanguage;
           handler.next(options);
@@ -133,7 +122,6 @@ class ApiClient {
     T Function(dynamic json)? decode,
     ProgressCallback? onSendProgress,
     Duration? receiveTimeout,
-    String? expectedSessionToken,
   }) async {
     Response<dynamic> response;
     try {
@@ -141,24 +129,10 @@ class ApiClient {
         path,
         data: data,
         queryParameters: query,
-        options: Options(
-          method: method,
-          receiveTimeout: receiveTimeout,
-          extra: {'expectedSessionToken': ?expectedSessionToken},
-        ),
+        options: Options(method: method, receiveTimeout: receiveTimeout),
         onSendProgress: onSendProgress,
       );
     } on DioException catch (error) {
-      if (error.error == 'SESSION_CHANGED') {
-        throw ApiException(
-          statusCode: 0,
-          code: 'SESSION_CHANGED',
-          message: tr(
-            'Session changed. Reopen the draft before confirming',
-            '登录状态已变化，请重新打开草稿后再确认',
-          ),
-        );
-      }
       throw ApiException(
         statusCode: error.response?.statusCode ?? 0,
         code: 'NETWORK_ERROR',

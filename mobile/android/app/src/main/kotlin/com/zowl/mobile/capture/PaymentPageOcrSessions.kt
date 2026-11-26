@@ -1,6 +1,5 @@
 package com.zowl.mobile.capture
 
-import com.zowl.mobile.ocr.LocalOcrParser
 import java.math.BigDecimal
 import java.security.MessageDigest
 import java.time.Instant
@@ -109,7 +108,7 @@ object PaymentPageOcrFacts {
     fun parserId(platform: String) = "${platform}_payment_page_ocr_v1"
     const val PARSER_VERSION = 1
 
-    fun amountMinor(fields: LocalOcrParser.Fields): Long? = fields.amount?.let(::minor)
+    fun amountMinor(fields: PaymentOcrText.Fields): Long? = fields.amount?.let(::minor)
 
     /** Yuan with up to two decimals, as OCR parsing reports it, in fen. */
     fun minor(amount: String): Long? =
@@ -118,11 +117,11 @@ object PaymentPageOcrFacts {
 
     /** Fields for an amount established on another window; the page it is confirmed on names no payee. */
     fun fields(amountMinor: Long) =
-        LocalOcrParser.Fields(BigDecimal(amountMinor).movePointLeft(2).toPlainString(), null, null)
+        PaymentOcrText.Fields(BigDecimal(amountMinor).movePointLeft(2).toPlainString(), null, null)
 
     /** Builds the candidate from parsed OCR fields; null unless exactly one amount was read. */
     fun candidate(
-        fields: LocalOcrParser.Fields,
+        fields: PaymentOcrText.Fields,
         text: String,
         platform: String,
         sourcePackage: String,
@@ -634,10 +633,10 @@ object AlipayCashierText {
     enum class Frame { AMOUNT, SETTLED, AMBIGUOUS, NONE }
 
     fun apply(flow: ShoppingCashierFlow, windowId: Int, shown: String): Frame {
-        val text = LocalOcrParser.withoutOffers(shown)
-        val amount = LocalOcrParser.singleAmount(text)?.let(PaymentPageOcrFacts::minor)
+        val text = PaymentOcrText.withoutOffers(shown)
+        val amount = PaymentOcrText.singleAmount(text)?.let(PaymentPageOcrFacts::minor)
         val yuan = amount != null && PaymentPageParser.statesYuan(text.lines(), amount)
-        if (LocalOcrParser.hasSuccessHeading(text)) {
+        if (PaymentOcrText.hasSuccessHeading(text)) {
             flow.onCashierSettled(windowId, amount, yuan)
             return Frame.SETTLED
         }
@@ -645,7 +644,7 @@ object AlipayCashierText {
             flow.onCashierAmount(windowId, amount, yuan)
             return Frame.AMOUNT
         }
-        if (LocalOcrParser.amountCount(text) > 1) {
+        if (PaymentOcrText.amountCount(text) > 1) {
             flow.onCashierAmbiguous(windowId)
             return Frame.AMBIGUOUS
         }

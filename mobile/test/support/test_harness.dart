@@ -10,7 +10,6 @@ import 'package:zemoney_mobile/core/api.dart';
 import 'package:zemoney_mobile/core/l10n.dart';
 import 'package:zemoney_mobile/core/config.dart';
 import 'package:zemoney_mobile/core/models.dart';
-import 'package:zemoney_mobile/core/local_ocr.dart';
 import 'package:zemoney_mobile/core/payment_capture.dart';
 import 'package:zemoney_mobile/core/providers.dart';
 import 'package:zemoney_mobile/core/repository.dart';
@@ -54,19 +53,6 @@ class FakeScreenshotPicker implements ScreenshotPicker {
     requestedLimit = limit;
     return files;
   }
-}
-
-class FakeLocalOcrBridge extends LocalOcrBridge {
-  final boundOwners = <String?>[];
-  @override
-  Future<void> bindOwner(String? owner) async {
-    boundOwners.add(owner);
-  }
-
-  @override
-  Future<Map<dynamic, dynamic>> status() async => const {};
-  @override
-  Future<Map<dynamic, dynamic>> diagnostics() async => const {};
 }
 
 class FakePaymentCaptureBridge implements PaymentCaptureBridge {
@@ -434,10 +420,7 @@ class FakeZeMoneyRepository extends ZeMoneyRepository {
       transactionHandler?.call(id) ?? Future.value(transactionValue);
 
   @override
-  Future<Map<String, dynamic>> createTransaction(
-    Map<String, dynamic> input, {
-    String? expectedSessionToken,
-  }) {
+  Future<Map<String, dynamic>> createTransaction(Map<String, dynamic> input) {
     createInputs.add(input);
     return createHandler?.call(input) ?? Future.value({'id': 'tx-created'});
   }
@@ -706,9 +689,7 @@ class MobileTestHarness {
     );
   }
 
-  List<Override> get overrides => overridesWithOcr(FakeLocalOcrBridge());
-
-  List<Override> overridesWithOcr(LocalOcrBridge ocr) => [
+  List<Override> get overrides => [
     apiConfigProvider.overrideWithValue(
       ApiConfig.parse('http://100.64.0.10:3000', release: false),
     ),
@@ -718,7 +699,6 @@ class MobileTestHarness {
     repositoryProvider.overrideWithValue(repository),
     screenshotPickerProvider.overrideWithValue(picker),
     paymentCaptureBridgeProvider.overrideWithValue(capture),
-    localOcrBridgeProvider.overrideWithValue(ocr),
   ];
 
   Widget screen(

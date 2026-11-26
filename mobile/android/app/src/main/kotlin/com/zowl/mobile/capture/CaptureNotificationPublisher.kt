@@ -30,7 +30,6 @@ object CaptureNotificationPublisher {
     private const val AUTH_NOTIFICATION_ID = 41202
     // The listener-health channel of builds that still read notifications; only ever deleted.
     private const val RETIRED_HEALTH_CHANNEL_ID = "payment_capture_health"
-    private const val LOCAL_OCR_NOTIFICATION_ID = 41204
     private const val PAYMENT_CODE_NOTIFICATION_ID = 41205
     // A question about a payment from a while ago is no longer worth asking.
     private const val PAYMENT_CODE_REMINDER_TIMEOUT = 30 * 60 * 1000L
@@ -217,35 +216,6 @@ object CaptureNotificationPublisher {
         )
     }
 
-    /**
-     * Fallback entry to the local OCR review when the OS silently blocks a background
-     * activity start. Fixed wording only: no amount, merchant or recognised text.
-     */
-    fun showLocalOcrReady(context: Context, route: String): Boolean {
-        if (!canNotify(context)) return false
-        return try {
-            val strings = NativeLanguage.localized(context)
-            ensureChannel(context, strings)
-            context.getSystemService(NotificationManager::class.java).notify(
-                LOCAL_OCR_NOTIFICATION_ID,
-                NotificationCompat
-                    .Builder(context, CHANNEL_ID)
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setContentTitle(strings.getString(R.string.local_ocr_ready_title))
-                    .setContentText(strings.getString(R.string.local_ocr_ready_text))
-                    .setContentIntent(routeIntent(context, route))
-                    .setAutoCancel(true)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-                    .setTimeoutAfter(300_000)
-                    .build(),
-            )
-            true
-        } catch (_: Exception) {
-            false
-        }
-    }
-
     /** WeChat's payment code was shown and nothing was captured: ask whether it was used to pay. */
     fun showPaymentCodeReminder(context: Context) {
         if (!canNotify(context)) return
@@ -266,12 +236,6 @@ object CaptureNotificationPublisher {
                 .setContentIntent(routeIntent(context, "/transactions/new"))
                 .build(),
         )
-    }
-
-    fun clearLocalOcrReady(context: Context) {
-        context
-            .getSystemService(NotificationManager::class.java)
-            .cancel(LOCAL_OCR_NOTIFICATION_ID)
     }
 
     fun clearCaptureNotifications(context: Context) {

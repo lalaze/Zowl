@@ -11,7 +11,6 @@ import '../../core/theme.dart';
 import '../common/sky.dart';
 import '../common/widgets.dart';
 import 'payment_capture_settings.dart';
-import 'local_ocr_settings.dart';
 
 String _avatarName((String, String, IconData) avatar) =>
     tr(avatar.$1, avatar.$2);
@@ -403,10 +402,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         if (android) ...[
           const SizedBox(height: 14),
-          _GroupLabel(tr('Capture', '采集与识别')),
+          _GroupLabel(tr('Capture', '采集')),
           const ZeGroup(
             showDividers: false,
-            children: [PaymentCaptureSettingsTile(), LocalOcrSettingsTile()],
+            children: [PaymentCaptureSettingsTile()],
           ),
         ],
         const SizedBox(height: 14),

@@ -555,7 +555,7 @@ void main() {
     expect(find.text('偏好设置'), findsOneWidget);
     expect(find.text('个人资料'), findsOneWidget);
     expect(find.text('昵称与头像'), findsOneWidget);
-    expect(find.text('采集与识别'), findsOneWidget);
+    expect(find.text('采集'), findsOneWidget);
     expect(find.text('Personal details'), findsNothing);
 
     await tester.tap(find.text('支付自动采集'));

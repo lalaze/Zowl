@@ -6,17 +6,18 @@ import 'package:zemoney_mobile/core/api.dart';
 import 'package:zemoney_mobile/core/formatters.dart';
 import 'package:zemoney_mobile/core/models.dart';
 import 'package:zemoney_mobile/core/providers.dart';
+import 'package:zemoney_mobile/features/imports/notification_capture_screen.dart';
 import 'package:zemoney_mobile/main.dart';
 
 import 'support/fixtures.dart';
 import 'support/test_harness.dart';
 
 void main() {
-  testWidgets('tile settings route survives cold-start authentication', (
+  testWidgets('a notification route survives cold-start authentication', (
     tester,
   ) async {
     final harness = await MobileTestHarness.create();
-    harness.capture.pendingRouteForTest = '/settings/local-ocr';
+    harness.capture.pendingRouteForTest = '/imports/notifications';
     await tester.pumpWidget(
       ProviderScope(
         overrides: harness.overrides,
@@ -25,16 +26,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Zowl Scan'), findsOneWidget);
+    expect(find.byType(NotificationCaptureScreen), findsOneWidget);
     expect(harness.repository.createInputs, isEmpty);
     expect(harness.capture.configureCalls, 0);
   });
 
-  testWidgets('tile settings route waits for login without capturing', (
+  testWidgets('a notification route waits for login without capturing', (
     tester,
   ) async {
     final harness = await MobileTestHarness.create(token: null);
-    harness.capture.pendingRouteForTest = '/settings/local-ocr';
+    harness.capture.pendingRouteForTest = '/imports/notifications';
     await tester.pumpWidget(
       ProviderScope(
         overrides: harness.overrides,
@@ -51,7 +52,7 @@ void main() {
         .read(authControllerProvider.notifier)
         .login('test@zemoney.local', 'password');
     await tester.pumpAndSettle();
-    expect(find.text('Zowl Scan'), findsOneWidget);
+    expect(find.byType(NotificationCaptureScreen), findsOneWidget);
     expect(harness.repository.createInputs, isEmpty);
   });
   testWidgets('a rejected password keeps the form and says what failed', (

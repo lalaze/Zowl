@@ -1,10 +1,10 @@
-package com.zowl.mobile.ocr
+package com.zowl.mobile.capture
 
 import java.math.BigDecimal
 
-/** Conservative hints for a manual form, never a payment-page/notification candidate. */
-object LocalOcrParser {
-    /** detail/lines/amounts are content-free hints for local diagnostics only. */
+/** Reads payment facts from text recognised in a payment app window's screenshot. Conservative: never guesses. */
+object PaymentOcrText {
+    /** detail/lines/amounts are content-free hints for diagnostics only. */
     data class Fields(val amount: String?, val merchant: String?, val warning: String?,
         val detail: String? = null, val lines: Int = 0, val amounts: Int = 0)
     private val successMarkers = listOf("支付成功", "付款成功", "交易成功")
@@ -77,7 +77,7 @@ object LocalOcrParser {
         if (lines.none(::isSuccessLine)) return Fields(null, null, "unsupported_page", "no_success_marker", lines.size)
         if (excluded.containsMatchIn(text)) return Fields(null, null, "unsupported_page", "excluded_content", lines.size)
         val values = amountValues(text, lines)
-        // Discounts/balances are deliberately not ranked: multiple amounts require manual entry.
+        // Discounts/balances are deliberately not ranked: a page with several amounts yields none.
         val amount = values.singleOrNull()?.takeIf { it.toBigDecimal() > BigDecimal.ZERO && it.toBigDecimal() <= BigDecimal("99999999.99") }
         val merchants = lines.mapNotNull {
             (merchant.matchEntire(it) ?: pendingPayee.matchEntire(it))?.groupValues?.get(1)?.trim()?.ifBlank { null }

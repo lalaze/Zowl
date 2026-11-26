@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zemoney_mobile/core/api.dart';
 import 'package:zemoney_mobile/core/config.dart';
 import 'package:zemoney_mobile/core/models.dart';
-import 'package:zemoney_mobile/core/local_ocr.dart';
 import 'package:zemoney_mobile/core/payment_capture.dart';
 import 'package:zemoney_mobile/core/providers.dart';
 import 'package:zemoney_mobile/core/repository.dart';
@@ -21,7 +20,6 @@ import 'package:zemoney_mobile/features/statistics/statistics_screen.dart';
 import 'package:zemoney_mobile/features/transactions/transaction_detail_screen.dart';
 import 'package:zemoney_mobile/features/transactions/transaction_form_screen.dart';
 import 'package:zemoney_mobile/features/transactions/transaction_list_screen.dart';
-import 'support/test_harness.dart' show FakeLocalOcrBridge;
 
 const _user = SessionUser(
   id: 'golden-user',
@@ -306,7 +304,6 @@ class _Harness {
     tokenStoreProvider.overrideWithValue(tokens),
     apiClientProvider.overrideWithValue(api),
     repositoryProvider.overrideWithValue(repository),
-    localOcrBridgeProvider.overrideWithValue(FakeLocalOcrBridge()),
     paymentCaptureBridgeProvider.overrideWithValue(
       _GoldenPaymentCaptureBridge(),
     ),

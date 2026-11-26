@@ -91,20 +91,6 @@ limits. Payment notifications are no longer read ([ADR-0011](../docs/adr/0011-an
 Android turns the accessibility service off after **Force stop**. Turn it on again to resume. After updating
 the APK, toggling the service off and on reloads its configuration.
 
-### Zowl Scan quick-settings tile
-
-An independent, default-off feature for Android 14+ ([ADR-0009](../docs/adr/0009-local-ocr-manual-draft.md)):
-
-1. Open **Me → Zowl Scan**, read the privacy note, and enable local recognition.
-2. Make sure the accessibility service above is allowed.
-3. Tap **Add Zowl Scan tile** on that page, or add **Zowl Scan** by editing Android Quick Settings.
-4. On a WeChat or Alipay payment-success page, pull down Quick Settings and tap the tile once.
-5. Review the amount and merchant, pick the transaction time yourself, and confirm.
-
-The screenshot and OCR text stay in native memory. The draft lives only in process memory for five minutes,
-bound to the signed-in user. Nothing is posted until you confirm, and the posted transaction has `manual`
-provenance.
-
 ### Diagnostics
 
 **Me → Automatic payment capture → Local parser diagnostics** shows counters by source, parser version, and

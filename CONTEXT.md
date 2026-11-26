@@ -52,10 +52,6 @@ _Avoid_: screenshot, raw page text, evidence, order page capture
 The goods a shopping-app payment bought, as a model read them from the order context before posting: items (name, variant, quantity, listed price) and the shop. Kept on the capture candidate and shown with its posted transaction; read-only. Only what the uploaded text supports is kept. Listed prices are what the page showed, not what was paid, and need not add up to the transaction amount. The shop name and the goods summary become the candidate's merchant and description with `ai_suggestion` origin, so the first posted revision already carries them. The amount is never taken from a model.
 _Avoid_: line items of a split transaction, receipt, itemised amounts, parser facts
 
-**Local OCR Manual Draft**:
-An ephemeral, owner-bound suggestion created only after the user clicks the Android quick-settings tile on a WeChat or Alipay payment-success page. A bundled Chinese model reads one window screenshot locally; neither the image nor raw OCR text is persisted or uploaded. Amount and merchant are editable hints, time must be selected manually, and posting uses the existing manual confirmation endpoint with `manual` provenance. It never enters capture queues or consumes checkout sessions. Five-minute expiry, cancellation, logout and account changes discard it. See ADR-0009 for the API 34+ window-screenshot restriction and device-validation scope.
-_Avoid_: payment page capture candidate, screenshot import task, automatic posting, audited OCR provenance
-
 **Bill Enrichment**:
 Field suggestions from an Alipay expense statement for a unique notification candidate or its posted transaction belonging to the same user, with the same amount and currency and a time difference of at most five minutes. Enrichment cannot alter amount, currency, or time. User-content conflicts require individual field decisions. Pending candidates retain notification provenance when posted; existing transactions receive an amendment revision. The batch and supplemental evidence commit atomically.
 _Avoid_: silent overwrite, automatic selection of ambiguous targets, duplicate statement posting

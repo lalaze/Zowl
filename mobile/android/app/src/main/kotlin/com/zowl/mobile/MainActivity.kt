@@ -22,21 +22,14 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import com.zowl.mobile.ocr.LocalOcrChannel
-import com.zowl.mobile.ocr.LocalOcrTileService
 
 class MainActivity : FlutterActivity() {
-    private var localOcrChannel: LocalOcrChannel? = null
     private var screenshotShare: ScreenshotShareBridge? = null
     private var captureChannel: MethodChannel? = null
     private var pendingRoute: String? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        localOcrChannel?.dispose()
-        localOcrChannel = LocalOcrChannel(this)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.zowl.mobile/local_ocr")
-            .setMethodCallHandler(localOcrChannel)
         screenshotShare?.dispose()
         screenshotShare = ScreenshotShareBridge(this, flutterEngine.dartExecutor.binaryMessenger).also { it.accept(intent) }
         pendingRoute = intent?.getStringExtra(CaptureNotificationPublisher.ROUTE_EXTRA)
@@ -60,10 +53,9 @@ class MainActivity : FlutterActivity() {
         val language =
             AppLanguage.fromWireName(call.argument<String>("language"))
                 ?: return result.error("INVALID_ARGUMENT", "Invalid language", null)
-        val changed = NativeLanguage.save(applicationContext, language)
+        NativeLanguage.save(applicationContext, language)
         // Also on an unchanged choice: under "system" the phone's language may have changed.
         CaptureNotificationPublisher.refreshChannels(applicationContext)
-        if (changed) LocalOcrTileService.requestRelabel(applicationContext)
         result.success(null)
     }
 
@@ -77,8 +69,6 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
-        localOcrChannel?.dispose()
-        localOcrChannel = null
         screenshotShare?.dispose()
         screenshotShare = null
         super.onDestroy()

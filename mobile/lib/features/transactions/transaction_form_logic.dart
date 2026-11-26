@@ -115,34 +115,8 @@ extension _TransactionFormLogic on _TransactionFormScreenState {
   }
 
   Future<void> _submit({String? duplicateDigest}) async {
-    if (_checkingOcr || (_saving && duplicateDigest == null)) return;
+    if (_saving && duplicateDigest == null) return;
     if (!_key.currentState!.validate()) return;
-    String? expectedSessionToken;
-    if (widget.localOcr != null) {
-      if (!_ocrTimeConfirmed) {
-        _update(
-          () => _error = tr(
-            'Choose when the payment happened; the scan did not read a time',
-            '请选择实际交易时间；OCR 未识别时间',
-          ),
-        );
-        return;
-      }
-      _checkingOcr = true;
-      try {
-        expectedSessionToken = await ref.read(tokenStoreProvider).read();
-        if (expectedSessionToken == null || !await _validateOcr()) {
-          if (mounted) _expireOcr();
-          return;
-        }
-      } catch (_) {
-        if (mounted) _expireOcr();
-        return;
-      } finally {
-        _checkingOcr = false;
-      }
-      if (!mounted) return;
-    }
     if (_editing && _expectedRevisionId == null) {
       _update(
         () => _error = tr(
@@ -179,7 +153,7 @@ extension _TransactionFormLogic on _TransactionFormScreenState {
           'confirmation': {'id': _operationId, 'version': 1},
           if (duplicateDigest != null)
             'duplicateOverride': {'assessmentDigest': duplicateDigest},
-        }, expectedSessionToken: expectedSessionToken);
+        });
       }
       if (!mounted) return;
       final id = _editing ? widget.initial!.id : result['id']?.toString();

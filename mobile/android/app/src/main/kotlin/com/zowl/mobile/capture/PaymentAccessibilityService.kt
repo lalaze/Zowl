@@ -18,7 +18,6 @@ import android.view.accessibility.AccessibilityManager
 import android.view.accessibility.AccessibilityNodeInfo
 import com.zowl.mobile.NativeLanguage
 import com.zowl.mobile.R
-import com.zowl.mobile.ocr.LocalOcrCapture
 
 class PaymentAccessibilityService : AccessibilityService() {
     private val handler = Handler(Looper.getMainLooper())
@@ -59,14 +58,10 @@ class PaymentAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         connected = true
-        LocalOcrCapture.service = this
         CaptureTrace.d { "service connected" }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        // Window metadata protects the one-shot OCR request. No additional tree text is read.
-        LocalOcrCapture.onEvent(event)
-        if (LocalOcrCapture.state.capturing()) return
         val eventPackage = event?.packageName?.toString() ?: return
         val sourcePackage = sourcePackage(eventPackage) ?: return
         val preferences = CapturePreferences(this)
@@ -127,7 +122,6 @@ class PaymentAccessibilityService : AccessibilityService() {
     }
 
     private fun look(source: String, eventPackage: String, platform: String, owner: String): Look {
-        if (LocalOcrCapture.state.capturing()) return Look.TRANSIENT
         val preferences = CapturePreferences(this)
         if (!eligible(preferences, platform) || preferences.queueOwnerUserId != owner) return Look.DONE
         val diagnostics = CaptureDiagnosticsStore(this)
@@ -599,12 +593,11 @@ class PaymentAccessibilityService : AccessibilityService() {
         get() = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
 
     // The system asks to interrupt spoken feedback, which this service never gives. It is not a
-    // cancellation: dropping capture state here lost recognised drafts and re-read captured pages.
+    // cancellation: dropping capture state here re-read captured pages.
     override fun onInterrupt() = Unit
     override fun onUnbind(intent: Intent?): Boolean {
         CaptureTrace.d { "service unbound" }
         connected = false
-        LocalOcrCapture.disconnect()
         PaymentPageOcr.cancel()
         orderContext.clear()
         pending?.let(handler::removeCallbacks)
@@ -614,7 +607,6 @@ class PaymentAccessibilityService : AccessibilityService() {
     override fun onDestroy() {
         CaptureTrace.d { "service destroyed" }
         connected = false
-        LocalOcrCapture.disconnect()
         PaymentPageOcr.cancel()
         orderContext.clear()
         handler.removeCallbacksAndMessages(null)

@@ -133,16 +133,13 @@ class ZeMoneyRepository {
         decode: (json) => TransactionItem.fromJson(_map(json)),
       );
 
-  Future<Map<String, dynamic>> createTransaction(
-    Map<String, dynamic> input, {
-    String? expectedSessionToken,
-  }) => api.requestData<Map<String, dynamic>>(
-    '/api/transactions',
-    method: 'POST',
-    data: input,
-    expectedSessionToken: expectedSessionToken,
-    decode: _map,
-  );
+  Future<Map<String, dynamic>> createTransaction(Map<String, dynamic> input) =>
+      api.requestData<Map<String, dynamic>>(
+        '/api/transactions',
+        method: 'POST',
+        data: input,
+        decode: _map,
+      );
 
   Future<Map<String, dynamic>> amendTransaction(
     String id,

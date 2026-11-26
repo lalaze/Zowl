@@ -39,23 +39,6 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".ocr.LocalOcrTileService"
-            android:exported="true"
-            android:label="@string/local_ocr_tile_label"
-            android:icon="@drawable/ic_local_ocr_tile"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-        </service>
-        <activity
-            android:name=".ocr.LocalOcrCollapseActivity"
-            android:exported="false"
-            android:noHistory="true"
-            android:excludeFromRecents="true"
-            android:taskAffinity="com.zowl.mobile.localocr"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <service
             android:name=".capture.PaymentAccessibilityService"
             android:exported="true"
             android:label="@string/payment_accessibility_label"

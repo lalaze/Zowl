@@ -11,7 +11,6 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
-import com.zowl.mobile.ocr.LocalOcrParser
 
 /**
  * Automatic fallback for payment-page mode when a supported payment app exposes an empty
@@ -39,9 +38,6 @@ object PaymentPageOcr {
     private const val ATTEMPT_TIMEOUT = 5_000L
     /** Bridges page transitions and system dialogs (e.g. a fingerprint prompt) during a payment. */
     private const val MAX_MISSED_RECHECKS = 8
-
-    /** True once this window's current success page has produced a candidate. */
-    fun captured(windowId: Int): Boolean = sessions.isCaptured(windowId)
 
     /**
      * A scheduled reread could not look at a payment window (no root yet, or another window is
@@ -112,14 +108,14 @@ object PaymentPageOcr {
                         }
                         recognize(service, bitmap, onText = { text ->
                             if (!current()) return@recognize
-                            CaptureTrace.d { "ocr $platform window=$windowId role=$role ${LocalOcrParser.shape(text)}" }
+                            CaptureTrace.d { "ocr $platform window=$windowId role=$role ${PaymentOcrText.shape(text)}" }
                             recognised(text)
                             // Only whether the overlay has text, which [recognised] has reported.
                             if (role == PaymentPageOcrGate.Role.OVERLAY) return@recognize finish()
                             if (role == PaymentPageOcrGate.Role.RESULT) {
                                 // Never a source of amounts: it only confirms what the cashier showed.
                                 sessions.onOtherPage(windowId)
-                                val confirmed = if (LocalOcrParser.hasSuccessHeading(text)) cashier(platform).onResultSuccess() else null
+                                val confirmed = if (PaymentOcrText.hasSuccessHeading(text)) cashier(platform).onResultSuccess() else null
                                 val payment = confirmed?.let {
                                     PaymentPageOcrFacts.candidate(PaymentPageOcrFacts.fields(it.amountMinor), text, platform,
                                         sourcePackage, installationId, bootCount(service), it.windowId, 0, System.currentTimeMillis())
@@ -132,7 +128,7 @@ object PaymentPageOcr {
                                 if (paid != null) deliver(paid) else sessions.onOtherPage(windowId)
                                 return@recognize finish()
                             }
-                            val fields = LocalOcrParser.parse(text)
+                            val fields = PaymentOcrText.parse(text)
                             val amount = PaymentPageOcrFacts.amountMinor(fields)
                             when {
                                 fields.warning == null && amount != null -> {
@@ -203,7 +199,7 @@ object PaymentPageOcr {
         text: String,
         deliver: (CapturedPayment) -> Unit,
     ) {
-        CaptureTrace.d { "cashier-text $platform window=$windowId ${LocalOcrParser.shape(text)} offers=${LocalOcrParser.offerLines(text)}" }
+        CaptureTrace.d { "cashier-text $platform window=$windowId ${PaymentOcrText.shape(text)} offers=${PaymentOcrText.offerLines(text)}" }
         cashierFrame(service, windowId, sourcePackage, platform, installationId, text, read = true)?.let(deliver)
     }
 
@@ -215,7 +211,7 @@ object PaymentPageOcr {
     fun onAlipayCashierText(service: AccessibilityService, windowId: Int, text: String) {
         val frame = AlipayCashierText.apply(cashier("alipay"), windowId, text)
         CaptureTrace.d {
-            "cashier-text alipay window=$windowId ${LocalOcrParser.shape(text)} offers=${LocalOcrParser.offerLines(text)} " +
+            "cashier-text alipay window=$windowId ${PaymentOcrText.shape(text)} offers=${PaymentOcrText.offerLines(text)} " +
                 "frame=${frame.name.lowercase()} foreign=${PaymentPageParser.mentionsForeignCurrency(text)} " +
                 "paid=${paidInCashier(windowId) != null}"
         }
@@ -321,8 +317,8 @@ object PaymentPageOcr {
         shown: String,
         read: Boolean,
     ): CapturedPayment? {
-        val text = LocalOcrParser.withoutOffers(shown)
-        val fields = LocalOcrParser.parse(text)
+        val text = PaymentOcrText.withoutOffers(shown)
+        val fields = PaymentOcrText.parse(text)
         val amount = PaymentPageOcrFacts.amountMinor(fields)
         if (fields.warning == null && amount != null) {
             val generation = sessions.onSuccessPage(windowId, amount) ?: return null
@@ -331,7 +327,7 @@ object PaymentPageOcr {
                 bootCount(service), windowId, generation, System.currentTimeMillis()) ?: return null
             return if (read) payment.copy(parserId = "${platform}_payment_page_v1", confidenceBasisPoints = 9_000) else payment
         }
-        LocalOcrParser.singleAmount(text)?.let(PaymentPageOcrFacts::minor)?.let {
+        PaymentOcrText.singleAmount(text)?.let(PaymentPageOcrFacts::minor)?.let {
             cashier(platform).onCashierAmount(windowId, it)
             if (cashierAmountReported != windowId) {
                 cashierAmountReported = windowId
@@ -362,7 +358,7 @@ object PaymentPageOcr {
                             return
                         }
                         recognize(service, bitmap, onText = { text ->
-                            CaptureTrace.d { "order-page $platform window=$windowId ${LocalOcrParser.shape(text)}" }
+                            CaptureTrace.d { "order-page $platform window=$windowId ${PaymentOcrText.shape(text)}" }
                             onText(text)
                         }, onError = { CaptureTrace.d { "order-page $platform window=$windowId recognition failed" } })
                     }

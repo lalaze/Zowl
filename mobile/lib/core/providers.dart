@@ -10,7 +10,6 @@ import 'l10n.dart';
 import 'models.dart';
 import 'native_language.dart';
 import 'payment_capture.dart';
-import 'local_ocr.dart';
 import 'repository.dart';
 import 'screenshot_picker.dart';
 import 'theme.dart';
@@ -59,7 +58,6 @@ final apiClientProvider = Provider<ApiClient>(
     ref.watch(apiConfigProvider),
     ref.watch(tokenStoreProvider),
     onUnauthorized: () async {
-      await ref.read(localOcrBridgeProvider).bindOwner(null);
       await ref.read(paymentCaptureBridgeProvider).pauseSession();
       ref.read(sessionInvalidationProvider.notifier).invalidateSession();
     },
@@ -78,7 +76,6 @@ final screenshotPickerProvider = Provider<ScreenshotPicker>(
 
 class AuthController extends AsyncNotifier<SessionUser?> {
   Future<void> _syncCaptureSession(SessionUser user) async {
-    await ref.read(localOcrBridgeProvider).bindOwner(user.id);
     final bridge = ref.read(paymentCaptureBridgeProvider);
     final status = await bridge.getStatus();
     if (!status.enabled) return;
@@ -96,7 +93,6 @@ class AuthController extends AsyncNotifier<SessionUser?> {
     ref.watch(sessionInvalidationProvider);
     final repository = ref.read(repositoryProvider);
     if (await repository.tokenStore.read() == null) {
-      await ref.read(localOcrBridgeProvider).bindOwner(null);
       return null;
     }
     try {
@@ -110,7 +106,6 @@ class AuthController extends AsyncNotifier<SessionUser?> {
   }
 
   Future<void> login(String email, String password) async {
-    await ref.read(localOcrBridgeProvider).bindOwner(null);
     state = const AsyncLoading();
     try {
       final session = await ref.read(repositoryProvider).login(email, password);
@@ -123,7 +118,6 @@ class AuthController extends AsyncNotifier<SessionUser?> {
   }
 
   Future<void> logout() async {
-    await ref.read(localOcrBridgeProvider).bindOwner(null);
     try {
       await ref.read(repositoryProvider).logout();
     } finally {

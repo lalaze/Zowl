@@ -41,8 +41,7 @@ with duplicate detection across sources.
 - **Screenshots:** upload one or more payment screenshots, or share them to the app. Recognition uses a
   pluggable HTTP provider. The default `mock` provider never sends images anywhere and leaves fields for you to
   fill in.
-- **Manual entry**, and a quick-settings tile that turns the payment page on screen into a pre-filled draft
-  using local OCR.
+- **Manual entry**.
 
 **Keeping it accurate**
 
@@ -193,8 +192,8 @@ the server offers the download at `/android`. To enable capture after installing
 **Me → Automatic payment capture**, turn on the master switch, and allow the Zowl accessibility service in
 Android settings.
 
-The iOS app builds from the same project and supports everything except automatic capture and the OCR
-tile, which are Android-only. You need your own Apple signing to install it.
+The iOS app builds from the same project and supports everything except automatic capture, which is
+Android-only. You need your own Apple signing to install it.
 
 ## Configuration
 

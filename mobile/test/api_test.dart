@@ -104,48 +104,6 @@ Future<(_FakeTokenStore, ApiClient)> _client(
 }
 
 void main() {
-  test(
-    'owner-bound confirmation never uses a replacement session token',
-    () async {
-      final (tokens, client) = await _client(200, {
-        'data': {'id': 'posted'},
-      });
-      final adapter = client.dio.httpClientAdapter as _StubAdapter;
-      tokens.token = 'different-user-token';
-      await expectLater(
-        client.requestData<Map<String, dynamic>>(
-          '/api/transactions',
-          method: 'POST',
-          data: {'amount': '12.80'},
-          expectedSessionToken: 'mobile-token',
-        ),
-        throwsA(
-          isA<ApiException>().having((e) => e.code, 'code', 'SESSION_CHANGED'),
-        ),
-      );
-      expect(adapter.lastRequest, isNull);
-    },
-  );
-
-  test(
-    'owner-bound confirmation removes guard token before transport',
-    () async {
-      final (_, client) = await _client(200, {
-        'data': {'id': 'posted'},
-      });
-      await client.requestData<Map<String, dynamic>>(
-        '/api/transactions',
-        method: 'POST',
-        data: {'amount': '12.80'},
-        expectedSessionToken: 'mobile-token',
-      );
-      final request =
-          (client.dio.httpClientAdapter as _StubAdapter).lastRequest!;
-      expect(request.headers['authorization'], 'Bearer mobile-token');
-      expect(request.extra, isEmpty);
-      expect(request.data, {'amount': '12.80'});
-    },
-  );
   test('first install clears a restored secure session only once', () async {
     SharedPreferences.setMockInitialValues({});
     final preferences = await SharedPreferences.getInstance();

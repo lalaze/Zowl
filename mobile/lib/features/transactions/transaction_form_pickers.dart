@@ -15,7 +15,6 @@ extension _TransactionFormPickers on _TransactionFormScreenState {
     );
     if (time != null) {
       _update(() {
-        _ocrTimeConfirmed = true;
         _time = DateTime(
           date.year,
           date.month,
@@ -118,8 +117,7 @@ extension _TransactionFormPickers on _TransactionFormScreenState {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // An OCR draft is single-use, so only manual entry can chain posts.
-          if (!_editing && widget.localOcr == null)
+          if (!_editing)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: MergeSemantics(
@@ -166,9 +164,7 @@ extension _TransactionFormPickers on _TransactionFormScreenState {
             onPressed: _saving ? null : _submit,
             loading: _saving,
             icon: Icons.check_rounded,
-            label: widget.localOcr != null
-                ? tr('Confirm and post', '确认并记账')
-                : _editing
+            label: _editing
                 ? tr('Save amendment', '保存修改')
                 : tr('Confirm and post', '确认入账'),
           ),

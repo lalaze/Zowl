@@ -10,7 +10,6 @@ import 'package:uuid/uuid.dart';
 import '../../core/api.dart';
 import '../../core/formatters.dart';
 import '../../core/models.dart';
-import '../../core/local_ocr.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/category_visuals.dart';
@@ -24,17 +23,15 @@ part 'transaction_form_pickers.dart';
 part 'transaction_form_view.dart';
 
 class TransactionFormScreen extends ConsumerStatefulWidget {
-  const TransactionFormScreen({super.key, this.initial, this.localOcr});
+  const TransactionFormScreen({super.key, this.initial});
   final TransactionItem? initial;
-  final LocalOcrDraft? localOcr;
 
   @override
   ConsumerState<TransactionFormScreen> createState() =>
       _TransactionFormScreenState();
 }
 
-class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen>
-    with WidgetsBindingObserver {
+class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   final _key = GlobalKey<FormState>();
   final _amount = TextEditingController();
   final _currency = TextEditingController(text: 'CNY');
@@ -56,26 +53,12 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen>
   String? _lastSignature;
   String _operationId = const Uuid().v4();
   String? _expectedRevisionId;
-  Timer? _ocrExpiry;
-  bool _ocrTimeConfirmed = false;
-  bool _checkingOcr = false;
-  bool _ocrExpired = false;
 
   bool get _editing => widget.initial != null;
 
   @override
   void initState() {
     super.initState();
-    final draft = widget.localOcr;
-    if (draft != null) {
-      _amount.text = draft.amount ?? '';
-      _merchant.text = draft.merchant ?? '';
-      _payment.text = draft.platform == 'wechat'
-          ? tr('WeChat Pay', '微信支付')
-          : tr('Alipay', '支付宝');
-      WidgetsBinding.instance.addObserver(this);
-      _ocrExpiry = Timer(Duration(milliseconds: draft.remainingMs), _expireOcr);
-    }
     final item = widget.initial;
     if (item != null) {
       _amount.text = item.amount ?? (item.amountMinor / 100).toStringAsFixed(2);
@@ -157,8 +140,6 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen>
 
   @override
   void dispose() {
-    _ocrExpiry?.cancel();
-    WidgetsBinding.instance.removeObserver(this);
     _amountFocus.dispose();
     for (final controller in [
       _amount,
@@ -173,48 +154,6 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen>
   }
 
   String? _nullable(String input) => input.trim().isEmpty ? null : input.trim();
-
-  void _expireOcr() {
-    if (!mounted || _ocrExpired) return;
-    _ocrExpired = true;
-    for (final controller in [_amount, _merchant, _description, _payment]) {
-      controller.clear();
-    }
-    context.go('/settings/local-ocr');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          tr(
-            'This scan draft has expired. Go back to the payment page and tap the tile again',
-            '识别草稿已失效，请返回支付页重新点击磁贴',
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<bool> _validateOcr() async {
-    final draft = widget.localOcr;
-    if (draft == null) return true;
-    try {
-      final valid = await ref.read(localOcrBridgeProvider).validate(draft);
-      if (!mounted) return false;
-      if (valid && ref.read(authControllerProvider).value?.id == draft.owner) {
-        return true;
-      }
-    } catch (_) {
-      /* Permission/session failures never permit posting. */
-    }
-    if (mounted) _expireOcr();
-    return false;
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && widget.localOcr != null) {
-      _validateOcr();
-    }
-  }
 
   void _update(VoidCallback mutation) => setState(mutation);
 

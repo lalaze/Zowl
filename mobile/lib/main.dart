@@ -25,9 +25,7 @@ import 'features/imports/import_screen.dart';
 import 'features/imports/notification_capture_screen.dart';
 import 'features/imports/receipt_review_screen.dart';
 import 'features/settings/settings_screen.dart';
-import 'features/settings/local_ocr_settings.dart';
 import 'features/settings/payment_capture_settings.dart';
-import 'features/transactions/local_ocr_review_screen.dart';
 import 'features/settings/admin_account_screen.dart';
 import 'features/shell/app_shell.dart';
 import 'features/statistics/statistics_screen.dart';
@@ -125,14 +123,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/payment-capture',
         builder: (_, _) => const PaymentCaptureSettingsScreen(),
-      ),
-      GoRoute(
-        path: '/settings/local-ocr',
-        builder: (_, _) => const LocalOcrSettingsScreen(),
-      ),
-      GoRoute(
-        path: '/local-ocr/review',
-        builder: (_, _) => const LocalOcrReviewScreen(),
       ),
       GoRoute(
         path: '/settings/admin',
@@ -299,8 +289,6 @@ class _ZeMoneyAppState extends ConsumerState<ZeMoneyApp>
     if (!mounted ||
         !const {
           '/imports/notifications',
-          '/local-ocr/review',
-          '/settings/local-ocr',
           '/transactions',
           '/transactions/new',
         }.contains(route)) {

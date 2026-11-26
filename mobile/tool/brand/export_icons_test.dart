@@ -3,10 +3,6 @@
 //
 //   flutter test tool/brand/export_icons_test.dart
 //   dart run flutter_launcher_icons
-//
-// flutter_launcher_icons also rewrites every android:icon in
-// AndroidManifest.xml; restore the quick-settings tile's
-// @drawable/ic_local_ocr_tile afterwards.
 import 'dart:io';
 import 'dart:ui' as ui;
 
