@@ -24,6 +24,11 @@ import type {
   BillEnrichmentValues,
 } from "@/services/import-service/types";
 import { createLedgerTransactionService } from "@/services/ledger-transaction";
+import {
+  stagedCandidateFacts,
+  stagedDuplicateOverride,
+  stagedOutcomeColumns,
+} from "@/services/ledger-transaction/staged-outcome";
 import type { NeedsReviewItem } from "@/services/ledger-transaction/types";
 import { createNotificationCaptureService } from "@/services/notification-capture-service";
 
@@ -230,16 +235,7 @@ export function createImportPostingWorkflow(
           decision:
             item.decision === "skip" ? ("skip" as const) : ("post" as const),
           candidate: {
-            facts: {
-              type: data.type,
-              amountMinor: data.amountMinor,
-              currency: data.currency,
-              merchantName: data.merchantName,
-              description: data.description,
-              categoryId: data.categoryId,
-              transactionTime: data.transactionTime,
-              paymentMethod: data.paymentMethod,
-            },
+            facts: stagedCandidateFacts(data),
             provenance: {
               kind: "file_import" as const,
               importItemId: item.id,
@@ -250,11 +246,7 @@ export function createImportPostingWorkflow(
               platformStatus: data.status,
             },
           },
-          duplicateOverride:
-            item.decision === "import_anyway" &&
-            item.duplicateAssessmentDigest
-              ? { assessmentDigest: item.duplicateAssessmentDigest }
-              : undefined,
+          duplicateOverride: stagedDuplicateOverride(item),
         };
       });
 
@@ -459,34 +451,9 @@ export function createImportPostingWorkflow(
               500,
             );
           }
-          const resultCode =
-            outcome.outcome === "posted"
-              ? "IMPORTED"
-              : outcome.outcome === "duplicate"
-                ? "SKIPPED_DUPLICATE"
-                : item.duplicateStatus === "possible_duplicate"
-                  ? "SKIPPED_POSSIBLE_DUPLICATE"
-                  : item.validationErrors.length
-                    ? "SKIPPED_INVALID"
-                    : "SKIPPED_BY_USER";
           transactionalDatabase
             .update(importItems)
-            .set({
-              resultTransactionId:
-                outcome.outcome === "posted" ? outcome.transactionId : null,
-              resultCode,
-              duplicateStatus:
-                outcome.outcome === "duplicate"
-                  ? "duplicate"
-                  : item.duplicateStatus,
-              duplicateTransactionId:
-                outcome.outcome === "duplicate"
-                  ? outcome.transactionId
-                  : item.duplicateTransactionId,
-              decision:
-                outcome.outcome === "duplicate" ? "skip" : item.decision,
-              updatedAt: now,
-            })
+            .set(stagedOutcomeColumns(outcome, item, now))
             .where(eq(importItems.id, item.id))
             .run();
         }

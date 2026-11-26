@@ -4,6 +4,11 @@ import type { Database } from "@/db/client";
 import { recognitionItems, recognitionJobs } from "@/db/schema";
 import type { AiCategorizationRuntimeResolver } from "@/services/ai-categorization-service";
 import { createLedgerTransactionService } from "@/services/ledger-transaction";
+import {
+  stagedCandidateFacts,
+  stagedDuplicateOverride,
+  stagedOutcomeColumns,
+} from "@/services/ledger-transaction/staged-outcome";
 import type { createScreenshotAiCategorizationWorkflow } from "@/services/screenshot-recognition-service/ai-categorization";
 import { ScreenshotRecognitionServiceError } from "@/services/screenshot-recognition-service/error";
 import { confirmableReceiptDataSchema } from "@/services/screenshot-recognition-service/schema";
@@ -76,16 +81,7 @@ export function createScreenshotPostingWorkflow(
           decision:
             item.decision === "skip" ? ("skip" as const) : ("post" as const),
           candidate: {
-            facts: {
-              type: data.type,
-              amountMinor: data.amountMinor,
-              currency: data.currency,
-              merchantName: data.merchantName,
-              description: data.description,
-              categoryId: data.categoryId,
-              transactionTime: data.transactionTime,
-              paymentMethod: data.paymentMethod,
-            },
+            facts: stagedCandidateFacts(data),
             provenance: {
               kind: "screenshot_recognition" as const,
               recognitionItemId: item.id,
@@ -100,10 +96,7 @@ export function createScreenshotPostingWorkflow(
                   : Math.round(data.confidence * 10_000),
             },
           },
-          duplicateOverride:
-            item.decision === "import_anyway" && item.duplicateAssessmentDigest
-              ? { assessmentDigest: item.duplicateAssessmentDigest }
-              : undefined,
+          duplicateOverride: stagedDuplicateOverride(item),
         },
       ];
     });
@@ -188,34 +181,9 @@ export function createScreenshotPostingWorkflow(
           continue;
         }
         if (outcome.outcome === "posted") importedCount += 1;
-        const resultCode =
-          outcome.outcome === "posted"
-            ? "IMPORTED"
-            : outcome.outcome === "duplicate"
-              ? "SKIPPED_DUPLICATE"
-              : item.duplicateStatus === "possible_duplicate"
-                ? "SKIPPED_POSSIBLE_DUPLICATE"
-                : item.validationErrors.length
-                  ? "SKIPPED_INVALID"
-                  : "SKIPPED_BY_USER";
         transactionalDatabase
           .update(recognitionItems)
-          .set({
-            resultTransactionId:
-              outcome.outcome === "posted" ? outcome.transactionId : null,
-            resultCode,
-            duplicateStatus:
-              outcome.outcome === "duplicate"
-                ? "duplicate"
-                : item.duplicateStatus,
-            duplicateTransactionId:
-              outcome.outcome === "duplicate"
-                ? outcome.transactionId
-                : item.duplicateTransactionId,
-            decision:
-              outcome.outcome === "duplicate" ? "skip" : item.decision,
-            updatedAt: now,
-          })
+          .set(stagedOutcomeColumns(outcome, item, now))
           .where(eq(recognitionItems.id, item.id))
           .run();
       }
