@@ -248,6 +248,22 @@ function project(row: typeof notificationCaptures.$inferSelect) {
   };
 }
 
+type DuplicateCheckResult = ReturnType<
+  ReturnType<typeof createDeduplicationService>["check"]
+>;
+
+function duplicateColumns(duplicate: DuplicateCheckResult) {
+  return {
+    warnings: duplicate.reason ? [duplicate.reason] : [],
+    duplicateStatus: duplicate.status,
+    duplicateTransactionId: duplicate.transactionId,
+    duplicateAssessmentDigest:
+      duplicate.status === "possible_duplicate"
+        ? duplicateAssessmentDigest(toDuplicateAssessment(duplicate))
+        : null,
+  };
+}
+
 function completedResult(row: typeof notificationCaptures.$inferSelect) {
   const outcome =
     row.resultCode === "IMPORTED" || row.resultCode === "AUTO_POSTED"
@@ -352,8 +368,11 @@ export function createNotificationCaptureService(
     userId: string,
     platform: CapturePlatform,
     facts: LedgerFacts,
+    source: Database = database,
   ) {
-    return deduplication.check(userId, {
+    const checker =
+      source === database ? deduplication : createDeduplicationService(source);
+    return checker.check(userId, {
       type: facts.type,
       amountMinor: facts.amountMinor,
       currency: facts.currency,
@@ -639,7 +658,6 @@ export function createNotificationCaptureService(
 
     const { facts, categoryRuleSource } = suggestedFacts(userId, event, locale);
     const duplicate = deduplicate(userId, event.platform, facts);
-    const assessment = toDuplicateAssessment(duplicate);
     const now = new Date().toISOString();
     const id = randomUUID();
     database
@@ -663,13 +681,7 @@ export function createNotificationCaptureService(
           categoryId: "categorization_rule",
         },
         validationErrors: [],
-        warnings: duplicate.reason ? [duplicate.reason] : [],
-        duplicateStatus: duplicate.status,
-        duplicateTransactionId: duplicate.transactionId,
-        duplicateAssessmentDigest:
-          duplicate.status === "possible_duplicate"
-            ? duplicateAssessmentDigest(assessment)
-            : null,
+        ...duplicateColumns(duplicate),
         decision: "pending",
         status: "reviewing",
         createdAt: now,
@@ -784,19 +796,7 @@ export function createNotificationCaptureService(
             model: details.model,
             configurationFingerprint: details.configurationFingerprint,
           },
-          ...(duplicate
-            ? {
-                warnings: duplicate.reason ? [duplicate.reason] : [],
-                duplicateStatus: duplicate.status,
-                duplicateTransactionId: duplicate.transactionId,
-                duplicateAssessmentDigest:
-                  duplicate.status === "possible_duplicate"
-                    ? duplicateAssessmentDigest(
-                        toDuplicateAssessment(duplicate),
-                      )
-                    : null,
-              }
-            : {}),
+          ...(duplicate ? duplicateColumns(duplicate) : {}),
           updatedAt: new Date().toISOString(),
         })
         .where(
@@ -905,8 +905,11 @@ export function createNotificationCaptureService(
   // 正式交易（结果码 AUTO_SKIPPED_DUPLICATE）；候选唯一且金额不超过上限
   // （可信商户放宽到可信上限）时直接确认入账（结果码 AUTO_POSTED）。
   // 疑似重复、超限与未授权平台的候选保持人工审核。
-  function finalizeAutomation(userId: string, item: StagedCapture) {
-    const settings = getSettings(userId);
+  function finalizeAutomation(
+    userId: string,
+    item: StagedCapture,
+    settings: NotificationCaptureSettings,
+  ) {
     const capture = getRow(userId, item.captureId);
     if (!capture) return;
     const notificationField = autoPostFieldForPlatform[item.platform];
@@ -1000,14 +1003,17 @@ export function createNotificationCaptureService(
         error instanceof Error ? error.name : "unknown",
       );
     }
-    for (const item of accepted) {
-      try {
-        finalizeAutomation(userId, item);
-      } catch (error) {
-        console.error(
-          "Notification capture automation failed",
-          error instanceof Error ? error.name : "unknown",
-        );
+    if (accepted.length) {
+      const settings = getSettings(userId);
+      for (const item of accepted) {
+        try {
+          finalizeAutomation(userId, item, settings);
+        } catch (error) {
+          console.error(
+            "Notification capture automation failed",
+            error instanceof Error ? error.name : "unknown",
+          );
+        }
       }
     }
     return {
@@ -1064,11 +1070,7 @@ export function createNotificationCaptureService(
       items: rows.map((row) => {
         if (row.status === "completed") return project(row);
         const duplicate = deduplicate(userId, row.platform, parseFacts(row.normalizedData));
-        return { ...project(row), duplicateStatus: duplicate.status,
-          duplicateTransactionId: duplicate.transactionId,
-          duplicateAssessmentDigest: duplicate.status === "possible_duplicate" ? duplicateAssessmentDigest(toDuplicateAssessment(duplicate)) : null,
-          warnings: duplicate.reason ? [duplicate.reason] : [],
-        };
+        return { ...project(row), ...duplicateColumns(duplicate) };
       }),
       pagination: {
         page: query.page,
@@ -1119,20 +1121,13 @@ export function createNotificationCaptureService(
         input.categoryId === null ? "categorization_rule" : "manual_edit",
     };
     const duplicate = deduplicate(userId, current.platform, facts);
-    const assessment = toDuplicateAssessment(duplicate);
     database
       .update(notificationCaptures)
       .set({
         normalizedData: facts,
         fieldOrigins,
         validationErrors: [],
-        warnings: duplicate.reason ? [duplicate.reason] : [],
-        duplicateStatus: duplicate.status,
-        duplicateTransactionId: duplicate.transactionId,
-        duplicateAssessmentDigest:
-          duplicate.status === "possible_duplicate"
-            ? duplicateAssessmentDigest(assessment)
-            : null,
+        ...duplicateColumns(duplicate),
         decision: "pending",
         confirmationVersion: current.confirmationVersion + 1,
         updatedAt: new Date().toISOString(),
@@ -1201,17 +1196,7 @@ export function createNotificationCaptureService(
         categoryId,
       });
       const previousOrigins = resolvedFieldOrigins(current);
-      const duplicate = createDeduplicationService(source).check(userId, {
-        type: facts.type,
-        amountMinor: facts.amountMinor,
-        currency: facts.currency,
-        merchantName: facts.merchantName,
-        description: facts.description,
-        transactionTime: facts.transactionTime,
-        source: current.platform,
-        platformTransactionId: null,
-      });
-      const assessment = toDuplicateAssessment(duplicate);
+      const duplicate = deduplicate(userId, current.platform, facts, source);
       source
         .update(notificationCaptures)
         .set({
@@ -1224,13 +1209,7 @@ export function createNotificationCaptureService(
             categoryId: "categorization_rule",
           },
           validationErrors: [],
-          warnings: duplicate.reason ? [duplicate.reason] : [],
-          duplicateStatus: duplicate.status,
-          duplicateTransactionId: duplicate.transactionId,
-          duplicateAssessmentDigest:
-            duplicate.status === "possible_duplicate"
-              ? duplicateAssessmentDigest(assessment)
-              : null,
+          ...duplicateColumns(duplicate),
           decision: "pending",
           updatedAt: new Date().toISOString(),
         })
@@ -1289,7 +1268,6 @@ export function createNotificationCaptureService(
     const previousOrigins = resolvedFieldOrigins(current);
     const adopted = new Set(input.adoptedFields);
     const duplicate = deduplicate(userId, current.platform, facts);
-    const assessment = toDuplicateAssessment(duplicate);
     database
       .update(notificationCaptures)
       .set({
@@ -1309,13 +1287,7 @@ export function createNotificationCaptureService(
             : previousOrigins.categoryId,
         },
         validationErrors: [],
-        warnings: duplicate.reason ? [duplicate.reason] : [],
-        duplicateStatus: duplicate.status,
-        duplicateTransactionId: duplicate.transactionId,
-        duplicateAssessmentDigest:
-          duplicate.status === "possible_duplicate"
-            ? duplicateAssessmentDigest(assessment)
-            : null,
+        ...duplicateColumns(duplicate),
         decision: "pending",
         updatedAt: new Date().toISOString(),
       })
