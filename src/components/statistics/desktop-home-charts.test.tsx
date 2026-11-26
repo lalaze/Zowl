@@ -107,7 +107,20 @@ describe("desktop home chart wrappers", () => {
       screen.queryByTestId("recharts-composed-chart"),
     ).not.toBeInTheDocument();
     expect(screen.queryByTestId("recharts-pie-chart")).not.toBeInTheDocument();
-    expect(screen.queryByText("Total spending")).not.toBeInTheDocument();
+    // The total and legend do not need the chart library, so they render on first paint.
+    expect(screen.getByText("Total spending")).toBeInTheDocument();
+    expect(screen.getByText("Food")).toBeInTheDocument();
+  });
+
+  it("keeps the empty donut ring and copy without loading the chart", () => {
+    mockMatchMedia(true);
+    render(
+      <DesktopHomeExpenseDonut currency="CNY" data={[]} totalMinor={0} />,
+    );
+    expect(screen.queryByTestId("recharts-pie-chart")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("No spending recorded this month"),
+    ).toBeInTheDocument();
   });
 
   it("mounts both dynamic charts at desktop width", async () => {

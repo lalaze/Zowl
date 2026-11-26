@@ -4,6 +4,11 @@ import dynamic from "next/dynamic";
 import { useSyncExternalStore } from "react";
 
 import { useT } from "@/components/i18n/i18n-provider";
+import {
+  categoryDisplayName,
+  validChartColor,
+} from "@/components/statistics/chart-labels";
+import { formatMoney } from "@/lib/money";
 import type { StatisticsOverview } from "@/services/statistics-service";
 
 type MonthlyDatum = StatisticsOverview["monthlyTrend"][number];
@@ -20,9 +25,11 @@ const LazyHomeMonthlyCashflowTrendChart = dynamic(
   { ssr: false },
 );
 
-const LazyHomeExpenseDonut = dynamic(
+const LazyHomeExpenseDonutPie = dynamic(
   () =>
-    import("./home-dashboard-charts").then((module) => module.HomeExpenseDonut),
+    import("./home-dashboard-charts").then(
+      (module) => module.HomeExpenseDonutPie,
+    ),
   { ssr: false },
 );
 
@@ -91,15 +98,54 @@ export function DesktopHomeExpenseDonut({
   data: CategoryDatum[];
   totalMinor: number;
 }) {
+  const t = useT();
   const desktop = useIsDesktop();
+  const grouped = data.slice(0, 4);
 
-  if (!desktop) return null;
-
+  // Server-rendered like before; only the pie waits for the desktop-only chart chunk.
   return (
-    <LazyHomeExpenseDonut
-      currency={currency}
-      data={data}
-      totalMinor={totalMinor}
-    />
+    <div className="grid h-full min-h-0 grid-cols-[132px_minmax(0,1fr)] items-center gap-2">
+      <div className="relative h-[132px] w-[132px]">
+        {grouped.length ? (
+          desktop ? (
+            <LazyHomeExpenseDonutPie currency={currency} data={grouped} />
+          ) : null
+        ) : (
+          <div className="m-auto mt-1 size-[124px] rounded-full border-[20px] border-tint-amber" />
+        )}
+        <div className="pointer-events-none absolute inset-0 grid place-content-center text-center">
+          <span className="text-[10px] font-extrabold text-muted">{t("Total spending", "总支出")}</span>
+          <strong className="mt-0.5 text-[14px] font-black tracking-[-0.01em] text-foreground tabular-nums">
+            {formatMoney(totalMinor, currency)}
+          </strong>
+        </div>
+      </div>
+
+      <div className="space-y-2.5">
+        {grouped.length ? (
+          grouped.map((item) => (
+            <div
+              className="grid grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2 text-[11px]"
+              key={item.categoryId ?? item.name}
+            >
+              <span
+                className="size-2.5 rounded-[3px] border-2 border-divider"
+                style={{ backgroundColor: validChartColor(item.color) }}
+              />
+              <span className="truncate font-black text-foreground">
+                {categoryDisplayName(item, t)}
+              </span>
+              <span className="font-black text-foreground tabular-nums">
+                {formatMoney(item.amountMinor, currency)}
+              </span>
+            </div>
+          ))
+        ) : (
+          <p className="text-xs font-semibold leading-5 text-muted">
+            {t("No spending recorded this month", "本月还没有支出记录")}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }

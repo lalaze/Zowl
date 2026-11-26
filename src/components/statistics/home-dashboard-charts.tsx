@@ -16,10 +16,7 @@ import {
 
 import { useLocale, useT } from "@/components/i18n/i18n-provider";
 import { shortMonthLabel } from "@/components/statistics/month-label";
-import {
-  categoryDisplayName,
-  validChartColor,
-} from "@/components/statistics/statistics-chart-shared";
+import { validChartColor } from "@/components/statistics/chart-labels";
 import type { Locale } from "@/lib/i18n/locale";
 import { formatMoney } from "@/lib/money";
 import type { StatisticsOverview } from "@/services/statistics-service";
@@ -155,97 +152,49 @@ export function HomeMonthlyCashflowTrend({
   );
 }
 
-function groupedCategories(data: CategoryDatum[]) {
-  return data.slice(0, 4);
-}
-
-export function HomeExpenseDonut({
+/** Only the pie itself; the total and legend around it are rendered by `DesktopHomeExpenseDonut`. */
+export function HomeExpenseDonutPie({
   currency,
   data,
-  totalMinor,
 }: {
   currency: string;
   data: CategoryDatum[];
-  totalMinor: number;
 }) {
-  const t = useT();
-  const grouped = groupedCategories(data);
-
   return (
-    <div className="grid h-full min-h-0 grid-cols-[132px_minmax(0,1fr)] items-center gap-2">
-      <div className="relative h-[132px] w-[132px]">
-        {grouped.length ? (
-          <ResponsiveContainer height="100%" width="100%">
-            <PieChart>
-              <Pie
-                cx="50%"
-                cy="50%"
-                data={grouped}
-                dataKey="amountMinor"
-                innerRadius={43}
-                isAnimationActive={false}
-                nameKey="name"
-                outerRadius={64}
-                paddingAngle={0}
-                stroke="none"
-              >
-                {grouped.map((item) => (
-                  <Cell
-                    fill={validChartColor(item.color)}
-                    key={item.categoryId ?? item.name}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  background: "var(--chart-tooltip)",
-                  border: "1px solid var(--app-border)",
-                  borderRadius: 14,
-                  boxShadow: "0 6px 18px rgb(31 34 48 / 10%)",
-                  color: "var(--app-foreground)",
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
-                formatter={(value) => formatMoney(Number(value), currency)}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="m-auto mt-1 size-[124px] rounded-full border-[20px] border-tint-amber" />
-        )}
-        <div className="pointer-events-none absolute inset-0 grid place-content-center text-center">
-          <span className="text-[10px] font-extrabold text-muted">{t("Total spending", "总支出")}</span>
-          <strong className="mt-0.5 text-[14px] font-black tracking-[-0.01em] text-foreground tabular-nums">
-            {formatMoney(totalMinor, currency)}
-          </strong>
-        </div>
-      </div>
-
-      <div className="space-y-2.5">
-        {grouped.length ? (
-          grouped.map((item) => (
-            <div
-              className="grid grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2 text-[11px]"
+    <ResponsiveContainer height="100%" width="100%">
+      <PieChart>
+        <Pie
+          cx="50%"
+          cy="50%"
+          data={data}
+          dataKey="amountMinor"
+          innerRadius={43}
+          isAnimationActive={false}
+          nameKey="name"
+          outerRadius={64}
+          paddingAngle={0}
+          stroke="none"
+        >
+          {data.map((item) => (
+            <Cell
+              fill={validChartColor(item.color)}
               key={item.categoryId ?? item.name}
-            >
-              <span
-                className="size-2.5 rounded-[3px] border-2 border-divider"
-                style={{ backgroundColor: validChartColor(item.color) }}
-              />
-              <span className="truncate font-black text-foreground">
-                {categoryDisplayName(item, t)}
-              </span>
-              <span className="font-black text-foreground tabular-nums">
-                {formatMoney(item.amountMinor, currency)}
-              </span>
-            </div>
-          ))
-        ) : (
-          <p className="text-xs font-semibold leading-5 text-muted">
-            {t("No spending recorded this month", "本月还没有支出记录")}
-          </p>
-        )}
-      </div>
-    </div>
+            />
+          ))}
+        </Pie>
+        <Tooltip
+          contentStyle={{
+            background: "var(--chart-tooltip)",
+            border: "1px solid var(--app-border)",
+            borderRadius: 14,
+            boxShadow: "0 6px 18px rgb(31 34 48 / 10%)",
+            color: "var(--app-foreground)",
+            fontSize: 12,
+            fontWeight: 700,
+          }}
+          formatter={(value) => formatMoney(Number(value), currency)}
+        />
+      </PieChart>
+    </ResponsiveContainer>
   );
 }

@@ -59,19 +59,7 @@ function compactMoney(value: number, currency: string, locale: Locale) {
   }).format(value / 100);
 }
 
-/** The statistics service names the no-category bucket "Uncategorized". */
-export function categoryDisplayName(
-  item: { categoryId: string | null; name: string },
-  t: Translate,
-) {
-  return item.categoryId === null && item.name === "Uncategorized"
-    ? t("Uncategorized", "未分类")
-    : item.name;
-}
-
-export function validChartColor(value: string) {
-  return /^#[0-9a-f]{6}$/iu.test(value) ? value : "#64748b";
-}
+export { categoryDisplayName, validChartColor } from "./chart-labels";
 
 export function collapseDonutData(
   data: DonutDatum[],
