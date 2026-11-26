@@ -60,41 +60,41 @@ export function createImportAiCategorizationWorkflow(
       .orderBy(asc(importItems.rowNumber))
       .all()
       .flatMap((item) => {
+        if (item.validationErrors.length || item.decision === "skip") {
+          return [];
+        }
         const parsed = storedNormalizedSchema.safeParse(item.normalizedData);
-        const localSuggestion =
-          parsed.success && parsed.data.type
-            ? categorization.suggest({
-                userId,
-                type: parsed.data.type,
-                merchantName: parsed.data.merchantName,
-                description: parsed.data.description,
-              })
-            : null;
-        const resolvedByLocalRule =
-          localSuggestion &&
-          (localSuggestion.ruleSource === "merchant_rule" ||
-            localSuggestion.ruleSource === "keyword") &&
-          localSuggestion.categoryId ===
-            (parsed.success ? parsed.data.categoryId : null);
-        const storedSuggestion = parsed.success
-          ? parsed.data.categorySuggestion
-          : undefined;
+        if (
+          !parsed.success ||
+          !parsed.data.type ||
+          (!parsed.data.merchantName && !parsed.data.description)
+        ) {
+          return [];
+        }
+        const storedSuggestion = parsed.data.categorySuggestion;
         const staleSuggestion = isAiCategorySuggestionStale(
           storedSuggestion,
           configurationFingerprint,
         );
         if (
-          !parsed.success ||
-          !parsed.data.type ||
-          item.validationErrors.length ||
-          item.decision === "skip" ||
           (storedSuggestion && !staleSuggestion) ||
-          resolvedByLocalRule ||
           (parsed.data.categoryId !== null &&
             parsed.data.categoryId !== otherCategory?.id &&
-            !staleSuggestion) ||
-          (!parsed.data.merchantName && !parsed.data.description)
+            !staleSuggestion)
         ) {
+          return [];
+        }
+        const localSuggestion = categorization.suggest({
+          userId,
+          type: parsed.data.type,
+          merchantName: parsed.data.merchantName,
+          description: parsed.data.description,
+        });
+        const resolvedByLocalRule =
+          (localSuggestion.ruleSource === "merchant_rule" ||
+            localSuggestion.ruleSource === "keyword") &&
+          localSuggestion.categoryId === parsed.data.categoryId;
+        if (resolvedByLocalRule) {
           return [];
         }
         return [
