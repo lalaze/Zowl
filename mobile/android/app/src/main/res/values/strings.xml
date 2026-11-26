@@ -8,7 +8,7 @@
     <!-- Names Android shows for the app's services and tile -->
     <string name="local_ocr_tile_label">Zowl Scan</string>
     <string name="payment_accessibility_label">Zowl payment page capture (beta)</string>
-    <string name="payment_accessibility_description">Automatic payment capture reads WeChat and Alipay payment success pages on this device and syncs the structured candidates it finds. When a WeChat or Alipay payment screen has no readable text, it takes a screenshot of that window and recognizes the text on this device, only to find the amount on the success page; chats and other screens outside payments are never captured. If you turn on Taobao as a source, its payment cashier and payment result page are captured and recognized on this device in the same way, and no other Taobao screen is. If you turn on Pinduoduo, JD.com or Pupu, only the text of their order and payment pages is read, without screenshots. A separate feature, Zowl Scan, takes one screenshot of the payment app window when you tap its Quick Settings tile, recognizes the text on this device with the Chinese text model built into the app, and records it as a manual entry only after you edit and confirm it. Screenshots and recognized text are never saved or uploaded. This service performs no gestures or payments and is not a screen reader. You can turn off either feature or revoke this permission at any time.</string>
+    <string name="payment_accessibility_description">Automatic payment capture reads WeChat and Alipay payment success pages on this device and syncs the structured candidates it finds. When a WeChat or Alipay payment screen has no readable text, it takes a screenshot of that window and recognizes the text on this device, only to find the amount on the success page; chats and other screens outside payments are never captured. If you turn on Taobao as a source, its payment cashier and payment result page are captured and recognized on this device in the same way, and no other Taobao screen is. If you turn on Xianyu, only its embedded payment cashier is screenshotted when it has no readable text, and its payment result page is read as text; chats and other screens are never screenshotted. If you turn on Pinduoduo, JD.com or Pupu, only the text of their order and payment pages is read, without screenshots. A separate feature, Zowl Scan, takes one screenshot of the payment app window when you tap its Quick Settings tile, recognizes the text on this device with the Chinese text model built into the app, and records it as a manual entry only after you edit and confirm it. Screenshots and recognized text are never saved or uploaded. This service performs no gestures or payments and is not a screen reader. You can turn off either feature or revoke this permission at any time.</string>
 
     <!-- Notification channels -->
     <string name="capture_channel_name">Payment capture candidates</string>
@@ -21,6 +21,7 @@
     <string name="capture_source_pinduoduo">Pinduoduo</string>
     <string name="capture_source_jd">JD.com</string>
     <string name="capture_source_pupu">Pupu</string>
+    <string name="capture_source_xianyu">Xianyu</string>
     <string name="capture_source_other">Payment</string>
     <!-- %1$s: source, %2$s: amount -->
     <string name="capture_review_title">%1$s expense %2$s</string>

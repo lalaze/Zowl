@@ -43,6 +43,7 @@ class PaymentCaptureStatus {
     this.pinduoduoEnabled = false,
     this.jdEnabled = false,
     this.pupuEnabled = false,
+    this.xianyuEnabled = false,
     this.orderDetailsEnabled = false,
     this.accessibilityAccessGranted = false,
     this.accessibilityConnected = false,
@@ -62,6 +63,7 @@ class PaymentCaptureStatus {
       pinduoduoEnabled = false,
       jdEnabled = false,
       pupuEnabled = false,
+      xianyuEnabled = false,
       orderDetailsEnabled = false,
       queuedCount = 0,
       authPaused = false,
@@ -80,6 +82,7 @@ class PaymentCaptureStatus {
   final bool pinduoduoEnabled;
   final bool jdEnabled;
   final bool pupuEnabled;
+  final bool xianyuEnabled;
 
   /// Whether order-page text is uploaded so the server can list the goods.
   final bool orderDetailsEnabled;
@@ -104,6 +107,7 @@ class PaymentCaptureStatus {
         pinduoduoEnabled: map['pinduoduoEnabled'] == true,
         jdEnabled: map['jdEnabled'] == true,
         pupuEnabled: map['pupuEnabled'] == true,
+        xianyuEnabled: map['xianyuEnabled'] == true,
         orderDetailsEnabled: map['orderDetailsEnabled'] == true,
         queuedCount: (map['queuedCount'] as num?)?.toInt() ?? 0,
         authPaused: map['authPaused'] == true,

@@ -319,6 +319,10 @@ void main() {
       await tester.tap(find.widgetWithText(SwitchListTile, 'Pupu'));
       await tester.pumpAndSettle();
       expect(harness.capture.status.pupuEnabled, isTrue);
+      expect(harness.capture.status.xianyuEnabled, isFalse);
+      await tester.tap(find.widgetWithText(SwitchListTile, 'Xianyu'));
+      await tester.pumpAndSettle();
+      expect(harness.capture.status.xianyuEnabled, isTrue);
       expect(harness.capture.status.taobaoEnabled, isFalse);
       expect(find.widgetWithText(SwitchListTile, 'Taobao'), findsOneWidget);
       expect(find.widgetWithText(SwitchListTile, 'Pinduoduo'), findsOneWidget);

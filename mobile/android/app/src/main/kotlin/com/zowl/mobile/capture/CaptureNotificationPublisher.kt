@@ -367,6 +367,7 @@ object CaptureNotificationPublisher {
                 "pinduoduo" -> R.string.capture_source_pinduoduo
                 "jd" -> R.string.capture_source_jd
                 "pupu" -> R.string.capture_source_pupu
+                "xianyu" -> R.string.capture_source_xianyu
                 else -> R.string.capture_source_other
             },
         )

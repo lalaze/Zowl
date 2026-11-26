@@ -18,6 +18,7 @@ const transactionSourceLabels: Record<TransactionView["source"], string> = {
   pinduoduo: "Pinduoduo",
   jd: "JD.com",
   pupu: "Pupu",
+  xianyu: "Xianyu",
   other: "Other sources",
 };
 
@@ -38,6 +39,7 @@ const transactionSourceLabelsZh: Record<TransactionView["source"], string> = {
   pinduoduo: "拼多多",
   jd: "京东",
   pupu: "朴朴",
+  xianyu: "闲鱼",
   other: "其他来源",
 };
 

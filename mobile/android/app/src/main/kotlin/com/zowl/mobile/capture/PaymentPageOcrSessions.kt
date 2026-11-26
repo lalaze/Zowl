@@ -233,12 +233,12 @@ class ShoppingCashierFlow(private val confirmWindow: Long = CONFIRM_WINDOW, priv
      * The result page shows a success heading. Returns the cashier payment it confirms, once;
      * null when no cashier amount was read just before (a cancelled or much older checkout).
      */
-    fun onResultSuccess(): Pending? {
+    fun onResultSuccess(maxAge: Long = confirmWindow): Pending? {
         val shown = pending ?: return null
         val before = replaced
         pending = null
         replaced = null
-        if (now() - shown.seenAt > confirmWindow) return null
+        if (now() - shown.seenAt > maxAge) return null
         settledWindow = shown.windowId
         settling = null
         paid = null
@@ -249,11 +249,14 @@ class ShoppingCashierFlow(private val confirmWindow: Long = CONFIRM_WINDOW, priv
         else shown
     }
 
+    /** The pending amount waiting for confirmation within [maxAge], if any. */
+    fun pending(maxAge: Long = confirmWindow): Pending? = pending?.takeIf { now() - it.seenAt <= maxAge }
+
     /** Exactly [amountMinor] is waiting for its payment to be confirmed. */
     fun awaits(amountMinor: Long): Boolean = awaitsConfirmation() && pending?.amountMinor == amountMinor
 
     /** An amount is waiting for its payment to be confirmed. */
-    fun awaitsConfirmation(): Boolean = pending?.let { now() - it.seenAt <= confirmWindow } == true
+    fun awaitsConfirmation(maxAge: Long = confirmWindow): Boolean = pending(maxAge) != null
 
     fun clear() {
         pending = null
@@ -312,6 +315,8 @@ object PaymentPageOcrGate {
                 name.endsWith(".ultrontradehybridactivity") -> Role.RESULT
                 else -> null
             }
+            // Only Xianyu's embedded Alipay cashier; its Flutter screens include chats and are never screenshotted.
+            "xianyu" -> Role.CASHIER.takeIf { name.contains(".msp.") }
             else -> null
         }
     }
@@ -531,9 +536,10 @@ class CashierOverlayDialogs(private val platform: String, private val now: () ->
     private var overlayRecognised = 0
     private var overlayHasText = false
 
-    private fun isCashier(className: String?, screen: Boolean): Boolean = when (platform) {
-        "taobao" -> PaymentPageOcrGate.role(platform, className) == PaymentPageOcrGate.Role.CASHIER
-        "alipay" -> screen && PaymentPageOcrGate.isAppClass(className) && className!!.lowercase().contains(".msp.")
+    private fun isCashier(className: String?, screen: Boolean): Boolean = when {
+        PaymentPageParser.usesEmbeddedCashier(platform) ->
+            PaymentPageOcrGate.role(platform, className) == PaymentPageOcrGate.Role.CASHIER
+        platform == "alipay" -> screen && PaymentPageOcrGate.isAppClass(className) && className!!.lowercase().contains(".msp.")
         else -> false
     }
 
@@ -644,5 +650,43 @@ object AlipayCashierText {
             return Frame.AMBIGUOUS
         }
         return Frame.NONE
+    }
+}
+
+/**
+ * A payment started in Xianyu's embedded cashier may be handed off to the Alipay app under risk
+ * control and return straight to Xianyu's own result page. Picks whichever cashier saw an amount
+ * most recently within [maxAge], confirms it once, and clears both flows.
+ */
+object XianyuCashierConfirmation {
+    fun awaits(xianyu: ShoppingCashierFlow?, alipay: ShoppingCashierFlow?, maxAge: Long): Boolean =
+        latest(xianyu, alipay, maxAge) != null
+
+    fun confirm(
+        xianyu: ShoppingCashierFlow?,
+        alipay: ShoppingCashierFlow?,
+        maxAge: Long,
+    ): ShoppingCashierFlow.Pending? {
+        val chosen = latest(xianyu, alipay, maxAge) ?: return null
+        val confirmed = chosen.onResultSuccess(maxAge)
+        if (chosen !== xianyu) xianyu?.clear()
+        if (chosen !== alipay) alipay?.clear()
+        return confirmed
+    }
+
+    private fun latest(
+        xianyu: ShoppingCashierFlow?,
+        alipay: ShoppingCashierFlow?,
+        maxAge: Long,
+    ): ShoppingCashierFlow? {
+        val x = xianyu?.pending(maxAge)
+        val a = alipay?.pending(maxAge)
+        return when {
+            x == null && a == null -> null
+            x == null -> alipay
+            a == null -> xianyu
+            a.seenAt > x.seenAt -> alipay
+            else -> xianyu
+        }
     }
 }

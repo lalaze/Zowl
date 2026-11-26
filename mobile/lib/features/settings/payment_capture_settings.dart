@@ -393,8 +393,8 @@ class _PaymentCaptureSettingsScreenState
                             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                             child: Text(
                               tr(
-                                'Zowl uses Android accessibility access to read enabled Alipay and WeChat success pages on this device. When a payment-flow screen exposes no readable text, Zowl screenshots only that window and recognises it on this device; chats and other non-payment screens are never screenshotted. Screenshots are never stored or uploaded, and neither is page text unless you turn on “Recognise purchased items”, which sends order-page text to your server and the AI provider you configured; apart from that, only amount, optional merchant, capture time and evidence digest are synced. Historical bills and refunds are not supported; a WeChat transfer awaiting receipt is recorded as an expense to the payee. New payments require an observed checkout before another success page. Taobao, Pinduoduo, JD.com and Pupu are experimental sources, off by default, and the shop name is not captured unless “Recognise purchased items” is on (Taobao and Pinduoduo only). For Taobao, Zowl screenshots only the payment cashier and the payment result page and recognises them on this device: the amount comes from the cashier and is recorded once the payment shows as successful. For Pinduoduo the amount comes from the submit button of the order panel and is recorded once the order goes through; a pay-later order is recorded when it is placed, before it is charged. For JD.com only the text of the order payment success page is read. For Pupu the amount comes from beside the pay button of the checkout page and is recorded once the payment-complete page is shown. An order paid through WeChat or Alipay may also be captured there, in which case the second candidate waits for your review as a possible duplicate.',
-                                'Zowl 通过 Android 无障碍权限，在本机读取你开启的支付宝和微信支付成功页。付款流程页面没有可读文字时，Zowl 只截取该窗口并在本机识别；聊天等非支付页面不会被截图。截图不保存、不上传；页面文字也不保存、不上传，除非你开启“识别所购商品”，开启后下单页文字会发送到你的服务器和你配置的 AI 服务商。除此之外只同步金额、商户（如有）、采集时间和证据摘要。不支持历史账单和退款；待对方收款的微信转账记为付给收款人的支出。每笔新付款都要先看到付款流程，才会采集下一个成功页。淘宝、拼多多、京东和朴朴是实验性来源，默认关闭，不采集店铺名，除非开启“识别所购商品”（仅淘宝和拼多多）。淘宝只截取付款收银台和支付结果页并在本机识别：金额取自收银台，显示付款成功后才记录。拼多多的金额取自下单面板的付款按钮，下单成功后才记录；先用后付的订单在下单时就记录，实际扣款在确认收货时。京东只读取订单支付成功页上的文字。朴朴的金额取自结算页付款按钮旁，显示支付完成后才记录。如果订单是跳到微信或支付宝付款的，两边可能各采集一次，后一条会作为疑似重复等你核对。',
+                                'Zowl uses Android accessibility access to read enabled Alipay and WeChat success pages on this device. When a payment-flow screen exposes no readable text, Zowl screenshots only that window and recognises it on this device; chats and other non-payment screens are never screenshotted. Screenshots are never stored or uploaded, and neither is page text unless you turn on “Recognise purchased items”, which sends order-page text to your server and the AI provider you configured; apart from that, only amount, optional merchant, capture time and evidence digest are synced. Historical bills and refunds are not supported; a WeChat transfer awaiting receipt is recorded as an expense to the payee. New payments require an observed checkout before another success page. Taobao, Pinduoduo, JD.com, Pupu and Xianyu are experimental sources, off by default, and the shop name is not captured unless “Recognise purchased items” is on (Taobao and Pinduoduo only). For Taobao, Zowl screenshots only the payment cashier and the payment result page and recognises them on this device: the amount comes from the cashier and is recorded once the payment shows as successful. For Xianyu, only the embedded payment cashier is screenshotted when it exposes no text; chats and other screens are never screenshotted, and the cashier amount is confirmed by the cashier itself or Xianyu’s payment result page text. For Pinduoduo the amount comes from the submit button of the order panel and is recorded once the order goes through; a pay-later order is recorded when it is placed, before it is charged. For JD.com only the text of the order payment success page is read. For Pupu the amount comes from beside the pay button of the checkout page and is recorded once the payment-complete page is shown. An order paid through WeChat or Alipay may also be captured there, in which case the second candidate waits for your review as a possible duplicate.',
+                                'Zowl 通过 Android 无障碍权限，在本机读取你开启的支付宝和微信支付成功页。付款流程页面没有可读文字时，Zowl 只截取该窗口并在本机识别；聊天等非支付页面不会被截图。截图不保存、不上传；页面文字也不保存、不上传，除非你开启“识别所购商品”，开启后下单页文字会发送到你的服务器和你配置的 AI 服务商。除此之外只同步金额、商户（如有）、采集时间和证据摘要。不支持历史账单和退款；待对方收款的微信转账记为付给收款人的支出。每笔新付款都要先看到付款流程，才会采集下一个成功页。淘宝、拼多多、京东、朴朴和闲鱼是实验性来源，默认关闭，不采集店铺名，除非开启“识别所购商品”（仅淘宝和拼多多）。淘宝只截取付款收银台和支付结果页并在本机识别：金额取自收银台，显示付款成功后才记录。闲鱼只在内嵌收银台没有可读文字时截取收银台窗口，聊天等其他页面绝不截图，金额取自收银台，由收银台本身或支付结果页文字确认后记录。拼多多的金额取自下单面板的付款按钮，下单成功后才记录；先用后付的订单在下单时就记录，实际扣款在确认收货时。京东只读取订单支付成功页上的文字。朴朴的金额取自结算页付款按钮旁，显示支付完成后才记录。如果订单是跳到微信或支付宝付款的，两边可能各采集一次，后一条会作为疑似重复等你核对。',
                               ),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w500,
@@ -453,6 +453,11 @@ class _PaymentCaptureSettingsScreenState
                             ),
                             ('jd', tr('JD.com', '京东'), status.jdEnabled),
                             ('pupu', tr('Pupu', '朴朴'), status.pupuEnabled),
+                            (
+                              'xianyu',
+                              tr('Xianyu', '闲鱼'),
+                              status.xianyuEnabled,
+                            ),
                           ]) ...[
                             const Divider(height: 1, indent: 56),
                             SwitchListTile(
@@ -461,7 +466,7 @@ class _PaymentCaptureSettingsScreenState
                               ),
                               title: Text(label),
                               subtitle: Text(
-                                platform == 'taobao'
+                                platform == 'taobao' || platform == 'xianyu'
                                     ? tr(
                                         'Experimental · Cashier and result page',
                                         '实验性 · 收银台与支付结果页',
@@ -767,6 +772,7 @@ class _CaptureDiagnosticsPanel extends StatelessWidget {
     'pinduoduo' => tr('Pinduoduo', '拼多多'),
     'jd' => tr('JD.com', '京东'),
     'pupu' => tr('Pupu', '朴朴'),
+    'xianyu' => tr('Xianyu', '闲鱼'),
     _ => platform,
   };
 

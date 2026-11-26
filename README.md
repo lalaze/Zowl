@@ -34,7 +34,7 @@ with duplicate detection across sources.
 **Getting transactions in**
 
 - **Payment page capture (Android):** an accessibility service reads the payment-success page of Alipay and
-  WeChat. Taobao, Pinduoduo, JD.com, and Pupu are experimental sources that are off by default. When an app shows no
+  WeChat. Taobao, Pinduoduo, JD.com, Pupu, and Xianyu are experimental sources that are off by default. When an app shows no
   readable text (Android 14+), the window is read by on-device OCR instead.
 - **Statement import:** Alipay and WeChat Pay CSV/XLSX exports, or any CSV/XLSX with field mapping. You preview
   every row before anything is posted.
@@ -284,7 +284,7 @@ demo account. Renaming them would break existing deployments, so they stay for n
 
 ## Disclaimer
 
-Zowl is not affiliated with or endorsed by Alipay, Ant Group, WeChat, Tencent, Taobao, Pinduoduo, JD.com, Pupu, or any
+Zowl is not affiliated with or endorsed by Alipay, Ant Group, WeChat, Tencent, Taobao, Pinduoduo, JD.com, Pupu, Xianyu, or any
 bank. Their names are used only to describe compatibility. Capture reads your own screen on your own device and
 can break whenever those apps change. Check important figures against official statements. The software is
 provided as is, without warranty. See the license.

@@ -51,6 +51,7 @@ extension _TransactionListFilters on _TransactionListScreenState {
       ('pinduoduo', tr('Pinduoduo', '拼多多')),
       ('jd', tr('JD.com', '京东')),
       ('pupu', tr('Pupu', '朴朴')),
+      ('xianyu', tr('Xianyu', '闲鱼')),
       ('generic', tr('Generic import', '通用导入')),
     ];
     final datePresets = <(String, DateTimeRange)>[

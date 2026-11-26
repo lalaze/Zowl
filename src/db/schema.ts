@@ -30,6 +30,7 @@ export const transactionSources = [
   "pinduoduo",
   "jd",
   "pupu",
+  "xianyu",
   "other",
 ] as const;
 
@@ -110,6 +111,7 @@ export const notificationCapturePlatforms = [
   "pinduoduo",
   "jd",
   "pupu",
+  "xianyu",
 ] as const;
 
 export const notificationCaptureStatuses = [

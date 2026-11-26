@@ -11,12 +11,15 @@ object PaymentPageParser {
     const val PINDUODUO_PACKAGE = "com.xunmeng.pinduoduo"
     const val JD_PACKAGE = "com.jingdong.app.mall"
     const val PUPU_PACKAGE = "com.pupumall.customer"
+    const val XIANYU_PACKAGE = "com.taobao.idlefish"
 
     /** Every capture source, in the order the settings list them. */
-    val platforms = listOf("alipay", "wechat", "taobao", "pinduoduo", "jd", "pupu")
+    val platforms = listOf("alipay", "wechat", "taobao", "pinduoduo", "jd", "pupu", "xianyu")
+    /** Shopping apps that pay through an embedded Alipay cashier (MspContainerActivity). */
+    val embeddedCashierPlatforms = setOf("taobao", "xianyu")
     private val shopping = setOf("jd")
     // Captured from their checkout and a later confirmation, not from one success page.
-    private val checkoutFlow = setOf("taobao", "pinduoduo", "pupu")
+    private val checkoutFlow = setOf("taobao", "pinduoduo", "pupu", "xianyu")
 
     private val success = setOf("支付成功", "付款成功")
     private val terminal = setOf("完成", "完成支付", "返回商家", "返回商户")
@@ -37,30 +40,35 @@ object PaymentPageParser {
         PINDUODUO_PACKAGE -> "pinduoduo"
         JD_PACKAGE -> "jd"
         PUPU_PACKAGE -> "pupu"
+        XIANYU_PACKAGE -> "xianyu"
         else -> null
     }
 
     /**
      * A shopping app follows its result with a feed of other goods, which can exceed the read
      * budget. Its pages are judged on the result block alone, so a cut-off feed is not an error.
-     * Pupu's completion page is followed by such a feed too; its heading comes first.
+     * Pupu's and Xianyu's result pages may be followed by such a feed too; their heading comes first.
      */
-    fun readsPartialPages(platform: String): Boolean = platform in shopping || platform == "pupu"
+    fun readsPartialPages(platform: String): Boolean =
+        platform in shopping || platform == "pupu" || platform == "xianyu"
+
+    /** Shopping apps whose payments go through an embedded Alipay cashier (Taobao, Xianyu). */
+    fun usesEmbeddedCashier(platform: String): Boolean = platform in embeddedCashierPlatforms
 
     /**
-     * Taobao is captured from its embedded cashier and the result page that follows, not from a
-     * success page (see [ShoppingCashierFlow]); its other readable pages are ignored.
+     * Embedded-cashier hosts are captured from their cashier and result confirmation, not from a
+     * generic success page (see [ShoppingCashierFlow]); their other readable pages are ignored.
      */
-    fun readsPageText(platform: String): Boolean = platform != "taobao"
+    fun readsPageText(platform: String): Boolean = !usesEmbeddedCashier(platform)
 
     /** The order panel's amount, confirmed by the paid notice (see [pinduoduoPage], [pupuPage]). */
     fun usesOrderPanel(platform: String): Boolean = platform == "pinduoduo" || platform == "pupu"
 
-    /** How long an order panel's amount waits for its paid notice. Pupu may send the user to Alipay or WeChat first. */
+    /** How long a pending amount waits for confirmation. Pupu and Xianyu may detour through Alipay or WeChat. */
     fun confirmWindow(platform: String): Long =
-        if (platform == "pupu") PUPU_CONFIRM_WINDOW else ShoppingCashierFlow.CONFIRM_WINDOW
+        if (platform == "pupu" || platform == "xianyu") EXTERNAL_CONFIRM_WINDOW else ShoppingCashierFlow.CONFIRM_WINDOW
 
-    private const val PUPU_CONFIRM_WINDOW = 180_000L
+    private const val EXTERNAL_CONFIRM_WINDOW = 180_000L
 
     /** Pupu is one seller, so its orders name it; its own completion page shows no merchant. */
     private const val PUPU_MERCHANT = "朴朴"
@@ -302,6 +310,37 @@ object PaymentPageParser {
             "doneLine=${lines.any { it in pupuDone }} doneWord=${lines.count { l -> pupuDone.any(l::contains) }} " +
             "notDone=${lines.any { it in pupuNotDone }} order=${lines.any { it == "订单详情" || it == "查看订单" }} " +
             "before=${before.map(::outline)} after=${after.map(::outline)}"
+    }
+
+    /** What a non-cashier Xianyu page contributes: outcome only, never an amount (ADR-0012). */
+    enum class XianyuPage { Paid, Failed, Other }
+
+    private val xianyuDone = setOf("支付成功", "付款成功")
+    private val xianyuNotDone = listOf(
+        "支付失败", "付款失败", "支付未完成", "支付已取消", "待支付", "待付款", "重新支付", "继续支付", "退款",
+    )
+
+    private fun isXianyuDone(line: String) = line.trimEnd('!', '！', '。') in xianyuDone
+
+    /**
+     * Conservative rule for Xianyu's result page (no device sample yet): confirms a waiting
+     * cashier amount only when a standalone success heading appears and no failure/pending/refund
+     * wording is present. Amounts on the page itself are never used.
+     */
+    fun xianyuPage(texts: List<String>): XianyuPage {
+        val lines = texts.map(PaymentParserSupport::normalizeEvidenceField).filter(String::isNotBlank)
+        if (lines.any { line -> xianyuNotDone.any(line::contains) }) return XianyuPage.Failed
+        if (lines.any(::isXianyuDone)) return XianyuPage.Paid
+        return XianyuPage.Other
+    }
+
+    /** Content-free outline of what [xianyuPage] looked at, for developer tracing only. */
+    fun xianyuShape(texts: List<String>): String {
+        val lines = texts.map(PaymentParserSupport::normalizeEvidenceField).filter(String::isNotBlank)
+        val amounts = joinSplitAmounts(lines).sumOf { PaymentParserSupport.amountTokens(it).size }
+        return "lines=${lines.size} doneLine=${lines.any(::isXianyuDone)} " +
+            "doneWord=${lines.count { l -> xianyuDone.any(l::contains) }} " +
+            "notDone=${lines.any { l -> xianyuNotDone.any(l::contains) }} amounts=$amounts"
     }
 
     // JD is still read as one success page. Written from the page's usual wording, not yet

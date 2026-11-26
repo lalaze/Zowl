@@ -76,8 +76,8 @@ Open **Me → Automatic payment capture**, turn on the master switch, and allow 
 payment-success page of enabled apps:
 
 - Alipay (on by default) and WeChat.
-- Taobao, Pinduoduo, JD.com, and Pupu as experimental sources, off by default ([ADR-0012](../docs/adr/0012-shopping-app-payment-pages.md)).
-  The JD.com and Pupu rules were written without device samples, so expect misses.
+- Taobao, Pinduoduo, JD.com, Pupu, and Xianyu as experimental sources, off by default ([ADR-0012](../docs/adr/0012-shopping-app-payment-pages.md)).
+  The JD.com, Pupu, and Xianyu result-page rules were written without device samples, so expect misses.
 
 When a payment-flow window exposes no readable text on Android 14+, that one window is read by on-device OCR
 (Google ML Kit, Chinese model bundled in the APK) instead ([ADR-0010](../docs/adr/0010-automatic-ocr-for-unreadable-payment-pages.md)).

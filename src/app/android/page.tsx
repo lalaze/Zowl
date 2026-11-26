@@ -49,8 +49,8 @@ const features = [
     icon: BellRing,
     title: "Automatic payment capture",
     titleZh: "支付自动采集",
-    description: "Recognize Alipay and WeChat payment success pages, with Taobao, Pinduoduo, JD.com and Pupu as experimental sources. You confirm each transaction unless you turn on auto-posting.",
-    descriptionZh: "识别支付宝、微信的支付成功页，淘宝、拼多多、京东、朴朴为实验性来源。除非你开启自动入账，每笔交易都由你确认。",
+    description: "Recognize Alipay and WeChat payment success pages, with Taobao, Pinduoduo, JD.com, Pupu and Xianyu as experimental sources. You confirm each transaction unless you turn on auto-posting.",
+    descriptionZh: "识别支付宝、微信的支付成功页，淘宝、拼多多、京东、朴朴、闲鱼为实验性来源。除非你开启自动入账，每笔交易都由你确认。",
     className: "bg-tint-amber text-accent-text",
   },
   {

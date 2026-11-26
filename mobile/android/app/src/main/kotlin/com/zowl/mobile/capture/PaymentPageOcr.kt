@@ -253,6 +253,40 @@ object PaymentPageOcr {
 
     fun awaitsConfirmation(platform: String): Boolean = cashiers[platform]?.awaitsConfirmation() == true
 
+    /** Whether either Xianyu's embedded cashier or Alipay's own cashier has a waiting amount for Xianyu. */
+    fun awaitsXianyuConfirmation(): Boolean = XianyuCashierConfirmation.awaits(
+        cashiers["xianyu"],
+        cashiers["alipay"],
+        PaymentPageParser.confirmWindow("xianyu"),
+    )
+
+    /**
+     * Xianyu's own result page confirms the most recently seen cashier amount (either Xianyu's
+     * embedded cashier or the Alipay app's cashier if risk control handed off to it), once.
+     */
+    fun onXianyuPaidPage(
+        service: AccessibilityService,
+        sourcePackage: String,
+        installationId: String,
+    ): CapturedPayment? {
+        val confirmed = XianyuCashierConfirmation.confirm(
+            cashiers["xianyu"],
+            cashiers["alipay"],
+            PaymentPageParser.confirmWindow("xianyu"),
+        ) ?: return null
+        return PaymentPageOcrFacts.candidate(
+            PaymentPageOcrFacts.fields(confirmed.amountMinor),
+            "paid\n${confirmed.amountMinor}",
+            "xianyu",
+            sourcePackage,
+            installationId,
+            bootCount(service),
+            confirmed.windowId,
+            0,
+            System.currentTimeMillis(),
+        )?.copy(parserId = "xianyu_payment_page_v1", confidenceBasisPoints = 9_000)
+    }
+
     /**
      * The app reports the order as paid without showing an amount (Pinduoduo's paid notice, or
      * Taobao's or Alipay's cashier closing with its payment overlay): the payment is the amount

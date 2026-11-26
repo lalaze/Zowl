@@ -109,6 +109,7 @@ class FakePaymentCaptureBridge implements PaymentCaptureBridge {
     bool? pinduoduoEnabled,
     bool? jdEnabled,
     bool? pupuEnabled,
+    bool? xianyuEnabled,
     bool? orderDetailsEnabled,
     List<PaymentCaptureDiagnostic>? diagnostics,
   }) => PaymentCaptureStatus(
@@ -122,6 +123,7 @@ class FakePaymentCaptureBridge implements PaymentCaptureBridge {
     pinduoduoEnabled: pinduoduoEnabled ?? status.pinduoduoEnabled,
     jdEnabled: jdEnabled ?? status.jdEnabled,
     pupuEnabled: pupuEnabled ?? status.pupuEnabled,
+    xianyuEnabled: xianyuEnabled ?? status.xianyuEnabled,
     orderDetailsEnabled: orderDetailsEnabled ?? status.orderDetailsEnabled,
     queuedCount: status.queuedCount,
     authPaused: status.authPaused,
@@ -164,6 +166,7 @@ class FakePaymentCaptureBridge implements PaymentCaptureBridge {
       'pinduoduo' => _updated(pinduoduoEnabled: enabled),
       'jd' => _updated(jdEnabled: enabled),
       'pupu' => _updated(pupuEnabled: enabled),
+      'xianyu' => _updated(xianyuEnabled: enabled),
       _ => status,
     };
     return status;
@@ -218,6 +221,7 @@ class FakePaymentCaptureBridge implements PaymentCaptureBridge {
       pinduoduoEnabled: status.pinduoduoEnabled,
       jdEnabled: status.jdEnabled,
       pupuEnabled: status.pupuEnabled,
+      xianyuEnabled: status.xianyuEnabled,
       orderDetailsEnabled: status.orderDetailsEnabled,
       queuedCount: status.queuedCount,
       authPaused: status.authPaused,

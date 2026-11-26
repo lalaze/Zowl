@@ -241,7 +241,7 @@ class MainActivity : FlutterActivity() {
                     .map { it.toStatusMap() },
             "orderDetailsEnabled" to preferences.orderDetailsEnabled,
         ) +
-            // alipayEnabled, wechatEnabled, taobaoEnabled, pinduoduoEnabled, jdEnabled, pupuEnabled
+            // alipayEnabled, wechatEnabled, taobaoEnabled, pinduoduoEnabled, jdEnabled, pupuEnabled, xianyuEnabled
             PaymentPageParser.platforms.associate { "${it}Enabled" to preferences.isSourceEnabled(it) }
 
     companion object {

@@ -53,6 +53,8 @@ npx tsx scripts/capture-logs.ts scan
 | `cashier amount read` | 已成功从收银台读到待确认金额。 |
 | `cashier dialog` | 检测到与收银台配对的结果/遮罩弹窗。 |
 | `cashier closed with its overlay …: confirmed` | 收银台连同无文本遮罩一同关闭，按先前读到的金额确认付款。 |
+| `page xianyu window=<id> kind=<paid\|failed\|other> …` | 仅在闲鱼或支付宝收银台有待确认金额时记录的闲鱼页面结构摘要（行数、成功标题、失败/待付词、金额个数，不含原文）。 |
+| `xianyu result page: confirmed\|no amount waiting` | 闲鱼结果页命中成功标题后，是否成功确认了待确认的收银台金额。 |
 | `payment-code shown` / `payment-code left without a capture: reminder` | 微信付款码页出现，以及离开付款码页后未捕到成功页而触发补记提醒（强漏记信号）。 |
 | `order-page` | 为识别所购商品而截取的订单页结构摘要（或截图失败/拒绝原因）。 |
 | `order-context` | 汇总给本次付款的订单页上下文统计（页数、行数、丢弃数、是否来自结账页）。 |

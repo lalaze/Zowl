@@ -3,7 +3,7 @@
 
     <string name="local_ocr_tile_label">Zowl识别记账</string>
     <string name="payment_accessibility_label">Zowl 支付页采集（内测）</string>
-    <string name="payment_accessibility_description">支付自动采集在本机读取微信和支付宝支付成功页，并同步结构化候选。当微信或支付宝的支付流程页面不提供任何可读文字时，会自动截取该窗口并在本机识别，只为找出支付成功页的金额；聊天等非支付页面不会被截图。如果你开启淘宝作为来源，会用同样的方式截取并在本机识别它的付款收银台和支付结果页，不会截取淘宝的其他页面。如果你开启拼多多、京东或朴朴，只读取它们下单和支付页面上的文字，不截图。另一个独立功能「Zowl识别记账」在你主动点击快捷磁贴时截取一次支付应用窗口，用 APK 内置中文模型在本机识别，编辑后须确认才按手动录入记账。截图和识别全文不保存、不上传。不会执行手势或付款，不是屏幕阅读器。可随时关闭任一功能或撤销此服务授权。</string>
+    <string name="payment_accessibility_description">支付自动采集在本机读取微信和支付宝支付成功页，并同步结构化候选。当微信或支付宝的支付流程页面不提供任何可读文字时，会自动截取该窗口并在本机识别，只为找出支付成功页的金额；聊天等非支付页面不会被截图。如果你开启淘宝作为来源，会用同样的方式截取并在本机识别它的付款收银台和支付结果页，不会截取淘宝的其他页面。如果你开启闲鱼，只在内嵌收银台没有可读文字时截取收银台窗口，支付结果页只读文字，聊天等其他页面不会截图。如果你开启拼多多、京东或朴朴，只读取它们下单和支付页面上的文字，不截图。另一个独立功能「Zowl识别记账」在你主动点击快捷磁贴时截取一次支付应用窗口，用 APK 内置中文模型在本机识别，编辑后须确认才按手动录入记账。截图和识别全文不保存、不上传。不会执行手势或付款，不是屏幕阅读器。可随时关闭任一功能或撤销此服务授权。</string>
 
     <string name="capture_channel_name">支付采集候选</string>
     <string name="capture_channel_description">提醒你核对由支付页生成的记账候选</string>
@@ -14,6 +14,7 @@
     <string name="capture_source_pinduoduo">拼多多</string>
     <string name="capture_source_jd">京东</string>
     <string name="capture_source_pupu">朴朴</string>
+    <string name="capture_source_xianyu">闲鱼</string>
     <string name="capture_source_other">支付</string>
     <string name="capture_review_title">%1$s支出 %2$s</string>
     <string name="capture_add_merchant_and_post">输入商户并入账</string>

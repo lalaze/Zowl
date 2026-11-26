@@ -4,7 +4,8 @@ IconData _sourceIcon(String? source) => switch (source) {
   'manual' => Icons.edit_rounded,
   'screenshot' => Icons.document_scanner_rounded,
   'alipay' || 'wechat' || 'cmb' => Icons.bolt_rounded,
-  'taobao' || 'pinduoduo' || 'jd' || 'pupu' => Icons.shopping_bag_rounded,
+  'taobao' || 'pinduoduo' || 'jd' || 'pupu' || 'xianyu' =>
+    Icons.shopping_bag_rounded,
   'generic' => Icons.upload_file_rounded,
   _ => Icons.account_balance_wallet_rounded,
 };

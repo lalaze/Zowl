@@ -38,8 +38,10 @@ class PaymentAccessibilityService : AccessibilityService() {
         onLinked = { windowId, why -> CaptureTrace.d { "payment window wechat window=$windowId joined by $why" } },
         now = SystemClock::elapsedRealtime,
     )
-    // Framework dialogs Taobao lays over its embedded cashier. Window ids only, in memory only.
-    private val taobaoDialogs = CashierOverlayDialogs("taobao", SystemClock::elapsedRealtime)
+    // Framework dialogs shopping apps lay over their embedded Alipay cashier. Window ids only, in memory only.
+    private val embeddedDialogs = PaymentPageParser.embeddedCashierPlatforms.associateWith {
+        CashierOverlayDialogs(it, SystemClock::elapsedRealtime)
+    }
     // The same over Alipay's own cashier, when no result page follows it. Window ids only, in memory only.
     private val alipayDialogs = CashierOverlayDialogs("alipay", SystemClock::elapsedRealtime)
     private val paymentCode = PaymentCodeWatch(SystemClock::elapsedRealtime)
@@ -78,7 +80,7 @@ class PaymentAccessibilityService : AccessibilityService() {
             readTaobaoOrderPage(preferences, owner)
         }
         if (cashierClosed) {
-            // Taobao's or Alipay's cashier closed with its payment overlay: the cashier amount was paid.
+            // An embedded or Alipay cashier closed with its payment overlay: the cashier amount was paid.
             val payment = PaymentPageOcr.onPaidNotice(this, platform, sourcePackage, preferences.installationId)
             CaptureTrace.d { "cashier closed with its overlay $platform: ${if (payment != null) "confirmed" else "no amount waiting"}" }
             payment?.let { deliverOcr(platform, owner, it) }
@@ -169,15 +171,16 @@ class PaymentAccessibilityService : AccessibilityService() {
             "look $platform window=$windowId class=${PaymentPageOcrGate.label(windowClasses[windowId])} " +
                 "texts=${texts.size} partial=$partial"
         }
-        if (platform == "taobao") {
-            if (ocrRole(platform, windowId) != PaymentPageOcrGate.Role.CASHIER && !taobaoDialogs.isResultWindow(windowId)) {
+        embeddedDialogs[platform]?.let { dialogs ->
+            if (platform == "taobao" &&
+                ocrRole(platform, windowId) != PaymentPageOcrGate.Role.CASHIER && !dialogs.isResultWindow(windowId)) {
                 taobaoPage = windowId
             }
-            taobaoDialogs.onWindowRead(windowId, texts.sumOf { it.count { c -> !c.isWhitespace() } }, recognised = false)
+            dialogs.onWindowRead(windowId, texts.sumOf { it.count { c -> !c.isWhitespace() } }, recognised = false)
             // A cashier back on top with text (a failure says why) cancels the overlay's evidence; one
-            // with an empty tree is closing (seen 0.3 s before Taobao's screen).
+            // with an empty tree is closing (seen 0.3 s before the app's screen).
             if (texts.isNotEmpty() && ocrRole(platform, windowId) == PaymentPageOcrGate.Role.CASHIER) {
-                taobaoDialogs.onCashierActive()
+                dialogs.onCashierActive()
             }
         }
         if (platform == "alipay") {
@@ -211,16 +214,22 @@ class PaymentAccessibilityService : AccessibilityService() {
                 while (reportedOcrWindows.size > 32) reportedOcrWindows.remove(reportedOcrWindows.first())
                 diagnostics.recordOcrWindow(platform, PaymentPageOcrGate.label(windowClass), allowed)
             }
-            if (role == null) return Look.DONE
+            if (role == null) {
+                // Xianyu's Flutter result page may populate its semantics tree slightly after appearing.
+                if (platform == "xianyu" && PaymentPageOcr.awaitsXianyuConfirmation() &&
+                    confirmationLooks < MAX_CONFIRMATION_LOOKS) {
+                    confirmationLooks++
+                    handler.postDelayed({ look(source, eventPackage, platform, owner) }, CONFIRMATION_LOOK_INTERVAL)
+                }
+                return Look.DONE
+            }
             // Nothing is on screen to read while the display is off.
             if (!getSystemService(PowerManager::class.java).isInteractive) return Look.DONE
             PaymentPageOcr.onEmptyPage(this, windowId, source, platform, preferences.installationId, role,
                 recheck = { recheckOcr(source, eventPackage, platform, owner) },
                 deliver = { payment -> deliverOcr(platform, owner, payment) },
                 recognised = { text ->
-                    if (platform == "taobao") {
-                        taobaoDialogs.onWindowRead(windowId, text.count { !it.isWhitespace() }, recognised = true)
-                    }
+                    embeddedDialogs[platform]?.onWindowRead(windowId, text.count { !it.isWhitespace() }, recognised = true)
                     if (platform == "alipay") {
                         alipayDialogs.onWindowRead(windowId, text.count { !it.isWhitespace() }, recognised = true)
                     }
@@ -271,11 +280,27 @@ class PaymentAccessibilityService : AccessibilityService() {
             return Look.DONE
         }
         if (!PaymentPageParser.readsPageText(platform)) {
-            // Of Taobao's readable windows only the embedded cashier is evidence; no other page is evaluated.
+            // Of Taobao's and Xianyu's readable windows the embedded cashier is evaluated when complete;
+            // Xianyu's own result page only confirms a waiting cashier amount and never supplies one.
             if (texts.isNotEmpty() && !partial &&
                 ocrRole(platform, windowId) == PaymentPageOcrGate.Role.CASHIER) {
                 PaymentPageOcr.onCashierText(this, windowId, source, platform, preferences.installationId,
                     texts.joinToString("\n")) { payment -> deliverOcr(platform, owner, payment) }
+            } else if (platform == "xianyu" && ocrRole(platform, windowId) == null &&
+                PaymentPageOcr.awaitsXianyuConfirmation()) {
+                val page = PaymentPageParser.xianyuPage(texts)
+                CaptureTrace.d {
+                    "page xianyu window=$windowId kind=${page.name.lowercase()} ${PaymentPageParser.xianyuShape(texts)}"
+                }
+                if (page == PaymentPageParser.XianyuPage.Paid) {
+                    val payment = PaymentPageOcr.onXianyuPaidPage(this, source, preferences.installationId)
+                    CaptureTrace.d { "xianyu result page: ${if (payment != null) "confirmed" else "no amount waiting"}" }
+                    payment?.let { deliverOcr(platform, owner, it) }
+                }
+                if (PaymentPageOcr.awaitsXianyuConfirmation() && confirmationLooks < MAX_CONFIRMATION_LOOKS) {
+                    confirmationLooks++
+                    handler.postDelayed({ look(source, eventPackage, platform, owner) }, CONFIRMATION_LOOK_INTERVAL)
+                }
             }
             return Look.DONE
         }
@@ -322,14 +347,14 @@ class PaymentAccessibilityService : AccessibilityService() {
         return Look.DONE
     }
 
-    /** Returns true when this event shows Taobao's or Alipay's cashier just closed together with its payment overlay. */
+    /** Returns true when this event shows an embedded or Alipay cashier just closed together with its payment overlay. */
     private fun rememberWindowClass(event: AccessibilityEvent, platform: String): Boolean {
         if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return false
         CaptureTrace.d { "window-state $platform window=${event.windowId} class=${PaymentPageOcrGate.label(event.className?.toString())}" }
         var cashierClosed = false
-        if (platform == "taobao") {
-            cashierClosed = taobaoDialogs.onWindowState(event.windowId, event.className?.toString())
-            if (taobaoDialogs.isResultWindow(event.windowId)) CaptureTrace.d { "cashier dialog taobao window=${event.windowId}" }
+        embeddedDialogs[platform]?.let { dialogs ->
+            cashierClosed = dialogs.onWindowState(event.windowId, event.className?.toString())
+            if (dialogs.isResultWindow(event.windowId)) CaptureTrace.d { "cashier dialog $platform window=${event.windowId}" }
         }
         if (platform == "alipay") {
             val name = event.className?.toString()
@@ -445,7 +470,7 @@ class PaymentAccessibilityService : AccessibilityService() {
     private fun ocrRole(platform: String, windowId: Int): PaymentPageOcrGate.Role? =
         PaymentPageOcrGate.role(platform, windowClasses[windowId])
             ?: PaymentPageOcrGate.Role.PAYMENT.takeIf { platform == "wechat" && wechatLite.isPaymentWindow(windowId) }
-            ?: PaymentPageOcrGate.Role.RESULT.takeIf { platform == "taobao" && taobaoDialogs.isResultWindow(windowId) }
+            ?: PaymentPageOcrGate.Role.RESULT.takeIf { embeddedDialogs[platform]?.isResultWindow(windowId) == true }
             ?: PaymentPageOcrGate.Role.OVERLAY.takeIf { platform == "alipay" && alipayDialogs.isResultWindow(windowId) }
 
     /**
@@ -518,8 +543,13 @@ class PaymentAccessibilityService : AccessibilityService() {
             CaptureTrace.d { "order pupu paid in $platform: same amount=$orderWaits" }
         }
         when (platform) {
-            "alipay", "wechat" -> PaymentPageOcr.onPageCaptured("pupu")
-            "pupu" -> {
+            "alipay" -> {
+                PaymentPageOcr.onPageCaptured("pupu")
+                PaymentPageOcr.onPageCaptured("xianyu")
+                embeddedDialogs["xianyu"]?.onCashierActive()
+            }
+            "wechat" -> PaymentPageOcr.onPageCaptured("pupu")
+            "pupu", "xianyu" -> {
                 PaymentPageOcr.onPageCaptured("alipay")
                 alipayDialogs.onCashierActive()
             }

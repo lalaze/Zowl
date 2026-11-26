@@ -17,6 +17,7 @@ void main() {
       'wechatEnabled': false,
       'jdEnabled': true,
       'pupuEnabled': true,
+      'xianyuEnabled': true,
       'queuedCount': 3,
       'authPaused': true,
       'lastCaptureAt': 1_722_000_000_000,
@@ -38,6 +39,7 @@ void main() {
     expect(status.accessibilityConnected, isFalse);
     expect(status.jdEnabled, isTrue);
     expect(status.pupuEnabled, isTrue);
+    expect(status.xianyuEnabled, isTrue);
     expect(status.taobaoEnabled, isFalse);
     expect(status.pinduoduoEnabled, isFalse);
     // Builds from before the goods switch do not report it.

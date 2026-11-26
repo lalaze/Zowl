@@ -63,6 +63,7 @@ const packageForPlatform = {
   pinduoduo: "com.xunmeng.pinduoduo",
   jd: "com.jingdong.app.mall",
   pupu: "com.pupumall.customer",
+  xianyu: "com.taobao.idlefish",
 } as const satisfies Record<CapturePlatform, string>;
 
 // Only platforms that ever had a notification parser. The shopping apps are
@@ -110,6 +111,7 @@ const labelForPlatform: Record<Locale, Record<CapturePlatform, string>> = {
     pinduoduo: "Pinduoduo",
     jd: "JD.com",
     pupu: "Pupu",
+    xianyu: "Xianyu",
   },
   zh: {
     alipay: "支付宝",
@@ -119,6 +121,7 @@ const labelForPlatform: Record<Locale, Record<CapturePlatform, string>> = {
     pinduoduo: "拼多多",
     jd: "京东",
     pupu: "朴朴",
+    xianyu: "闲鱼",
   },
 };
 
@@ -173,6 +176,8 @@ const knownParserIdentities = {
   jd: new Set(["jd_payment_page_v1:1"]),
   // The checkout amount, confirmed by the app once the order goes through.
   pupu: new Set(["pupu_payment_page_v1:1"]),
+  // Node text or OCR of the embedded cashier, or its amount confirmed by the result page.
+  xianyu: new Set(["xianyu_payment_page_v1:1", "xianyu_payment_page_ocr_v1:1"]),
 } satisfies Record<keyof typeof packageForPlatform, ReadonlySet<string>>;
 
 function notFound(): never {

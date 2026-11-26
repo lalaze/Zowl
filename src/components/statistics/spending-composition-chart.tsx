@@ -28,6 +28,7 @@ const SOURCE_COLORS = {
   pinduoduo: "#e02e24",
   jd: "#b5121b",
   pupu: "#00a862",
+  xianyu: "#eab308",
   other: "#64748b",
 } satisfies Record<
   StatisticsOverview["sourceDistribution"][number]["source"],

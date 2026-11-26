@@ -100,7 +100,8 @@ class _CaptureCard extends StatelessWidget {
     'alipay' => Icons.account_balance_wallet_outlined,
     'wechat' => Icons.chat_bubble_outline,
     'cmb' => Icons.account_balance_outlined,
-    'taobao' || 'pinduoduo' || 'jd' || 'pupu' => Icons.shopping_bag_outlined,
+    'taobao' || 'pinduoduo' || 'jd' || 'pupu' || 'xianyu' =>
+      Icons.shopping_bag_outlined,
     _ => Icons.notifications_outlined,
   };
 
@@ -108,7 +109,7 @@ class _CaptureCard extends StatelessWidget {
     'alipay' => ZeTone.info,
     'wechat' => ZeTone.income,
     'cmb' => ZeTone.danger,
-    'taobao' || 'pinduoduo' || 'jd' || 'pupu' => ZeTone.warn,
+    'taobao' || 'pinduoduo' || 'jd' || 'pupu' || 'xianyu' => ZeTone.warn,
     _ => ZeTone.neutral,
   };
 
@@ -326,6 +327,7 @@ String _platformName(String platform) => switch (platform) {
   'pinduoduo' => tr('Pinduoduo', '拼多多'),
   'jd' => tr('JD.com', '京东'),
   'pupu' => tr('Pupu', '朴朴'),
+  'xianyu' => tr('Xianyu', '闲鱼'),
   _ => tr('Other sources', '其他来源'),
 };
 

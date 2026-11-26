@@ -174,7 +174,7 @@ export function createDeduplicationService(database: Database = db) {
       const possible = candidates.find((candidate) => {
         const otherMerchant = normalizeMerchantName(candidate.merchantName);
         if (normalizedMerchant && otherMerchant === normalizedMerchant) return true;
-        const captureSources = ["alipay", "wechat", "cmb", "taobao", "pinduoduo", "jd", "pupu"];
+        const captureSources = ["alipay", "wechat", "cmb", "taobao", "pinduoduo", "jd", "pupu", "xianyu"];
         const near = Math.abs(new Date(candidate.transactionTime).getTime() - time) <= 30_000;
         return near && (
           !normalizedMerchant || !otherMerchant ||

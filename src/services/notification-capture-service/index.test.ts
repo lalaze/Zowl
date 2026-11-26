@@ -40,7 +40,7 @@ describe("notification capture service", () => {
     overrides: Partial<{
       idempotencyKey: string;
       evidenceDigest: string;
-      platform: "alipay" | "wechat" | "cmb" | "taobao" | "pinduoduo" | "jd" | "pupu";
+      platform: "alipay" | "wechat" | "cmb" | "taobao" | "pinduoduo" | "jd" | "pupu" | "xianyu";
       sourcePackage: string;
       postedAt: string;
       amountMinor: number;
@@ -63,6 +63,7 @@ describe("notification capture service", () => {
           pinduoduo: "com.xunmeng.pinduoduo",
           jd: "com.jingdong.app.mall",
           pupu: "com.pupumall.customer",
+          xianyu: "com.taobao.idlefish",
         }[platform],
       postedAt: overrides.postedAt ?? postedAt,
       parserId:
@@ -237,6 +238,8 @@ describe("notification capture service", () => {
         event({ idempotencyKey: "e".repeat(64), platform: "pinduoduo", parserId: "pinduoduo-payment-success" }),
         event({ idempotencyKey: "2".repeat(64), platform: "taobao", parserId: "taobao_payment_page_ocr_v2" }),
         event({ idempotencyKey: "3".repeat(64), platform: "pupu", parserId: "pupu_payment_page_ocr_v1" }),
+        event({ idempotencyKey: "5".repeat(64), platform: "xianyu", sourcePackage: "com.taobao.taobao", parserId: "xianyu_payment_page_v1" }),
+        event({ idempotencyKey: "6".repeat(64), platform: "xianyu", parserId: "xianyu_payment_page_ocr_v2" }),
       ],
     });
     expect(rejected.items.map((entry) => "code" in entry && entry.code)).toEqual([
@@ -244,6 +247,8 @@ describe("notification capture service", () => {
       "UNSUPPORTED_PARSER",
       "UNSUPPORTED_PARSER",
       "UNSUPPORTED_PARSER",
+      "UNSUPPORTED_PARSER",
+      "SOURCE_PACKAGE_MISMATCH",
       "UNSUPPORTED_PARSER",
     ]);
 
@@ -253,10 +258,12 @@ describe("notification capture service", () => {
         event({ idempotencyKey: "f".repeat(64), platform: "jd", parserId: "jd_payment_page_v1", postedAt: "2026-07-27T06:30:00.000Z", amountMinor: 9_900, merchantName: null }),
         event({ idempotencyKey: "1".repeat(64), platform: "pinduoduo", parserId: "pinduoduo_payment_page_v1", postedAt: "2026-07-27T07:30:00.000Z", amountMinor: 2_350, merchantName: null }),
         event({ idempotencyKey: "4".repeat(64), platform: "pupu", parserId: "pupu_payment_page_v1", postedAt: "2026-07-27T08:30:00.000Z", amountMinor: 5_670, merchantName: null }),
+        event({ idempotencyKey: "7".repeat(64), platform: "xianyu", parserId: "xianyu_payment_page_v1", postedAt: "2026-07-27T09:30:00.000Z", amountMinor: 3_450, merchantName: null }),
+        event({ idempotencyKey: "8".repeat(64), platform: "xianyu", parserId: "xianyu_payment_page_ocr_v1", postedAt: "2026-07-27T10:30:00.000Z", amountMinor: 4_560, merchantName: null }),
       ],
     });
-    expect(posted.items.map((entry) => "reviewStatus" in entry && entry.reviewStatus)).toEqual(["completed", "completed", "completed"]);
-    expect(database.db.select().from(transactions).all().map((row) => row.source).sort()).toEqual(["jd", "pinduoduo", "pupu"]);
+    expect(posted.items.map((entry) => "reviewStatus" in entry && entry.reviewStatus)).toEqual(["completed", "completed", "completed", "completed", "completed"]);
+    expect(database.db.select().from(transactions).all().map((row) => row.source).sort()).toEqual(["jd", "pinduoduo", "pupu", "xianyu", "xianyu"]);
   });
 
   it("holds a shopping-app success page for review when the payment app already reported the same amount", async () => {
@@ -265,10 +272,12 @@ describe("notification capture service", () => {
       events: [
         event({ platform: "wechat", parserId: "wechat_payment_page_v1", merchantName: "Pinduoduo Merchant" }),
         event({ idempotencyKey: "c".repeat(64), platform: "pinduoduo", parserId: "pinduoduo_payment_page_v1", postedAt: "2026-07-27T04:30:06.000Z", merchantName: null }),
+        event({ idempotencyKey: "d".repeat(64), platform: "alipay", parserId: "alipay_payment_page_v1", postedAt: "2026-07-27T05:30:00.000Z", amountMinor: 4_200, merchantName: "Seller" }),
+        event({ idempotencyKey: "e".repeat(64), platform: "xianyu", parserId: "xianyu_payment_page_v1", postedAt: "2026-07-27T05:30:08.000Z", amountMinor: 4_200, merchantName: null }),
       ],
     });
-    expect(result.items.map((entry) => "reviewStatus" in entry && entry.reviewStatus)).toEqual(["completed", "reviewing"]);
-    expect(database.db.select().from(transactions).all()).toHaveLength(1);
+    expect(result.items.map((entry) => "reviewStatus" in entry && entry.reviewStatus)).toEqual(["completed", "reviewing", "completed", "reviewing"]);
+    expect(database.db.select().from(transactions).all()).toHaveLength(2);
   });
 
   it("allows separately authorized payment pages and ignores a replay of the same page session", async () => {
