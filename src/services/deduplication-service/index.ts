@@ -24,6 +24,19 @@ export type DeduplicationInput = {
 export const deduplicationAlgorithmVersion = 3;
 
 export function createDeduplicationService(database: Database = db) {
+  let supplementalEvidenceTableExists = false;
+
+  function hasSupplementalEvidenceTable() {
+    if (supplementalEvidenceTableExists) return true;
+    const exists = Boolean(
+      database.get<{ name: string }>(
+        sql`select name from sqlite_master where type = 'table' and name = 'transaction_supplemental_evidence'`,
+      ),
+    );
+    if (exists) supplementalEvidenceTableExists = true;
+    return exists;
+  }
+
   function check(
     userId: string,
     input: DeduplicationInput,
@@ -36,12 +49,7 @@ export function createDeduplicationService(database: Database = db) {
     });
 
     if (input.platformTransactionId) {
-      const hasSupplementalEvidenceTable = Boolean(
-        database.get<{ name: string }>(
-          sql`select name from sqlite_master where type = 'table' and name = 'transaction_supplemental_evidence'`,
-        ),
-      );
-      const supplementalMatch = hasSupplementalEvidenceTable
+      const supplementalMatch = hasSupplementalEvidenceTable()
         ? database
             .select({
               transactionId: transactionSupplementalEvidence.transactionId,

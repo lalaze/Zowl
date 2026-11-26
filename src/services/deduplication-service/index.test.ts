@@ -1,7 +1,7 @@
 import path from "node:path";
 
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createDatabase } from "@/db/client";
 import { transactions, users } from "@/db/schema";
@@ -159,5 +159,33 @@ describe("deduplication service", () => {
     expect(service.check("dedupe-user", {
       ...base, merchantName: null, platformTransactionId: null, transactionTime: "2026-07-15T04:31:00.000Z",
     })).toMatchObject({ status: "unique" });
+  });
+
+  it("caches only a positive supplemental-evidence table lookup per service instance", () => {
+    const getSpy = vi.spyOn(database.db, "get");
+    service.check("dedupe-user", { ...base, platformTransactionId: "ALI-CACHE-1" });
+    service.check("dedupe-user", { ...base, platformTransactionId: "ALI-CACHE-2" });
+    expect(getSpy).toHaveBeenCalledTimes(1);
+    getSpy.mockRestore();
+
+    database.sqlite.exec("DROP TABLE transaction_supplemental_evidence");
+    const preMigrationService = createDeduplicationService(database.db);
+    const preSpy = vi.spyOn(database.db, "get");
+    expect(
+      preMigrationService.check("dedupe-user", {
+        ...base,
+        amountMinor: 7777,
+        platformTransactionId: "ALI-PRE-1",
+      }).status,
+    ).toBe("unique");
+    expect(
+      preMigrationService.check("dedupe-user", {
+        ...base,
+        amountMinor: 7777,
+        platformTransactionId: "ALI-PRE-2",
+      }).status,
+    ).toBe("unique");
+    expect(preSpy).toHaveBeenCalledTimes(2);
+    preSpy.mockRestore();
   });
 });
