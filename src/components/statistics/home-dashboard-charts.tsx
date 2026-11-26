@@ -39,7 +39,7 @@ function compactMoney(value: number, locale: Locale) {
   return `¥${Math.round(yuan)}`;
 }
 
-export function HomeMonthlyCashflowTrend({
+export function HomeMonthlyCashflowTrendChart({
   currency,
   data,
 }: {
@@ -48,6 +48,94 @@ export function HomeMonthlyCashflowTrend({
 }) {
   const t = useT();
   const locale = useLocale();
+  const trend = data.map((item) => ({
+    ...item,
+    label: shortMonthLabel(item.month, locale),
+  }));
+
+  return (
+    <ResponsiveContainer height="100%" width="100%">
+      <ComposedChart
+        data={trend}
+        margin={{ top: 14, right: 12, bottom: 0, left: 3 }}
+      >
+        <CartesianGrid
+          stroke="var(--chart-grid)"
+          strokeDasharray="3 5"
+          vertical={false}
+        />
+        <XAxis
+          axisLine={false}
+          dataKey="label"
+          tick={{
+            fill: "var(--chart-axis)",
+            fontSize: 11,
+            fontWeight: 800,
+          }}
+          tickLine={false}
+          tickMargin={10}
+        />
+        <YAxis
+          axisLine={false}
+          hide
+          tickFormatter={(value) => compactMoney(Number(value), locale)}
+          tickLine={false}
+        />
+        <Tooltip
+          contentStyle={{
+            background: "var(--chart-tooltip)",
+            border: "1px solid var(--app-border)",
+            borderRadius: 14,
+            boxShadow: "0 6px 18px rgb(31 34 48 / 10%)",
+            color: "var(--app-foreground)",
+            fontSize: 12,
+            fontWeight: 700,
+          }}
+          cursor={{ stroke: "var(--chart-cursor)", strokeDasharray: "4 4" }}
+          formatter={(value, name) => [
+            formatMoney(Number(value), currency),
+            name === "incomeMinor" ? t("Income", "收入") : t("Expense", "支出"),
+          ]}
+        />
+        <Area
+          dataKey="incomeMinor"
+          fill="var(--tint-leaf)"
+          fillOpacity={0.78}
+          isAnimationActive={false}
+          stroke="var(--income)"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={3}
+          type="monotone"
+        />
+        <Line
+          dataKey="netExpenseMinor"
+          dot={{
+            fill: "var(--chart-dot)",
+            r: 4,
+            stroke: "var(--chart-expense)",
+            strokeWidth: 3,
+          }}
+          isAnimationActive={false}
+          stroke="var(--chart-expense)"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={3}
+          type="monotone"
+        />
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
+}
+
+export function HomeMonthlyCashflowTrend({
+  currency,
+  data,
+}: {
+  currency: string;
+  data: MonthlyDatum[];
+}) {
+  const t = useT();
   if (!data.length) {
     return (
       <div className="grid h-full place-items-center text-sm font-semibold text-muted">
@@ -55,10 +143,6 @@ export function HomeMonthlyCashflowTrend({
       </div>
     );
   }
-  const trend = data.map((item) => ({
-    ...item,
-    label: shortMonthLabel(item.month, locale),
-  }));
 
   return (
     <div
@@ -66,77 +150,7 @@ export function HomeMonthlyCashflowTrend({
       className="h-full min-h-0 w-full"
       role="img"
     >
-      <ResponsiveContainer height="100%" width="100%">
-        <ComposedChart
-          data={trend}
-          margin={{ top: 14, right: 12, bottom: 0, left: 3 }}
-        >
-          <CartesianGrid
-            stroke="var(--chart-grid)"
-            strokeDasharray="3 5"
-            vertical={false}
-          />
-          <XAxis
-            axisLine={false}
-            dataKey="label"
-            tick={{
-              fill: "var(--chart-axis)",
-              fontSize: 11,
-              fontWeight: 800,
-            }}
-            tickLine={false}
-            tickMargin={10}
-          />
-          <YAxis
-            axisLine={false}
-            hide
-            tickFormatter={(value) => compactMoney(Number(value), locale)}
-            tickLine={false}
-          />
-          <Tooltip
-            contentStyle={{
-              background: "var(--chart-tooltip)",
-              border: "1px solid var(--app-border)",
-              borderRadius: 14,
-              boxShadow: "0 6px 18px rgb(31 34 48 / 10%)",
-              color: "var(--app-foreground)",
-              fontSize: 12,
-              fontWeight: 700,
-            }}
-            cursor={{ stroke: "var(--chart-cursor)", strokeDasharray: "4 4" }}
-            formatter={(value, name) => [
-              formatMoney(Number(value), currency),
-              name === "incomeMinor" ? t("Income", "收入") : t("Expense", "支出"),
-            ]}
-          />
-          <Area
-            dataKey="incomeMinor"
-            fill="var(--tint-leaf)"
-            fillOpacity={0.78}
-            isAnimationActive={false}
-            stroke="var(--income)"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={3}
-            type="monotone"
-          />
-          <Line
-            dataKey="netExpenseMinor"
-            dot={{
-              fill: "var(--chart-dot)",
-              r: 4,
-              stroke: "var(--chart-expense)",
-              strokeWidth: 3,
-            }}
-            isAnimationActive={false}
-            stroke="var(--chart-expense)"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={3}
-            type="monotone"
-          />
-        </ComposedChart>
-      </ResponsiveContainer>
+      <HomeMonthlyCashflowTrendChart currency={currency} data={data} />
     </div>
   );
 }

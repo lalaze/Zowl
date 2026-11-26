@@ -25,9 +25,9 @@ import { companionLine } from "@/components/home/owl-companion";
 import { CategoryGlyph } from "@/components/categories/category-glyph";
 import type { ReminderItem } from "@/components/home/review-reminder-card";
 import {
-  HomeExpenseDonut,
-  HomeMonthlyCashflowTrend,
-} from "@/components/statistics/home-dashboard-charts";
+  DesktopHomeExpenseDonut,
+  DesktopHomeMonthlyCashflowTrend,
+} from "@/components/statistics/desktop-home-charts";
 import type { QuickScreenshotProviderInfo } from "@/components/transactions/quick-screenshot-entry";
 import { QuickTransactionEntry } from "@/components/transactions/quick-transaction-entry";
 import type { TransactionCategoryOption } from "@/components/transactions/transaction-form";
@@ -267,7 +267,7 @@ export function DesktopDashboard({
             </div>
           </div>
           <div className="min-h-0 flex-1 px-3 pb-3">
-            <HomeMonthlyCashflowTrend
+            <DesktopHomeMonthlyCashflowTrend
               currency={overview.currency}
               data={overview.monthlyTrend}
             />
@@ -280,7 +280,7 @@ export function DesktopDashboard({
             {t("Spending breakdown · This month", "支出构成 · 本月")}
           </h2>
           <div className="min-h-0 flex-1">
-            <HomeExpenseDonut
+            <DesktopHomeExpenseDonut
               currency={overview.currency}
               data={overview.categoryDistribution}
               totalMinor={summary.netExpenseMinor}
