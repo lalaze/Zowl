@@ -8,6 +8,7 @@ import '../../core/models.dart';
 import '../../core/payment_capture.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
+import '../common/feedback.dart';
 import '../common/owl_motion.dart';
 import '../common/page_states.dart';
 import '../common/sky.dart';
@@ -106,6 +107,19 @@ class _PaymentCaptureSettingsScreenState
     }
   }
 
+  Future<void> _configureSession() async {
+    final token = await ref.read(tokenStoreProvider).read();
+    final user = ref.read(authControllerProvider).value;
+    if (token == null || user == null) {
+      throw StateError(tr('Session expired. Sign in again', '登录已失效，请重新登录'));
+    }
+    await _bridge.configureSession(
+      ref.read(apiConfigProvider).baseUrl,
+      token,
+      user.id,
+    );
+  }
+
   Future<void> _run(Future<void> Function() action) async {
     if (_busy) return;
     setState(() => _busy = true);
@@ -114,11 +128,7 @@ class _PaymentCaptureSettingsScreenState
       await _load();
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(tr('Operation failed: $error', '操作失败：$error')),
-          ),
-        );
+        context.showMessage(tr('Operation failed: $error', '操作失败：$error'));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -130,40 +140,18 @@ class _PaymentCaptureSettingsScreenState
       await _run(() => _bridge.setEnabled(false));
       return;
     }
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(tr('Enable automatic payment capture?', '开启支付自动采集？')),
-        content: Text(
-          tr(
-            'Zowl uses Android accessibility access to read enabled payment, checkout, and cashier pages on this device. Screenshots are never stored or uploaded. Page text is not stored or uploaded either unless you separately turn on “Recognise purchased items”, which sends order-page text to your server and the AI provider you configured. Otherwise, only structured transaction fields and an evidence digest are synced.',
-            '开启后，Zowl 将通过 Android 无障碍权限在本机读取已开启来源的支付页、结算页与收银台。截图从不保存、从不上传；页面文字也不保存、不上传，除非你另行开启“识别所购商品”（仅发送下单页文字到你的服务器和你配置的 AI 服务商）。除此之外，仅同步结构化交易字段与证据摘要。',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(tr('Cancel', '取消')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(tr('Enable', '确认开启')),
-          ),
-        ],
+    final confirmed = await confirmDialog(
+      context,
+      title: tr('Enable automatic payment capture?', '开启支付自动采集？'),
+      message: tr(
+        'Zowl uses Android accessibility access to read enabled payment, checkout, and cashier pages on this device. Screenshots are never stored or uploaded. Page text is not stored or uploaded either unless you separately turn on “Recognise purchased items”, which sends order-page text to your server and the AI provider you configured. Otherwise, only structured transaction fields and an evidence digest are synced.',
+        '开启后，Zowl 将通过 Android 无障碍权限在本机读取已开启来源的支付页、结算页与收银台。截图从不保存、从不上传；页面文字也不保存、不上传，除非你另行开启“识别所购商品”（仅发送下单页文字到你的服务器和你配置的 AI 服务商）。除此之外，仅同步结构化交易字段与证据摘要。',
       ),
+      confirmLabel: tr('Enable', '确认开启'),
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     await _run(() async {
-      final token = await ref.read(tokenStoreProvider).read();
-      final user = ref.read(authControllerProvider).value;
-      if (token == null || user == null) {
-        throw StateError(tr('Session expired. Sign in again', '登录已失效，请重新登录'));
-      }
-      await _bridge.configureSession(
-        ref.read(apiConfigProvider).baseUrl,
-        token,
-        user.id,
-      );
+      await _configureSession();
       final status = await _bridge.setEnabled(true);
       await _bridge.requestNotificationPermission();
       if (!status.accessibilityAccessGranted) {
@@ -204,15 +192,8 @@ class _PaymentCaptureSettingsScreenState
     final yuan = double.tryParse(input.trim());
     if (yuan == null || yuan < 0 || yuan > 1000000) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              tr(
-                'Enter an amount between 0 and 1000000',
-                '请输入 0 到 1000000 之间的金额',
-              ),
-            ),
-          ),
+        context.showMessage(
+          tr('Enter an amount between 0 and 1000000', '请输入 0 到 1000000 之间的金额'),
         );
       }
       return;
@@ -241,16 +222,7 @@ class _PaymentCaptureSettingsScreenState
   }
 
   Future<void> _syncNow() => _run(() async {
-    final token = await ref.read(tokenStoreProvider).read();
-    final user = ref.read(authControllerProvider).value;
-    if (token == null || user == null) {
-      throw StateError(tr('Session expired. Sign in again', '登录已失效，请重新登录'));
-    }
-    await _bridge.configureSession(
-      ref.read(apiConfigProvider).baseUrl,
-      token,
-      user.id,
-    );
+    await _configureSession();
     await _bridge.flushNow();
   });
 
@@ -261,9 +233,7 @@ class _PaymentCaptureSettingsScreenState
   Future<void> _exportCaptureLog() => _run(() async {
     final shared = await _bridge.exportCaptureLog();
     if (!shared && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(tr('No capture log yet', '还没有采集日志'))),
-      );
+      context.showMessage(tr('No capture log yet', '还没有采集日志'));
     }
   });
 

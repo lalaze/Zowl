@@ -13,6 +13,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/category_visuals.dart';
+import '../common/feedback.dart';
 import '../common/owl_motion.dart';
 import '../common/sky.dart';
 import '../common/ze_controls.dart';
@@ -99,23 +100,13 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
 
   Future<void> _confirmLeave() async {
     if (_saving) return;
-    final discard = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(tr('Discard unfinished changes?', '放弃未保存的修改？')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(tr('Keep editing', '继续编辑')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(tr('Discard draft', '放弃草稿')),
-          ),
-        ],
-      ),
+    final discard = await confirmDialog(
+      context,
+      title: tr('Discard unfinished changes?', '放弃未保存的修改？'),
+      cancelLabel: tr('Keep editing', '继续编辑'),
+      confirmLabel: tr('Discard draft', '放弃草稿'),
     );
-    if (discard == true && mounted) {
+    if (discard && mounted) {
       setState(() => _discardAllowed = true);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.pop();

@@ -210,21 +210,28 @@ final notificationCapturePageProvider = FutureProvider<NotificationCapturePage>(
 final recognitionJobsProvider = FutureProvider<List<RecognitionJob>>(
   (ref) => ref.watch(repositoryProvider).pendingRecognitionJobs(),
 );
-final pendingReviewCountProvider = FutureProvider<int>((ref) async {
+
+/// Screenshot candidates that were recognised but neither posted nor skipped.
+/// Built on the shared job list so `refreshLedger` keeps it current.
+final pendingScreenshotReviewProvider = FutureProvider<int>((ref) async {
   final jobs = await ref.watch(recognitionJobsProvider.future);
+  return jobs
+      .where((job) => job.status == 'reviewing')
+      .fold<int>(
+        0,
+        (count, job) =>
+            count +
+            (job.totalCount - job.importedCount - job.skippedCount).clamp(
+              0,
+              job.totalCount,
+            ),
+      );
+});
+
+final pendingReviewCountProvider = FutureProvider<int>((ref) async {
+  final screenshots = await ref.watch(pendingScreenshotReviewProvider.future);
   final captures = await ref.watch(notificationCapturePageProvider.future);
-  return captures.pendingCount +
-      jobs
-          .where((job) => job.status == 'reviewing')
-          .fold<int>(
-            0,
-            (count, job) =>
-                count +
-                (job.totalCount - job.importedCount - job.skippedCount).clamp(
-                  0,
-                  job.totalCount,
-                ),
-          );
+  return captures.pendingCount + screenshots;
 });
 final notificationHistoryProvider = FutureProvider<NotificationCapturePage>(
   (ref) => ref

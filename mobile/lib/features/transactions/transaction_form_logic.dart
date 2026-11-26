@@ -91,27 +91,15 @@ extension _TransactionFormLogic on _TransactionFormScreenState {
             '\n\nMatching transaction: $matchedFacts',
             '\n\n匹配的交易：$matchedFacts',
           );
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(tr('This transaction may be a duplicate', '这笔交易可能重复')),
-            content: Text(
-              '${_duplicateDescription(data)}$matchedSummary\n\n'
-              '${tr('Post anyway?', '仍要入账吗？')}',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(tr('Go back and edit', '返回修改')),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(tr('Post anyway', '仍然入账')),
-              ),
-            ],
-          ),
-        ) ??
-        false;
+    return confirmDialog(
+      context,
+      title: tr('This transaction may be a duplicate', '这笔交易可能重复'),
+      message:
+          '${_duplicateDescription(data)}$matchedSummary\n\n'
+          '${tr('Post anyway?', '仍要入账吗？')}',
+      cancelLabel: tr('Go back and edit', '返回修改'),
+      confirmLabel: tr('Post anyway', '仍然入账'),
+    );
   }
 
   Future<void> _submit({String? duplicateDigest}) async {

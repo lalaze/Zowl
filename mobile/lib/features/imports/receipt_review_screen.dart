@@ -9,6 +9,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/category_visuals.dart';
+import '../common/feedback.dart';
 import '../common/owl_motion.dart';
 import '../common/page_states.dart';
 import '../common/sky.dart';
@@ -59,11 +60,7 @@ class _ReceiptReviewScreenState extends ConsumerState<ReceiptReviewScreen> {
       );
       _reload();
     } on ApiException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-      }
+      if (mounted) context.showMessage(error.message);
     }
   }
 
@@ -100,11 +97,7 @@ class _ReceiptReviewScreenState extends ConsumerState<ReceiptReviewScreen> {
       );
       if (mounted) context.go('/transactions');
     } on ApiException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-      }
+      if (mounted) context.showMessage(error.message);
       _reload();
     } finally {
       if (mounted) setState(() => _confirming = false);

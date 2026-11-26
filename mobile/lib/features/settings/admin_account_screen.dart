@@ -7,6 +7,7 @@ import '../../core/l10n.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
+import '../common/feedback.dart';
 import '../common/owl_motion.dart';
 import '../common/page_states.dart';
 import '../common/sky.dart';
@@ -60,9 +61,7 @@ class _AdminAccountScreenState extends ConsumerState<AdminAccountScreen> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    context.showMessage(message);
   }
 
   Future<void> _showCreateDialog() async {
@@ -105,38 +104,23 @@ class _AdminAccountScreenState extends ConsumerState<AdminAccountScreen> {
 
   Future<void> _updateStatus(AdminAccount account) async {
     final disabling = !account.disabled;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          disabling
-              ? tr('Disable account?', '停用账号？')
-              : tr('Reactivate account?', '重新启用账号？'),
-        ),
-        content: Text(
-          disabling
-              ? tr(
-                  '${account.email} will be signed out on all devices. Ledger data will be retained.',
-                  '${account.email} 会在所有设备上立即退出登录，账本数据会保留。',
-                )
-              : tr(
-                  '${account.email} can sign in again with the existing password.',
-                  '${account.email} 可以使用原密码重新登录。',
-                ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(tr('Cancel', '取消')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(disabling ? tr('Disable', '停用') : tr('Enable', '启用')),
-          ),
-        ],
-      ),
+    final confirmed = await confirmDialog(
+      context,
+      title: disabling
+          ? tr('Disable account?', '停用账号？')
+          : tr('Reactivate account?', '重新启用账号？'),
+      message: disabling
+          ? tr(
+              '${account.email} will be signed out on all devices. Ledger data will be retained.',
+              '${account.email} 会在所有设备上立即退出登录，账本数据会保留。',
+            )
+          : tr(
+              '${account.email} can sign in again with the existing password.',
+              '${account.email} 可以使用原密码重新登录。',
+            ),
+      confirmLabel: disabling ? tr('Disable', '停用') : tr('Enable', '启用'),
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
 
     setState(() => _statusPendingId = account.id);
     try {

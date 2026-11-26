@@ -19,20 +19,6 @@ import '../common/ze_labels.dart';
 import '../shell/app_shell.dart';
 import '../transactions/transaction_row.dart';
 
-/// Screenshot candidates that were recognised but neither posted nor skipped.
-/// Built on the shared job list so `refreshLedger` keeps it current.
-final pendingScreenshotReviewProvider = FutureProvider<int>((ref) async {
-  final jobs = await ref.watch(recognitionJobsProvider.future);
-  var count = 0;
-  for (final job in jobs) {
-    if (job.status == 'reviewing') {
-      final pending = job.totalCount - job.importedCount - job.skippedCount;
-      if (pending > 0) count += pending;
-    }
-  }
-  return count;
-});
-
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 

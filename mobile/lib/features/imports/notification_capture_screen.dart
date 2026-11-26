@@ -9,6 +9,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/category_visuals.dart';
+import '../common/feedback.dart';
 import '../common/owl_motion.dart';
 import '../common/page_states.dart';
 import '../common/sky.dart';
@@ -60,6 +61,45 @@ class _NotificationCaptureScreenState
     });
   }
 
+  Future<void> _runItemAction({
+    String? itemId,
+    required Future<void> Function() action,
+    required String successMessage,
+    bool refreshOnError = false,
+    bool messageBeforeErrorRefresh = false,
+  }) async {
+    setState(() {
+      if (itemId == null) {
+        _batchBusy = true;
+      } else {
+        _busyIds.add(itemId);
+      }
+    });
+    try {
+      await action();
+      await _refresh();
+      if (mounted) context.showMessage(successMessage);
+    } on ApiException catch (error) {
+      if (refreshOnError && !messageBeforeErrorRefresh) {
+        await _refresh();
+      }
+      if (mounted) context.showMessage(error.message);
+      if (refreshOnError && messageBeforeErrorRefresh) {
+        await _refresh();
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          if (itemId == null) {
+            _batchBusy = false;
+          } else {
+            _busyIds.remove(itemId);
+          }
+        });
+      }
+    }
+  }
+
   Future<void> _confirmSelected(List<NotificationCaptureItem> items) async {
     final selected = items
         .where(
@@ -68,70 +108,43 @@ class _NotificationCaptureScreenState
         )
         .toList();
     if (selected.isEmpty || _batchBusy) return;
-    final approved = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          tr(
-            'Post ${selected.length} reviewed transactions?',
-            '将 ${selected.length} 笔已核对的交易入账？',
-          ),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final item in selected)
-                ListTile(
-                  title: Text(
-                    item.merchantName ?? _platformText(item.platform),
-                  ),
-                  subtitle: Text(formatDateTime(item.transactionTime)),
-                  trailing: Text(
-                    formatMoneyWithSymbol(item.amountMinor, item.currency),
-                  ),
-                ),
-              Text(
-                tr(
-                  'If any transaction changes or needs duplicate review, the entire batch stays unposted.',
-                  '只要有一笔发生变化或需要核对重复，整批都不会入账。',
+    final approved = await confirmDialog(
+      context,
+      title: tr(
+        'Post ${selected.length} reviewed transactions?',
+        '将 ${selected.length} 笔已核对的交易入账？',
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final item in selected)
+              ListTile(
+                title: Text(item.merchantName ?? _platformText(item.platform)),
+                subtitle: Text(formatDateTime(item.transactionTime)),
+                trailing: Text(
+                  formatMoneyWithSymbol(item.amountMinor, item.currency),
                 ),
               ),
-            ],
-          ),
+            Text(
+              tr(
+                'If any transaction changes or needs duplicate review, the entire batch stays unposted.',
+                '只要有一笔发生变化或需要核对重复，整批都不会入账。',
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(tr('Cancel', '取消')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(tr('Confirm batch', '确认整批入账')),
-          ),
-        ],
       ),
+      confirmLabel: tr('Confirm batch', '确认整批入账'),
     );
-    if (approved != true || !mounted) return;
-    setState(() => _batchBusy = true);
-    try {
-      await ref.read(repositoryProvider).confirmNotificationCaptures(selected);
-      await _refresh();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Batch posting confirmed', '已批量入账'))),
-        );
-      }
-    } on ApiException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-      }
-      await _refresh();
-    } finally {
-      if (mounted) setState(() => _batchBusy = false);
-    }
+    if (!approved || !mounted) return;
+    await _runItemAction(
+      action: () =>
+          ref.read(repositoryProvider).confirmNotificationCaptures(selected),
+      successMessage: tr('Batch posting confirmed', '已批量入账'),
+      refreshOnError: true,
+      messageBeforeErrorRefresh: true,
+    );
   }
 
   Future<void> _confirm(
@@ -199,11 +212,11 @@ class _NotificationCaptureScreenState
             ),
           ) ??
           false;
-      if (!proceed) return;
+      if (!proceed || !mounted) return;
     }
-    setState(() => _busyIds.add(item.id));
-    try {
-      await ref
+    await _runItemAction(
+      itemId: item.id,
+      action: () => ref
           .read(repositoryProvider)
           .confirmNotificationCapture(
             item.id,
@@ -213,34 +226,17 @@ class _NotificationCaptureScreenState
                     item.duplicateStatus == 'possible_duplicate'
                 ? item.duplicateAssessmentDigest
                 : null,
-          );
-      await _refresh();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              decision == 'post'
-                  ? (item.duplicateStatus == 'duplicate'
-                        ? tr(
-                            'Linked to existing transaction; no new posting',
-                            '已关联到已有交易，未重复入账',
-                          )
-                        : tr('Posting confirmed', '已确认入账'))
-                  : tr('Skipped', '已跳过'),
-            ),
           ),
-        );
-      }
-    } on ApiException catch (error) {
-      await _refresh();
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-      }
-    } finally {
-      if (mounted) setState(() => _busyIds.remove(item.id));
-    }
+      successMessage: decision == 'post'
+          ? (item.duplicateStatus == 'duplicate'
+                ? tr(
+                    'Linked to existing transaction; no new posting',
+                    '已关联到已有交易，未重复入账',
+                  )
+                : tr('Posting confirmed', '已确认入账'))
+          : tr('Skipped', '已跳过'),
+      refreshOnError: true,
+    );
   }
 
   Future<void> _edit(
@@ -254,30 +250,16 @@ class _NotificationCaptureScreenState
       builder: (_) => _EditCaptureSheet(item: item, categories: categories),
     );
     if (input == null || !mounted) return;
-    setState(() => _busyIds.add(item.id));
-    try {
-      await ref
+    await _runItemAction(
+      itemId: item.id,
+      action: () => ref
           .read(repositoryProvider)
-          .updateNotificationCapture(item.id, input);
-      await _refresh();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              tr('Candidate updated and duplicates rechecked', '候选已更新并重新检查重复'),
-            ),
-          ),
-        );
-      }
-    } on ApiException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-      }
-    } finally {
-      if (mounted) setState(() => _busyIds.remove(item.id));
-    }
+          .updateNotificationCapture(item.id, input),
+      successMessage: tr(
+        'Candidate updated and duplicates rechecked',
+        '候选已更新并重新检查重复',
+      ),
+    );
   }
 
   Future<void> _quickAddMerchant(NotificationCaptureItem item) async {
@@ -286,32 +268,14 @@ class _NotificationCaptureScreenState
       builder: (_) => const _MerchantQuickConfirmDialog(),
     );
     if (merchantName == null || !mounted || _busyIds.contains(item.id)) return;
-
-    setState(() => _busyIds.add(item.id));
-    try {
-      await ref
+    await _runItemAction(
+      itemId: item.id,
+      action: () => ref
           .read(repositoryProvider)
-          .quickConfirmNotificationCapture(item.id, merchantName: merchantName);
-      await _refresh();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              tr('Merchant added and transaction posted', '已补充商户并入账'),
-            ),
-          ),
-        );
-      }
-    } on ApiException catch (error) {
-      await _refresh();
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-      }
-    } finally {
-      if (mounted) setState(() => _busyIds.remove(item.id));
-    }
+          .quickConfirmNotificationCapture(item.id, merchantName: merchantName),
+      successMessage: tr('Merchant added and transaction posted', '已补充商户并入账'),
+      refreshOnError: true,
+    );
   }
 
   @override

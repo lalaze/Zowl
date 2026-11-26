@@ -10,6 +10,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/category_visuals.dart';
+import '../common/feedback.dart';
 import '../common/owl_motion.dart';
 import '../common/page_states.dart';
 import '../common/sky.dart';
@@ -198,29 +199,16 @@ class TransactionDetailScreen extends ConsumerWidget {
             onPressed: busy || item.currentRevisionId == null
                 ? null
                 : () async {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text(tr('Void this transaction?', '作废这笔交易？')),
-                        content: Text(
-                          tr(
-                            'The transaction will leave your current ledger and statistics. Audit revisions will be retained.',
-                            '这笔交易将移出当前账本和统计，审计版本会保留。',
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: Text(tr('Cancel', '取消')),
-                          ),
-                          FilledButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: Text(tr('Confirm void', '确认作废')),
-                          ),
-                        ],
+                    final confirmed = await confirmDialog(
+                      context,
+                      title: tr('Void this transaction?', '作废这笔交易？'),
+                      message: tr(
+                        'The transaction will leave your current ledger and statistics. Audit revisions will be retained.',
+                        '这笔交易将移出当前账本和统计，审计版本会保留。',
                       ),
+                      confirmLabel: tr('Confirm void', '确认作废'),
                     );
-                    if (confirmed != true || !context.mounted) return;
+                    if (!confirmed || !context.mounted) return;
                     try {
                       await ref
                           .read(repositoryProvider)
@@ -235,17 +223,13 @@ class TransactionDetailScreen extends ConsumerWidget {
                       }
                     } on ApiException catch (error) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              error.statusCode == 409
-                                  ? tr(
-                                      'Transaction changed. Refresh before voiding',
-                                      '交易已变化，请刷新后再作废',
-                                    )
-                                  : error.message,
-                            ),
-                          ),
+                        context.showMessage(
+                          error.statusCode == 409
+                              ? tr(
+                                  'Transaction changed. Refresh before voiding',
+                                  '交易已变化，请刷新后再作废',
+                                )
+                              : error.message,
                         );
                       }
                     }

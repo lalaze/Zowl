@@ -10,6 +10,7 @@ import '../../core/l10n.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
+import '../common/feedback.dart';
 import '../common/owl_motion.dart';
 import '../common/page_states.dart';
 import '../common/sky.dart';
@@ -69,14 +70,10 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
           caseSensitive: false,
         ).hasMatch(file.name),
       )) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              tr(
-                'Only supports JPG, PNG or WebP screenshots',
-                '仅支持 JPG、PNG 或 WebP 截图',
-              ),
-            ),
+        context.showMessage(
+          tr(
+            'Only supports JPG, PNG or WebP screenshots',
+            '仅支持 JPG、PNG 或 WebP 截图',
           ),
         );
         return;
@@ -87,14 +84,10 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
       }
       if (bytes > 40 * 1024 * 1024) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                tr(
-                  'Total screenshot size must not exceed 40 MiB',
-                  '截图总大小不能超过 40 MiB',
-                ),
-              ),
+          context.showMessage(
+            tr(
+              'Total screenshot size must not exceed 40 MiB',
+              '截图总大小不能超过 40 MiB',
             ),
           );
         }
@@ -103,15 +96,8 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
       for (final file in files) {
         if (await file.length() > 8 * 1024 * 1024) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  tr(
-                    'Each screenshot must be smaller than 8 MiB',
-                    '每张截图须小于 8 MiB',
-                  ),
-                ),
-              ),
+            context.showMessage(
+              tr('Each screenshot must be smaller than 8 MiB', '每张截图须小于 8 MiB'),
             );
           }
           return;
@@ -120,54 +106,23 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
       if (!mounted) return;
       var consent = !provider.sendsImagesToThirdParty;
       if (provider.sendsImagesToThirdParty) {
-        consent =
-            await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text(provider.label),
-                content: Text(
-                  '${provider.disclosure}\n\n${provider.retentionPolicy}${widget.quick ? tr('\n\nReliable results will be posted automatically. Uncertain results need review.', '\n\n识别可靠的结果会自动入账，不确定的结果需要核对。') : ''}',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: Text(tr('Cancel', '取消')),
-                  ),
-                  FilledButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: Text(tr('Agree and upload', '同意并上传')),
-                  ),
-                ],
-              ),
-            ) ??
-            false;
+        consent = await confirmDialog(
+          context,
+          title: provider.label,
+          message:
+              '${provider.disclosure}\n\n${provider.retentionPolicy}${widget.quick ? tr('\n\nReliable results will be posted automatically. Uncertain results need review.', '\n\n识别可靠的结果会自动入账，不确定的结果需要核对。') : ''}',
+          confirmLabel: tr('Agree and upload', '同意并上传'),
+        );
       } else if (widget.sharedFiles != null) {
-        consent =
-            await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text(
-                  tr('Record this shared screenshot?', '用这张分享的截图记账？'),
-                ),
-                content: Text(
-                  tr(
-                    'Reliable results will be posted automatically. Uncertain results need review.',
-                    '识别可靠的结果会自动入账，不确定的结果需要核对。',
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: Text(tr('Cancel', '取消')),
-                  ),
-                  FilledButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: Text(tr('Recognize and post', '识别并入账')),
-                  ),
-                ],
-              ),
-            ) ??
-            false;
+        consent = await confirmDialog(
+          context,
+          title: tr('Record this shared screenshot?', '用这张分享的截图记账？'),
+          message: tr(
+            'Reliable results will be posted automatically. Uncertain results need review.',
+            '识别可靠的结果会自动入账，不确定的结果需要核对。',
+          ),
+          confirmLabel: tr('Recognize and post', '识别并入账'),
+        );
       }
       if (!consent || !mounted) return;
       _retryFiles = files;
@@ -195,27 +150,19 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
       await context.push('/imports/screenshots/$jobId');
     } on ApiException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              tr(
-                '${error.message}. Result may be unknown; retry the same submission or check the task history first.',
-                '${error.message}。上传结果可能未知，请重试本次提交，或先查看任务记录。',
-              ),
-            ),
+        context.showMessage(
+          tr(
+            '${error.message}. Result may be unknown; retry the same submission or check the task history first.',
+            '${error.message}。上传结果可能未知，请重试本次提交，或先查看任务记录。',
           ),
         );
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              tr(
-                'Could not read the screenshot. Check task history if an upload started, then try again.',
-                '无法读取截图。如已开始上传，请先查看任务记录再重试。',
-              ),
-            ),
+        context.showMessage(
+          tr(
+            'Could not read the screenshot. Check task history if an upload started, then try again.',
+            '无法读取截图。如已开始上传，请先查看任务记录再重试。',
           ),
         );
       }

@@ -12,6 +12,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/category_visuals.dart';
+import '../common/feedback.dart';
 import '../common/owl_motion.dart';
 import '../common/page_states.dart';
 import '../common/sky.dart';
@@ -147,6 +148,20 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     ];
   }
 
+  Future<TransactionPage> _fetch({int page = 1}) => ref
+      .read(repositoryProvider)
+      .transactions(
+        page: page,
+        keyword: _search.text.trim(),
+        type: _type,
+        source: _source,
+        categoryId: _uncategorized ? null : _categoryId,
+        uncategorized: _uncategorized ? true : null,
+        currency: _currency,
+        dateFrom: _dates == null ? null : _date(_dates!.start),
+        dateTo: _dates == null ? null : _date(_dates!.end),
+      );
+
   // Keeps the current list on screen while reloading; only the first load
   // (or a load with nothing to show) falls back to a full-screen spinner.
   Future<void> _refresh() async {
@@ -156,18 +171,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       _error = null;
     });
     try {
-      final result = await ref
-          .read(repositoryProvider)
-          .transactions(
-            keyword: _search.text.trim(),
-            type: _type,
-            source: _source,
-            categoryId: _uncategorized ? null : _categoryId,
-            uncategorized: _uncategorized ? true : null,
-            currency: _currency,
-            dateFrom: _dates == null ? null : _date(_dates!.start),
-            dateTo: _dates == null ? null : _date(_dates!.end),
-          );
+      final result = await _fetch();
       if (!mounted || generation != _generation) return;
       setState(() {
         _items
@@ -185,9 +189,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
       if (_items.isEmpty) {
         setState(() => _error = error.message);
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        context.showMessage(error.message);
       }
     } finally {
       if (mounted && generation == _generation) {
@@ -206,19 +208,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
     final generation = _generation;
     setState(() => _loadingMore = true);
     try {
-      final result = await ref
-          .read(repositoryProvider)
-          .transactions(
-            page: _page + 1,
-            keyword: _search.text.trim(),
-            type: _type,
-            source: _source,
-            categoryId: _uncategorized ? null : _categoryId,
-            uncategorized: _uncategorized ? true : null,
-            currency: _currency,
-            dateFrom: _dates == null ? null : _date(_dates!.start),
-            dateTo: _dates == null ? null : _date(_dates!.end),
-          );
+      final result = await _fetch(page: _page + 1);
       if (mounted && generation == _generation) {
         setState(() {
           _items.addAll(result.items);

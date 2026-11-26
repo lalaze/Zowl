@@ -9,6 +9,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../common/avatar_presets.dart';
+import '../common/feedback.dart';
 import '../common/sky.dart';
 import '../common/ze_controls.dart';
 import '../common/ze_labels.dart';
@@ -45,15 +46,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           .updateProfile(user, displayName: _name.text.trim());
       ref.read(authControllerProvider.notifier).replaceUser(updated);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr('Nickname updated', '昵称已更新'))),
-        );
+        context.showMessage(tr('Nickname updated', '昵称已更新'));
       }
     } on ApiException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        context.showMessage(error.message);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -70,9 +67,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ref.read(authControllerProvider.notifier).replaceUser(updated);
     } on ApiException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        context.showMessage(error.message);
       }
     }
   }
