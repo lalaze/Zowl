@@ -4,6 +4,9 @@ import 'l10n.dart';
 
 final _currencyFormatters = <String, NumberFormat>{};
 final _symbolCurrencyFormatters = <String, NumberFormat>{};
+final _dateTimeFormat = DateFormat('yyyy-MM-dd HH:mm');
+final _monthKeyFormat = DateFormat('yyyy-MM');
+final _timeFormat = DateFormat('HH:mm');
 
 String currencySymbol(String currency) => switch (currency) {
   'CNY' => '¥',
@@ -58,17 +61,23 @@ String formatSignedMoneyWithSymbol(
 String formatDateTime(String iso) {
   final value = DateTime.tryParse(iso)?.toLocal();
   if (value == null) return iso;
-  return DateFormat('yyyy-MM-dd HH:mm').format(value);
+  return _dateTimeFormat.format(value);
 }
 
 String monthKey([DateTime? value]) =>
-    DateFormat('yyyy-MM').format(value ?? DateTime.now());
+    _monthKeyFormat.format(value ?? DateTime.now());
 
 String formatTime(String iso) {
   final value = DateTime.tryParse(iso)?.toLocal();
   if (value == null) return iso;
-  return DateFormat('HH:mm').format(value);
+  return _timeFormat.format(value);
 }
+
+String formatShortDay(DateTime value) =>
+    DateFormat(isZh ? 'M月d日' : 'MMM d', intlLocale).format(value);
+
+String formatShortMonth(DateTime value) =>
+    DateFormat(isZh ? 'M月' : 'MMM', intlLocale).format(value);
 
 /// "Today", "Yesterday", or a short weekday date for list section headers.
 /// Chinese: "今天 · 11月12日 周四", "11月12日 周四", "2025年11月12日 周四".

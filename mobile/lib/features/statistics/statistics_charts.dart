@@ -98,9 +98,7 @@ class _MonthlyBars extends StatelessWidget {
 
   String _shortMonth(TrendPoint point) {
     final date = DateTime.tryParse('${point.month}-01');
-    return date == null
-        ? point.label
-        : DateFormat(isZh ? 'M月' : 'MMM', intlLocale).format(date);
+    return date == null ? point.label : formatShortMonth(date);
   }
 }
 

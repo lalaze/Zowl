@@ -189,9 +189,7 @@ class _DayReadout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final date = DateTime.tryParse('$month-${day.toString().padLeft(2, '0')}');
-    final dayLabel = date == null
-        ? '$day'
-        : DateFormat(isZh ? 'M月d日' : 'MMM d', intlLocale).format(date);
+    final dayLabel = date == null ? '$day' : formatShortDay(date);
     final total = formatMoneyWithSymbol(totalMinor, currency);
     final summary = previousMinor == null
         ? tr('$dayLabel · $total', '$dayLabel · 累计 $total')

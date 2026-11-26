@@ -339,12 +339,8 @@ class _DailySpending extends StatelessWidget {
       isZh ? 'M月' : 'MMMM',
       intlLocale,
     ).format(monthDate);
-    String dayLabel(int day) => isZh
-        ? DateFormat(
-            'M月d日',
-            intlLocale,
-          ).format(DateTime(monthDate.year, monthDate.month, day))
-        : '${DateFormat('MMM', 'en_US').format(monthDate)} $day';
+    String dayLabel(int day) =>
+        formatShortDay(DateTime(monthDate.year, monthDate.month, day));
     final theme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

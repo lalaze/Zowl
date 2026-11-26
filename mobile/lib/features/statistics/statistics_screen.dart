@@ -729,9 +729,7 @@ String _highlight(StatisticsOverview data, String currency) {
 
 String _peakSentence(PeakSpendingDay peak, String currency) {
   final date = DateTime.tryParse(peak.date);
-  final day = date == null
-      ? peak.date
-      : DateFormat(isZh ? 'M月d日' : 'MMM d', intlLocale).format(date);
+  final day = date == null ? peak.date : formatShortDay(date);
   final total = formatMoneyWithSymbol(peak.netExpenseMinor, currency);
   final merchant = peak.topExpense?.merchantName?.trim();
   if (merchant == null || merchant.isEmpty) {

@@ -32,9 +32,7 @@ extension _TransactionListView on _TransactionListScreenState {
         _currency != null ||
         _dates != null;
     final hasAnyFilter =
-        hasAdvancedFilters ||
-        _type != null ||
-        _search.text.trim().isNotEmpty;
+        hasAdvancedFilters || _type != null || _search.text.trim().isNotEmpty;
     final monthOverview = ref.watch(statisticsProvider('${monthKey()}|CNY'));
     final categoryName = _categoryId == null
         ? null
@@ -44,7 +42,6 @@ extension _TransactionListView on _TransactionListScreenState {
               ?.where((item) => item.id == _categoryId)
               .firstOrNull
               ?.name;
-    final rangeDay = DateFormat(isZh ? 'M月d日' : 'MMM d', intlLocale);
     final showsChips =
         hasAdvancedFilters || _type == 'refund' || _type == 'transfer';
     return Scaffold(
@@ -102,152 +99,152 @@ extension _TransactionListView on _TransactionListScreenState {
                       : _MonthFlow(summary: monthOverview.value?.summary),
                 ),
               ),
-            PinnedHeaderSliver(
-              child: ColoredBox(
-                color: t.canvas,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 8,
-                    children: [
-                      if (_searching) _searchField(context),
-                      ZeSegmented<String?>(
-                        segments: [
-                          (null, tr('All', '全部')),
-                          ('expense', tr('Expense', '支出')),
-                          ('income', tr('Income', '收入')),
-                        ],
-                        selected: _type,
-                        onChanged: _setQuickType,
-                      ),
-                      if (showsChips)
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            if (_type == 'refund' || _type == 'transfer')
-                              _FilterChip(
-                                label: _type == 'refund'
-                                    ? tr('Refunds', '退款')
-                                    : tr('Transfers', '转账'),
-                                onDeleted: () => _setQuickType(null),
-                              ),
-                            if (_source != null)
-                              _FilterChip(
-                                label: sourceLabel(_source),
-                                onDeleted: () {
-                                  _update(() => _source = null);
-                                  _refresh();
-                                },
-                              ),
-                            if (_uncategorized)
-                              _FilterChip(
-                                label: tr('Uncategorized', '未分类'),
-                                onDeleted: () {
-                                  _update(() => _uncategorized = false);
-                                  _refresh();
-                                },
-                              )
-                            else if (_categoryId != null)
-                              _FilterChip(
-                                label: categoryName ?? tr('Category', '分类'),
-                                onDeleted: () {
-                                  _update(() => _categoryId = null);
-                                  _refresh();
-                                },
-                              ),
-                            if (_currency != null)
-                              _FilterChip(
-                                label: _currency!,
-                                onDeleted: () {
-                                  _update(() => _currency = null);
-                                  _refresh();
-                                },
-                              ),
-                            if (_dates != null)
-                              _FilterChip(
-                                label:
-                                    '${rangeDay.format(_dates!.start)} – ${rangeDay.format(_dates!.end)}',
-                                onDeleted: () {
-                                  _update(() => _dates = null);
-                                  _refresh();
-                                },
-                              ),
-                            TextButton(
-                              onPressed: _clearFilters,
-                              child: Text(tr('Clear all', '全部清除')),
-                            ),
+              PinnedHeaderSliver(
+                child: ColoredBox(
+                  color: t.canvas,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      spacing: 8,
+                      children: [
+                        if (_searching) _searchField(context),
+                        ZeSegmented<String?>(
+                          segments: [
+                            (null, tr('All', '全部')),
+                            ('expense', tr('Expense', '支出')),
+                            ('income', tr('Income', '收入')),
                           ],
+                          selected: _type,
+                          onChanged: _setQuickType,
                         ),
-                      // Keeps its height, so a reload does not nudge the list.
-                      SizedBox(
-                        height: 2,
-                        child: _loading && _items.isNotEmpty
-                            ? const LinearProgressIndicator(minHeight: 2)
-                            : null,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            if (_loading && _items.isEmpty)
-              const SliverFillRemaining(
-                hasScrollBody: false,
-                child: PageLoading(),
-              )
-            else if (_error != null)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: ErrorView(error: _error!, onRetry: _refresh),
-              )
-            else if (_items.isEmpty)
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  24,
-                  16,
-                  24,
-                  MediaQuery.paddingOf(context).bottom + 24,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: EmptyView(
-                    message: tr('No matching transactions', '没有符合条件的交易'),
-                    subtitle: tr(
-                      'Try another search or filter',
-                      '换个关键词或筛选条件试试',
+                        if (showsChips)
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              if (_type == 'refund' || _type == 'transfer')
+                                _FilterChip(
+                                  label: _type == 'refund'
+                                      ? tr('Refunds', '退款')
+                                      : tr('Transfers', '转账'),
+                                  onDeleted: () => _setQuickType(null),
+                                ),
+                              if (_source != null)
+                                _FilterChip(
+                                  label: sourceLabel(_source),
+                                  onDeleted: () {
+                                    _update(() => _source = null);
+                                    _refresh();
+                                  },
+                                ),
+                              if (_uncategorized)
+                                _FilterChip(
+                                  label: tr('Uncategorized', '未分类'),
+                                  onDeleted: () {
+                                    _update(() => _uncategorized = false);
+                                    _refresh();
+                                  },
+                                )
+                              else if (_categoryId != null)
+                                _FilterChip(
+                                  label: categoryName ?? tr('Category', '分类'),
+                                  onDeleted: () {
+                                    _update(() => _categoryId = null);
+                                    _refresh();
+                                  },
+                                ),
+                              if (_currency != null)
+                                _FilterChip(
+                                  label: _currency!,
+                                  onDeleted: () {
+                                    _update(() => _currency = null);
+                                    _refresh();
+                                  },
+                                ),
+                              if (_dates != null)
+                                _FilterChip(
+                                  label:
+                                      '${formatShortDay(_dates!.start)} – ${formatShortDay(_dates!.end)}',
+                                  onDeleted: () {
+                                    _update(() => _dates = null);
+                                    _refresh();
+                                  },
+                                ),
+                              TextButton(
+                                onPressed: _clearFilters,
+                                child: Text(tr('Clear all', '全部清除')),
+                              ),
+                            ],
+                          ),
+                        // Keeps its height, so a reload does not nudge the list.
+                        SizedBox(
+                          height: 2,
+                          child: _loading && _items.isNotEmpty
+                              ? const LinearProgressIndicator(minHeight: 2)
+                              : null,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              )
-            else
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  24,
-                  0,
-                  24,
-                  MediaQuery.paddingOf(context).bottom + 24,
-                ),
-                sliver: SliverList.builder(
-                  itemCount: _groups.length + (_loadingMore ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == _groups.length) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: OwlLoading.small(),
-                      );
-                    }
-                    return _Day(
-                      group: _groups[index],
-                      onOpen: _openTransaction,
-                    );
-                  },
-                ),
               ),
-          ],
+              if (_loading && _items.isEmpty)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: PageLoading(),
+                )
+              else if (_error != null)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: ErrorView(error: _error!, onRetry: _refresh),
+                )
+              else if (_items.isEmpty)
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    16,
+                    24,
+                    MediaQuery.paddingOf(context).bottom + 24,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: EmptyView(
+                      message: tr('No matching transactions', '没有符合条件的交易'),
+                      subtitle: tr(
+                        'Try another search or filter',
+                        '换个关键词或筛选条件试试',
+                      ),
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    0,
+                    24,
+                    MediaQuery.paddingOf(context).bottom + 24,
+                  ),
+                  sliver: SliverList.builder(
+                    itemCount: _groups.length + (_loadingMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == _groups.length) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: OwlLoading.small(),
+                        );
+                      }
+                      return _Day(
+                        group: _groups[index],
+                        onOpen: _openTransaction,
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -383,11 +380,7 @@ class _FilteredSummary extends StatelessWidget {
           return (tr('Refunds', '筛选退款'), entry.refundMinor, entry.currency);
         }
         if (entry.transferMinor > 0) {
-          return (
-            tr('Transfers', '筛选转账'),
-            entry.transferMinor,
-            entry.currency,
-          );
+          return (tr('Transfers', '筛选转账'), entry.transferMinor, entry.currency);
         }
         return null;
     }
@@ -430,10 +423,7 @@ class _FilteredSummary extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 22,
           children: [
-            stat(
-              tr('Matching', '符合条件'),
-              tr(plural(total, 'item'), '$total 笔'),
-            ),
+            stat(tr('Matching', '符合条件'), tr(plural(total, 'item'), '$total 笔')),
             if (amount != null)
               stat(amount.$1, formatMoneyWithSymbol(amount.$2, amount.$3)),
           ],

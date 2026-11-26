@@ -424,4 +424,25 @@ void main() {
       expect(displayNameFor(testTransaction), 'Mountain Cafe');
     },
   );
+
+  test(
+    'formats short days and months across runtime language switches',
+    () async {
+      await initializeDateFormatting();
+      addTearDown(() => applyLanguage(AppLanguage.en));
+      final sample = DateTime(2026, 7, 5);
+
+      applyLanguage(AppLanguage.en);
+      expect(formatShortDay(sample), 'Jul 5');
+      expect(formatShortMonth(sample), 'Jul');
+
+      applyLanguage(AppLanguage.zh);
+      expect(formatShortDay(sample), '7月5日');
+      expect(formatShortMonth(sample), '7月');
+
+      applyLanguage(AppLanguage.en);
+      expect(formatShortDay(sample), 'Jul 5');
+      expect(formatShortMonth(sample), 'Jul');
+    },
+  );
 }
