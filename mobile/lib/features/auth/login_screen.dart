@@ -20,11 +20,9 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController(
-    text: kDebugMode ? 'demo@zemoney.local' : '',
+    text: kDebugMode ? 'demo@zowl.local' : '',
   );
-  final _password = TextEditingController(
-    text: kDebugMode ? 'zemoney-demo' : '',
-  );
+  final _password = TextEditingController(text: kDebugMode ? 'zowl-demo' : '');
   bool _obscure = true;
   bool _submitting = false;
   String? _error;

@@ -9,7 +9,7 @@ import {
 describe("Android release script", () => {
   it("reads semantic version and Android version code from pubspec", () => {
     expect(
-      parseMobileVersion("name: zemoney_mobile\nversion: 1.2.3+42\n"),
+      parseMobileVersion("name: zowl_mobile\nversion: 1.2.3+42\n"),
     ).toEqual({ version: "1.2.3", versionCode: 42 });
   });
 

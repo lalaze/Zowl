@@ -18,6 +18,7 @@ type EncryptedSecretEnvelope = {
   authTag: string;
 };
 
+// Kept from the zeMoney name: changing the AAD prefix would break decryption of stored AI API keys.
 function encryptionAad(userId: string) {
   return Buffer.from(`zemoney:ai-categorization:${userId}`, "utf8");
 }

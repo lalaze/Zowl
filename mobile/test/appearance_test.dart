@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zemoney_mobile/core/theme.dart';
+import 'package:zowl_mobile/core/theme.dart';
 
 Future<AppAppearance> _read(Map<String, Object> values) async {
   SharedPreferences.setMockInitialValues(values);

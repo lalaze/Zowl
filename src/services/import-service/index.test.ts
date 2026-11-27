@@ -124,7 +124,7 @@ describe("import service", () => {
         { id: "other", userId: "import-user", name: "Other", kind: "both", isSystem: true, sortOrder: 2, createdAt: now, updatedAt: now },
       ])
       .run();
-    storageRoot = await mkdtemp(path.join(tmpdir(), "zemoney-import-"));
+    storageRoot = await mkdtemp(path.join(tmpdir(), "zowl-import-"));
     process.env.FILE_STORAGE_ROOT = storageRoot;
     service = createImportService(
       database.db,

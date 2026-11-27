@@ -5,18 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zemoney_mobile/core/l10n.dart';
-import 'package:zemoney_mobile/core/screenshot_picker.dart';
-import 'package:zemoney_mobile/features/transactions/transaction_detail_screen.dart';
-import 'package:zemoney_mobile/main.dart' as app;
+import 'package:zowl_mobile/core/l10n.dart';
+import 'package:zowl_mobile/core/screenshot_picker.dart';
+import 'package:zowl_mobile/features/transactions/transaction_detail_screen.dart';
+import 'package:zowl_mobile/main.dart' as app;
 
 const integrationEmail = String.fromEnvironment(
   'INTEGRATION_EMAIL',
-  defaultValue: 'mobile-e2e@zemoney.local',
+  defaultValue: 'mobile-e2e@zowl.local',
 );
 const integrationPassword = String.fromEnvironment(
   'INTEGRATION_PASSWORD',
-  defaultValue: 'zemoney-mobile-e2e',
+  defaultValue: 'zowl-mobile-e2e',
 );
 const integrationRunId = String.fromEnvironment(
   'INTEGRATION_RUN_ID',
@@ -42,12 +42,12 @@ class DeviceFixtureScreenshotPicker implements ScreenshotPicker {
   @override
   Future<List<XFile>> pickScreenshots({int limit = 10}) async {
     final file = _fixture ??= await _writeFixture();
-    return [XFile(file.path, name: 'zemoney-e2e.png', mimeType: 'image/png')];
+    return [XFile(file.path, name: 'zowl-e2e.png', mimeType: 'image/png')];
   }
 
   Future<File> _writeFixture() async {
-    final directory = await Directory.systemTemp.createTemp('zemoney-e2e-');
-    final file = File('${directory.path}/zemoney-e2e.png');
+    final directory = await Directory.systemTemp.createTemp('zowl-e2e-');
+    final file = File('${directory.path}/zowl-e2e.png');
     await file.writeAsBytes(
       base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
@@ -104,7 +104,7 @@ Future<void> startApp(
   // Device tests assert English copy whatever language the phone uses.
   final preferences = await SharedPreferences.getInstance();
   await preferences.setString(languagePreferenceKey, AppLanguage.en.name);
-  await app.runZeMoney(screenshotPicker: screenshotPicker);
+  await app.runZowl(screenshotPicker: screenshotPicker);
   await tester.pump();
   await waitForHomeOrLogin(tester);
 }

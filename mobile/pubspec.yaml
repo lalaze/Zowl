@@ -1,4 +1,4 @@
-name: zemoney_mobile
+name: zowl_mobile
 description: "Zowl iOS and Android client."
 publish_to: "none"
 version: 1.0.30+43
@@ -55,8 +55,8 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/brand/zemoney-owl-icon.png
+  image_path: assets/brand/zowl-icon.png
   adaptive_icon_background: "#F1ECE3"
-  adaptive_icon_foreground: assets/brand/zemoney-owl-foreground.png
-  adaptive_icon_monochrome: assets/brand/zemoney-owl-monochrome.png
+  adaptive_icon_foreground: assets/brand/zowl-foreground.png
+  adaptive_icon_monochrome: assets/brand/zowl-monochrome.png
   remove_alpha_ios: true

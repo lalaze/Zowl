@@ -1,8 +1,8 @@
-import 'package:zemoney_mobile/core/models.dart';
+import 'package:zowl_mobile/core/models.dart';
 
 const testUser = SessionUser(
   id: 'user-1',
-  email: 'test@zemoney.local',
+  email: 'test@zowl.local',
   displayName: 'Ze',
   avatarPreset: 'piggy',
   timezone: 'Asia/Shanghai',

@@ -7,8 +7,8 @@ import 'models.dart';
 Map<String, dynamic> _map(dynamic value) =>
     Map<String, dynamic>.from(value as Map);
 
-class ZeMoneyRepository {
-  const ZeMoneyRepository(this.api, this.tokenStore);
+class ZowlRepository {
+  const ZowlRepository(this.api, this.tokenStore);
 
   final ApiClient api;
   final TokenStore tokenStore;

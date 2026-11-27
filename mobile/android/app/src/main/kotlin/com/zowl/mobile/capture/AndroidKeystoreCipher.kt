@@ -10,6 +10,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 internal object AndroidKeystoreCipher {
+    // Kept from the zeMoney name: renaming it would lose access to existing queued captures.
     private const val KEY_ALIAS = "zemoney-payment-capture-v1"
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
 

@@ -115,14 +115,18 @@ AccentColor accentFromName(String? name) {
   return _legacyAccents[name] ?? defaultAccent;
 }
 
+// Kept from the zeMoney name: renaming them would reset existing users' theme and accent choices.
+const themeModeStorageKey = 'zemoney-theme';
+const accentColorStorageKey = 'zemoney-accent';
+
 AppAppearance readAppearance(SharedPreferences preferences) {
-  final modeName = preferences.getString('zemoney-theme') ?? 'system';
+  final modeName = preferences.getString(themeModeStorageKey) ?? 'system';
   return AppAppearance(
     mode: ThemeMode.values.firstWhere(
       (value) => value.name == modeName,
       orElse: () => ThemeMode.system,
     ),
-    accent: accentFromName(preferences.getString('zemoney-accent')),
+    accent: accentFromName(preferences.getString(accentColorStorageKey)),
   );
 }
 

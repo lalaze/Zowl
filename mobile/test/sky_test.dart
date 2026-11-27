@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zemoney_mobile/core/l10n.dart';
-import 'package:zemoney_mobile/core/theme.dart';
-import 'package:zemoney_mobile/features/common/brand_mark.dart';
-import 'package:zemoney_mobile/features/common/category_visuals.dart';
-import 'package:zemoney_mobile/features/common/sky.dart';
-import 'package:zemoney_mobile/main.dart';
+import 'package:zowl_mobile/core/l10n.dart';
+import 'package:zowl_mobile/core/theme.dart';
+import 'package:zowl_mobile/features/common/brand_mark.dart';
+import 'package:zowl_mobile/features/common/category_visuals.dart';
+import 'package:zowl_mobile/features/common/sky.dart';
+import 'package:zowl_mobile/main.dart';
 
 import 'support/test_harness.dart';
-import 'package:zemoney_mobile/core/day_time.dart';
+import 'package:zowl_mobile/core/day_time.dart';
 
 DateTime _at(int hour) => DateTime(2026, 11, 12, hour);
 
@@ -121,7 +121,7 @@ void main() {
       ProviderScope(
         overrides: harness.overrides,
         retry: (_, _) => null,
-        child: const ZeMoneyApp(),
+        child: const ZowlApp(),
       ),
     );
     await tester.pumpAndSettle();
@@ -153,7 +153,7 @@ void main() {
         ProviderScope(
           overrides: harness.overrides,
           retry: (_, _) => null,
-          child: const ZeMoneyApp(),
+          child: const ZowlApp(),
         ),
       );
       await tester.pumpAndSettle();

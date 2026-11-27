@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zemoney_mobile/core/api.dart';
-import 'package:zemoney_mobile/core/l10n.dart';
-import 'package:zemoney_mobile/core/models.dart';
-import 'package:zemoney_mobile/core/payment_capture.dart';
-import 'package:zemoney_mobile/features/settings/payment_capture_settings.dart';
-import 'package:zemoney_mobile/features/settings/settings_screen.dart';
+import 'package:zowl_mobile/core/api.dart';
+import 'package:zowl_mobile/core/l10n.dart';
+import 'package:zowl_mobile/core/models.dart';
+import 'package:zowl_mobile/core/payment_capture.dart';
+import 'package:zowl_mobile/features/settings/payment_capture_settings.dart';
+import 'package:zowl_mobile/features/settings/settings_screen.dart';
 
 import 'support/fixtures.dart';
 import 'support/test_harness.dart';
@@ -630,7 +630,7 @@ void main() {
     final adminHarness = await MobileTestHarness.create();
     adminHarness.repository.user = const SessionUser(
       id: 'admin-user',
-      email: 'admin@zemoney.local',
+      email: 'admin@zowl.local',
       displayName: 'Administrator',
       avatarPreset: 'piggy',
       timezone: 'Asia/Shanghai',

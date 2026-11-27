@@ -3,6 +3,9 @@
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
 import { useEffect, type ReactNode } from "react";
 
+// Kept from the zeMoney name: renaming it would reset existing users' theme choice.
+const themeStorageKey = "zemoney-theme";
+
 const themeColors = {
   light: "#f6f1e8",
   dark: "#15151b",
@@ -30,7 +33,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       disableTransitionOnChange
       enableColorScheme
       enableSystem
-      storageKey="zemoney-theme"
+      storageKey={themeStorageKey}
     >
       <ThemeColorSync />
       {children}

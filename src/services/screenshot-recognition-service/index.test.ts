@@ -284,7 +284,7 @@ describe("screenshot recognition service", () => {
       .run();
 
     previousStorageRoot = process.env.FILE_STORAGE_ROOT;
-    storageRoot = await mkdtemp(path.join(os.tmpdir(), "zemoney-receipts-"));
+    storageRoot = await mkdtemp(path.join(os.tmpdir(), "zowl-receipts-"));
     process.env.FILE_STORAGE_ROOT = storageRoot;
     storage = createLocalFileStorage(database.db);
   });

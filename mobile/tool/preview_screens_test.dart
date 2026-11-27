@@ -12,11 +12,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:zemoney_mobile/core/l10n.dart';
-import 'package:zemoney_mobile/core/models.dart';
-import 'package:zemoney_mobile/core/providers.dart';
-import 'package:zemoney_mobile/core/day_time.dart';
-import 'package:zemoney_mobile/main.dart';
+import 'package:zowl_mobile/core/l10n.dart';
+import 'package:zowl_mobile/core/models.dart';
+import 'package:zowl_mobile/core/providers.dart';
+import 'package:zowl_mobile/core/day_time.dart';
+import 'package:zowl_mobile/main.dart';
 
 import '../test/support/test_harness.dart';
 
@@ -247,7 +247,7 @@ void main() {
         key: boundaryKey,
         child: UncontrolledProviderScope(
           container: container,
-          child: const ZeMoneyApp(),
+          child: const ZowlApp(),
         ),
       ),
     );

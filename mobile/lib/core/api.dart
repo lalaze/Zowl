@@ -8,6 +8,7 @@ import 'l10n.dart';
 class TokenStore {
   TokenStore(this._storage, this._preferences);
 
+  // Kept from the zeMoney name: renaming them would sign existing users out.
   static const _tokenKey = 'zemoney_access_token';
   static const _installedKey = 'zemoney_install_initialized';
 

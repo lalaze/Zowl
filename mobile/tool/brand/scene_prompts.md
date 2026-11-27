@@ -10,7 +10,7 @@ own horizon.
 How the images were made, for new variants that should stay consistent:
 
 1. The day image came from the geometric brief below with the "bold and
-   minimal" treatment, with `assets/brand/zemoney-owl-icon.png` attached as the
+   minimal" treatment, with `assets/brand/zowl-icon.png` attached as the
    style reference. Softer painterly and paper-cut styles were rejected as not
    matching the owl's geometric look.
 2. Dawn, dusk, night and the dark day were made from the series brief with the

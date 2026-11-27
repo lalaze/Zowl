@@ -10,9 +10,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zemoney_mobile/core/models.dart';
-import 'package:zemoney_mobile/core/day_time.dart';
-import 'package:zemoney_mobile/main.dart';
+import 'package:zowl_mobile/core/models.dart';
+import 'package:zowl_mobile/core/day_time.dart';
+import 'package:zowl_mobile/main.dart';
 
 import '../test/support/test_harness.dart';
 
@@ -129,7 +129,7 @@ void main() {
         child: ProviderScope(
           overrides: harness.overrides,
           retry: (_, _) => null,
-          child: const ZeMoneyApp(),
+          child: const ZowlApp(),
         ),
       ),
     );

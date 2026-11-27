@@ -3,8 +3,8 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 
 const credentials = {
-  email: process.env.DEMO_EMAIL ?? "e2e@zemoney.local",
-  password: process.env.DEMO_PASSWORD ?? "zemoney-e2e-password",
+  email: process.env.DEMO_EMAIL ?? "e2e@zowl.local",
+  password: process.env.DEMO_PASSWORD ?? "zowl-e2e-password",
 };
 
 // A fresh Next.js development server compiles each API route on first use.

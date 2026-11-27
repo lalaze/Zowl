@@ -9,8 +9,8 @@ const onePixelPng = Buffer.from(
 
 async function login(page: Page) {
   await page.goto("/login");
-  await page.getByLabel("Email").fill("e2e@zemoney.local");
-  await page.getByLabel("Password", { exact: true }).fill("zemoney-e2e-password");
+  await page.getByLabel("Email").fill("e2e@zowl.local");
+  await page.getByLabel("Password", { exact: true }).fill("zowl-e2e-password");
   await page.getByRole("button", { name: "Open Zowl" }).click();
   await expect(page).toHaveURL(/\/$/u);
 }
@@ -76,7 +76,7 @@ test.describe.serial("core money flows", () => {
     page,
   }) => {
     test.setTimeout(60_000);
-    const memberEmail = "managed-member@zemoney.local";
+    const memberEmail = "managed-member@zowl.local";
     const initialPassword = "managed-member-password";
     const resetPassword = "managed-member-password-reset";
 
@@ -99,7 +99,7 @@ test.describe.serial("core money flows", () => {
     const resetDialog = page.getByRole("dialog");
     await resetDialog
       .getByLabel("Current administrator password")
-      .fill("zemoney-e2e-password");
+      .fill("zowl-e2e-password");
     await resetDialog.getByLabel("New password", { exact: true }).fill(resetPassword);
     await resetDialog.getByLabel("Confirm new password").fill(resetPassword);
     await resetDialog.getByRole("button", { name: "Confirm change" }).click();
@@ -131,7 +131,7 @@ test.describe.serial("core money flows", () => {
       page.getByText("Account disabled. Contact the administrator", { exact: true }),
     ).toBeVisible();
 
-    await loginWith(page, "e2e@zemoney.local", "zemoney-e2e-password");
+    await loginWith(page, "e2e@zowl.local", "zowl-e2e-password");
     await expect(page).toHaveURL(/\/$/u);
     await page.goto("/settings/admin");
     const disabledMemberCard = page.locator(

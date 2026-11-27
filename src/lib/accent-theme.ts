@@ -9,6 +9,7 @@ export const accentColors = [
 export type AccentColor = (typeof accentColors)[number]["value"];
 
 export const defaultAccentColor: AccentColor = "amber";
+// Kept from the zeMoney name: renaming it would reset existing users' accent color.
 export const accentStorageKey = "zemoney-accent";
 
 /** Accent names saved by the previous design. */

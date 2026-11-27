@@ -13,6 +13,7 @@ data class CaptureSession(
 
 class CapturePreferences(context: Context) {
     private val appContext = context.applicationContext
+    // Kept from the zeMoney name: renaming it would reset existing users' capture settings and session.
     private val preferences =
         appContext.getSharedPreferences("zemoney_payment_capture", Context.MODE_PRIVATE)
 

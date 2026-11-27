@@ -63,8 +63,8 @@ final apiClientProvider = Provider<ApiClient>(
     },
   ),
 );
-final repositoryProvider = Provider<ZeMoneyRepository>(
-  (ref) => ZeMoneyRepository(
+final repositoryProvider = Provider<ZowlRepository>(
+  (ref) => ZowlRepository(
     ref.watch(apiClientProvider),
     ref.watch(tokenStoreProvider),
   ),
@@ -139,12 +139,12 @@ class AppearanceController extends Notifier<AppAppearance> {
   AppAppearance build() => readAppearance(_preferences);
 
   Future<void> setMode(ThemeMode mode) async {
-    await _preferences.setString('zemoney-theme', mode.name);
+    await _preferences.setString(themeModeStorageKey, mode.name);
     state = AppAppearance(mode: mode, accent: state.accent);
   }
 
   Future<void> setAccent(AccentColor accent) async {
-    await _preferences.setString('zemoney-accent', accent.name);
+    await _preferences.setString(accentColorStorageKey, accent.name);
     state = AppAppearance(mode: state.mode, accent: accent);
   }
 }

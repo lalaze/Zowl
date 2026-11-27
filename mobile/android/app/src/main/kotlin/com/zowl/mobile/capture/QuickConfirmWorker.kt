@@ -140,6 +140,7 @@ class QuickConfirmWorker(
     }
 
     companion object {
+        // Kept from the zeMoney name so pending WorkManager quick-confirm jobs are not duplicated across upgrades.
         private const val UNIQUE_WORK = "zemoney-payment-quick-confirm"
 
         fun enqueue(context: Context) {

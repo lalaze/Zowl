@@ -53,7 +53,7 @@ describe("AccountAppearanceSettings", () => {
 
     render(
       <AccountAppearanceSettings
-        email="demo@zemoney.local"
+        email="demo@zowl.local"
         initialAvatarPreset="piggy"
         initialDisplayName="Ze"
       />,
@@ -79,7 +79,7 @@ describe("AccountAppearanceSettings", () => {
   it("changes display mode and persists the selected accent color", () => {
     render(
       <AccountAppearanceSettings
-        email="demo@zemoney.local"
+        email="demo@zowl.local"
         initialAvatarPreset="piggy"
         initialDisplayName="Ze"
       />,
@@ -122,7 +122,7 @@ describe("AccountAppearanceSettings", () => {
 
     render(
       <AccountAppearanceSettings
-        email="demo@zemoney.local"
+        email="demo@zowl.local"
         initialAvatarPreset="piggy"
         initialDisplayName="Ze"
       />,
@@ -154,7 +154,7 @@ describe("AccountAppearanceSettings", () => {
     render(
       <I18nProvider locale="zh" preference="zh">
         <AccountAppearanceSettings
-          email="demo@zemoney.local"
+          email="demo@zowl.local"
           initialAvatarPreset="piggy"
           initialDisplayName="Ze"
         />

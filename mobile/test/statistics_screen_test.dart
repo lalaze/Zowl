@@ -5,12 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zemoney_mobile/core/api.dart';
-import 'package:zemoney_mobile/core/formatters.dart';
-import 'package:zemoney_mobile/core/l10n.dart';
-import 'package:zemoney_mobile/core/models.dart';
-import 'package:zemoney_mobile/core/providers.dart';
-import 'package:zemoney_mobile/features/statistics/statistics_screen.dart';
+import 'package:zowl_mobile/core/api.dart';
+import 'package:zowl_mobile/core/formatters.dart';
+import 'package:zowl_mobile/core/l10n.dart';
+import 'package:zowl_mobile/core/models.dart';
+import 'package:zowl_mobile/core/providers.dart';
+import 'package:zowl_mobile/features/statistics/statistics_screen.dart';
 
 import 'support/fixtures.dart';
 import 'support/test_harness.dart';

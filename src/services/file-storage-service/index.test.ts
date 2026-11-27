@@ -63,7 +63,7 @@ describe("local file storage service", () => {
       .run();
 
     previousStorageRoot = process.env.FILE_STORAGE_ROOT;
-    storageRoot = await mkdtemp(path.join(os.tmpdir(), "zemoney-files-"));
+    storageRoot = await mkdtemp(path.join(os.tmpdir(), "zowl-files-"));
     process.env.FILE_STORAGE_ROOT = storageRoot;
     service = createLocalFileStorage(database.db);
   });

@@ -70,7 +70,7 @@ export default async function RootLayout({
       <head>
         <Script
           dangerouslySetInnerHTML={{ __html: accentBootScript }}
-          id="zemoney-accent-boot"
+          id="zowl-accent-boot"
           strategy="beforeInteractive"
         />
       </head>

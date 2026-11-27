@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:zemoney_mobile/core/api.dart';
-import 'package:zemoney_mobile/features/transactions/transaction_detail_screen.dart';
-import 'package:zemoney_mobile/features/transactions/transaction_form_screen.dart';
+import 'package:zowl_mobile/core/api.dart';
+import 'package:zowl_mobile/features/transactions/transaction_detail_screen.dart';
+import 'package:zowl_mobile/features/transactions/transaction_form_screen.dart';
 
 import '../integration_test/support/device_test_support.dart';
 import 'support/test_harness.dart';

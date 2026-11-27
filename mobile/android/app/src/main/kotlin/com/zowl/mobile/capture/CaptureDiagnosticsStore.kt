@@ -224,6 +224,7 @@ class CaptureDiagnosticsStore(context: Context) {
             ).joinToString("|")
 
         private val lock = Any()
+        // Kept from the zeMoney name: renaming it would discard existing capture diagnostic counters.
         private const val PREFERENCES_NAME = "zemoney_payment_capture_diagnostics"
         private const val COUNTERS = "counters_v1"
         const val OUTCOME_ACCEPTED = "accepted"

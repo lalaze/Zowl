@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zemoney_mobile/core/config.dart';
+import 'package:zowl_mobile/core/config.dart';
 
 void main() {
   test('accepts plain HTTP to a Tailscale IP in debug builds', () {

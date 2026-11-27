@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
-import 'package:zemoney_mobile/core/api.dart';
-import 'package:zemoney_mobile/core/formatters.dart';
-import 'package:zemoney_mobile/core/models.dart';
-import 'package:zemoney_mobile/core/providers.dart';
-import 'package:zemoney_mobile/features/imports/notification_capture_screen.dart';
-import 'package:zemoney_mobile/main.dart';
+import 'package:zowl_mobile/core/api.dart';
+import 'package:zowl_mobile/core/formatters.dart';
+import 'package:zowl_mobile/core/models.dart';
+import 'package:zowl_mobile/core/providers.dart';
+import 'package:zowl_mobile/features/imports/notification_capture_screen.dart';
+import 'package:zowl_mobile/main.dart';
 
 import 'support/fixtures.dart';
 import 'support/test_harness.dart';
@@ -22,7 +22,7 @@ void main() {
       ProviderScope(
         overrides: harness.overrides,
         retry: (_, _) => null,
-        child: const ZeMoneyApp(),
+        child: const ZowlApp(),
       ),
     );
     await tester.pumpAndSettle();
@@ -40,17 +40,17 @@ void main() {
       ProviderScope(
         overrides: harness.overrides,
         retry: (_, _) => null,
-        child: const ZeMoneyApp(),
+        child: const ZowlApp(),
       ),
     );
     await tester.pumpAndSettle();
     expect(find.text('Welcome back'), findsOneWidget);
     final container = ProviderScope.containerOf(
-      tester.element(find.byType(ZeMoneyApp)),
+      tester.element(find.byType(ZowlApp)),
     );
     await container
         .read(authControllerProvider.notifier)
-        .login('test@zemoney.local', 'password');
+        .login('test@zowl.local', 'password');
     await tester.pumpAndSettle();
     expect(find.byType(NotificationCaptureScreen), findsOneWidget);
     expect(harness.repository.createInputs, isEmpty);
@@ -63,12 +63,12 @@ void main() {
       ProviderScope(
         overrides: harness.overrides,
         retry: (_, _) => null,
-        child: const ZeMoneyApp(),
+        child: const ZowlApp(),
       ),
     );
     await tester.pumpAndSettle();
     final container = ProviderScope.containerOf(
-      tester.element(find.byType(ZeMoneyApp)),
+      tester.element(find.byType(ZowlApp)),
     );
     // Mirror the real API client: the 401 also reaches the session invalidator.
     harness.repository.loginHandler = (_, _) async {
@@ -82,7 +82,7 @@ void main() {
 
     await tester.enterText(
       find.byType(TextFormField).at(0),
-      'me@zemoney.local',
+      'me@zowl.local',
     );
     await tester.enterText(find.byType(TextFormField).at(1), 'wrong-password');
     await tester.ensureVisible(find.text('Open Zowl'));
@@ -91,7 +91,7 @@ void main() {
 
     expect(find.text('Welcome back'), findsOneWidget);
     expect(find.textContaining('Incorrect email or password'), findsOneWidget);
-    expect(find.text('me@zemoney.local'), findsOneWidget);
+    expect(find.text('me@zowl.local'), findsOneWidget);
     expect(harness.repository.loginCalls, 1);
   });
 
@@ -102,7 +102,7 @@ void main() {
       ProviderScope(
         overrides: harness.overrides,
         retry: (_, _) => null,
-        child: const ZeMoneyApp(),
+        child: const ZowlApp(),
       ),
     );
     await tester.pumpAndSettle();
@@ -120,7 +120,7 @@ void main() {
       ProviderScope(
         overrides: harness.overrides,
         retry: (_, _) => null,
-        child: const ZeMoneyApp(),
+        child: const ZowlApp(),
       ),
     );
     await tester.pumpAndSettle();
@@ -155,7 +155,7 @@ void main() {
       ProviderScope(
         overrides: harness.overrides,
         retry: (_, _) => null,
-        child: const ZeMoneyApp(),
+        child: const ZowlApp(),
       ),
     );
     await tester.pumpAndSettle();
@@ -188,7 +188,7 @@ void main() {
       ProviderScope(
         overrides: harness.overrides,
         retry: (_, _) => null,
-        child: const ZeMoneyApp(),
+        child: const ZowlApp(),
       ),
     );
     await tester.pumpAndSettle();
@@ -212,7 +212,7 @@ void main() {
         ProviderScope(
           overrides: harness.overrides,
           retry: (_, _) => null,
-          child: const ZeMoneyApp(),
+          child: const ZowlApp(),
         ),
       );
       await tester.pumpAndSettle();
@@ -236,12 +236,12 @@ void main() {
         ProviderScope(
           overrides: harness.overrides,
           retry: (_, _) => null,
-          child: const ZeMoneyApp(),
+          child: const ZowlApp(),
         ),
       );
       await tester.pumpAndSettle();
       final container = ProviderScope.containerOf(
-        tester.element(find.byType(ZeMoneyApp)),
+        tester.element(find.byType(ZowlApp)),
       );
 
       container.read(routerProvider).go('/transactions/tx-1');
@@ -262,12 +262,12 @@ void main() {
       ProviderScope(
         overrides: memberHarness.overrides,
         retry: (_, _) => null,
-        child: const ZeMoneyApp(),
+        child: const ZowlApp(),
       ),
     );
     await tester.pumpAndSettle();
     var container = ProviderScope.containerOf(
-      tester.element(find.byType(ZeMoneyApp)),
+      tester.element(find.byType(ZowlApp)),
     );
     container.read(routerProvider).go('/settings/admin');
     await tester.pumpAndSettle();
@@ -279,7 +279,7 @@ void main() {
     final adminHarness = await MobileTestHarness.create();
     adminHarness.repository.user = const SessionUser(
       id: 'admin-user',
-      email: 'admin@zemoney.local',
+      email: 'admin@zowl.local',
       displayName: 'Administrator',
       avatarPreset: 'piggy',
       timezone: 'Asia/Shanghai',
@@ -289,12 +289,12 @@ void main() {
       ProviderScope(
         overrides: adminHarness.overrides,
         retry: (_, _) => null,
-        child: const ZeMoneyApp(),
+        child: const ZowlApp(),
       ),
     );
     await tester.pumpAndSettle();
     container = ProviderScope.containerOf(
-      tester.element(find.byType(ZeMoneyApp)),
+      tester.element(find.byType(ZowlApp)),
     );
     container.read(routerProvider).go('/settings/admin');
     await tester.pumpAndSettle();
@@ -376,7 +376,7 @@ void main() {
         ProviderScope(
           overrides: harness.overrides,
           retry: (_, _) => null,
-          child: const ZeMoneyApp(),
+          child: const ZowlApp(),
         ),
       );
       await tester.pumpAndSettle();
@@ -484,7 +484,7 @@ void main() {
         ProviderScope(
           overrides: harness.overrides,
           retry: (_, _) => null,
-          child: const ZeMoneyApp(),
+          child: const ZowlApp(),
         ),
       );
       await tester.pumpAndSettle();

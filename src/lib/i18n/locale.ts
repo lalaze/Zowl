@@ -9,6 +9,7 @@ export type Locale = (typeof locales)[number];
 export type LanguagePreference = Locale | "system";
 
 export const defaultLocale: Locale = "en";
+// Kept from the zeMoney name: renaming it would reset existing users' language preference.
 export const localeCookieName = "zemoney-locale";
 export const localeCookieMaxAgeSeconds = 60 * 60 * 24 * 365;
 

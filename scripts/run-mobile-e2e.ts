@@ -27,10 +27,10 @@ function environmentFor(platform: MobilePlatform) {
     ...process.env,
     NEXT_DIST_DIR: `.next-mobile-e2e-${platform}`,
     NEXT_E2E_SKIP_BUILD_TYPECHECK: "1",
-    DATABASE_URL: `.data/zemoney-mobile-e2e-${platform}.sqlite`,
+    DATABASE_URL: `.data/zowl-mobile-e2e-${platform}.sqlite`,
     FILE_STORAGE_ROOT: `storage/mobile-e2e-${platform}`,
-    DEMO_EMAIL: `mobile-${platform}@zemoney.local`,
-    DEMO_PASSWORD: `zemoney-mobile-${platform}`,
+    DEMO_EMAIL: `mobile-${platform}@zowl.local`,
+    DEMO_PASSWORD: `zowl-mobile-${platform}`,
     RECEIPT_RECOGNITION_PROVIDER: "mock",
     AI_CATEGORIZATION_PROVIDER: "off",
     AI_CATEGORIZATION_ENCRYPTION_KEY:
@@ -39,7 +39,7 @@ function environmentFor(platform: MobilePlatform) {
 }
 
 async function clearPlatformData(platform: MobilePlatform) {
-  const database = resolve(root, `.data/zemoney-mobile-e2e-${platform}.sqlite`);
+  const database = resolve(root, `.data/zowl-mobile-e2e-${platform}.sqlite`);
   for (const path of [database, `${database}-shm`, `${database}-wal`]) {
     await rm(path, { force: true });
   }

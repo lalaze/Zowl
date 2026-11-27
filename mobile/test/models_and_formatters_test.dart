@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:zemoney_mobile/core/formatters.dart';
-import 'package:zemoney_mobile/core/l10n.dart';
-import 'package:zemoney_mobile/core/models.dart';
+import 'package:zowl_mobile/core/formatters.dart';
+import 'package:zowl_mobile/core/l10n.dart';
+import 'package:zowl_mobile/core/models.dart';
 
 import 'support/fixtures.dart';
 

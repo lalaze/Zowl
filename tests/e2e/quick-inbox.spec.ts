@@ -4,8 +4,8 @@ import { expect, test } from "@playwright/test";
 test("review inbox checks batch versions, posts once and exposes completed activity", async ({ page }) => {
   test.setTimeout(90_000);
   await page.goto("/login");
-  await page.getByLabel("Email").fill("e2e@zemoney.local");
-  await page.getByLabel("Password", { exact: true }).fill("zemoney-e2e-password");
+  await page.getByLabel("Email").fill("e2e@zowl.local");
+  await page.getByLabel("Password", { exact: true }).fill("zowl-e2e-password");
   await page.getByRole("button", { name: "Open Zowl" }).click();
   await expect(page).toHaveURL(/\/$/);
   const ingested = await page.request.post("/api/captures/notifications", {

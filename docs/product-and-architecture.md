@@ -1,4 +1,4 @@
-# zeMoney Product and Architecture
+# Zowl Product and Architecture
 
 > Status: Milestone 1 baseline
 >
@@ -8,7 +8,7 @@
 
 ## 1. Product requirements
 
-zeMoney is a mobile-first personal finance app. It converts payment screenshots, Alipay and WeChat Pay statements, and manual entries into unified transactions. Users confirm recognition results before import, then search, amend, categorize, and analyze posted data.
+Zowl is a mobile-first personal finance app. It converts payment screenshots, Alipay and WeChat Pay statements, and manual entries into unified transactions. Users confirm recognition results before import, then search, amend, categorize, and analyze posted data.
 
 ### 1.1 Users and core value
 
@@ -471,7 +471,7 @@ All `/api` routes use one envelope: `{ data, meta? }` for success and `{ error: 
 ## 9. Project structure
 
 ```text
-zeMoney/
+zowl/
 ├── docs/
 │   └── product-and-architecture.md
 ├── drizzle/

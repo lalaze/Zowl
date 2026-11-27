@@ -4,26 +4,26 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod/misc.dart' show Override;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zemoney_mobile/core/api.dart';
-import 'package:zemoney_mobile/core/config.dart';
-import 'package:zemoney_mobile/core/models.dart';
-import 'package:zemoney_mobile/core/payment_capture.dart';
-import 'package:zemoney_mobile/core/providers.dart';
-import 'package:zemoney_mobile/core/repository.dart';
-import 'package:zemoney_mobile/core/theme.dart';
-import 'package:zemoney_mobile/features/auth/login_screen.dart';
-import 'package:zemoney_mobile/features/home/home_screen.dart';
-import 'package:zemoney_mobile/features/imports/import_screen.dart';
-import 'package:zemoney_mobile/features/imports/receipt_review_screen.dart';
-import 'package:zemoney_mobile/features/settings/settings_screen.dart';
-import 'package:zemoney_mobile/features/statistics/statistics_screen.dart';
-import 'package:zemoney_mobile/features/transactions/transaction_detail_screen.dart';
-import 'package:zemoney_mobile/features/transactions/transaction_form_screen.dart';
-import 'package:zemoney_mobile/features/transactions/transaction_list_screen.dart';
+import 'package:zowl_mobile/core/api.dart';
+import 'package:zowl_mobile/core/config.dart';
+import 'package:zowl_mobile/core/models.dart';
+import 'package:zowl_mobile/core/payment_capture.dart';
+import 'package:zowl_mobile/core/providers.dart';
+import 'package:zowl_mobile/core/repository.dart';
+import 'package:zowl_mobile/core/theme.dart';
+import 'package:zowl_mobile/features/auth/login_screen.dart';
+import 'package:zowl_mobile/features/home/home_screen.dart';
+import 'package:zowl_mobile/features/imports/import_screen.dart';
+import 'package:zowl_mobile/features/imports/receipt_review_screen.dart';
+import 'package:zowl_mobile/features/settings/settings_screen.dart';
+import 'package:zowl_mobile/features/statistics/statistics_screen.dart';
+import 'package:zowl_mobile/features/transactions/transaction_detail_screen.dart';
+import 'package:zowl_mobile/features/transactions/transaction_form_screen.dart';
+import 'package:zowl_mobile/features/transactions/transaction_list_screen.dart';
 
 const _user = SessionUser(
   id: 'golden-user',
-  email: 'golden@zemoney.local',
+  email: 'golden@zowl.local',
   displayName: 'Ze',
   avatarPreset: 'piggy',
   timezone: 'Asia/Shanghai',
@@ -130,7 +130,7 @@ class _GoldenPaymentCaptureBridge implements PaymentCaptureBridge {
   Future<String?> takePendingRoute() async => null;
 }
 
-class _GoldenRepository extends ZeMoneyRepository {
+class _GoldenRepository extends ZowlRepository {
   _GoldenRepository(super.api, super.tokenStore);
 
   @override

@@ -86,7 +86,7 @@ test("built-in categories take the names of the chosen language and back", async
 
 test("API errors follow Accept-Language", async ({ request }) => {
   const response = await request.post("/api/auth/login", {
-    data: { email: "nobody@zemoney.local", password: "wrong-password" },
+    data: { email: "nobody@zowl.local", password: "wrong-password" },
     headers: { "accept-language": "zh-CN,zh;q=0.9" },
   });
   expect(response.status()).toBe(401);

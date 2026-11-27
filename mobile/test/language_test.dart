@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zemoney_mobile/core/l10n.dart';
-import 'package:zemoney_mobile/core/native_language.dart';
-import 'package:zemoney_mobile/core/providers.dart';
-import 'package:zemoney_mobile/main.dart';
+import 'package:zowl_mobile/core/l10n.dart';
+import 'package:zowl_mobile/core/native_language.dart';
+import 'package:zowl_mobile/core/providers.dart';
+import 'package:zowl_mobile/main.dart';
 
 import 'support/test_harness.dart';
 
 Widget _app(MobileTestHarness harness) => ProviderScope(
   overrides: harness.overrides,
   retry: (_, _) => null,
-  child: const ZeMoneyApp(),
+  child: const ZowlApp(),
 );
 
 void main() {
@@ -102,7 +102,7 @@ void main() {
     expect(sent.last, {'language': 'en'});
 
     final container = ProviderScope.containerOf(
-      tester.element(find.byType(ZeMoneyApp)),
+      tester.element(find.byType(ZowlApp)),
     );
     await container
         .read(languageProvider.notifier)
@@ -143,7 +143,7 @@ void main() {
     await tester.pumpWidget(_app(harness));
     await tester.pumpAndSettle();
     final container = ProviderScope.containerOf(
-      tester.element(find.byType(ZeMoneyApp)),
+      tester.element(find.byType(ZowlApp)),
     );
     container.read(routerProvider).go('/settings');
     await tester.pumpAndSettle();

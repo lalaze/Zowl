@@ -20,9 +20,9 @@ import 'core/theme.dart';
 
 export 'app/router.dart' show routerProvider;
 
-Future<void> main() => runZeMoney();
+Future<void> main() => runZowl();
 
-Future<void> runZeMoney({
+Future<void> runZowl({
   ScreenshotPicker? screenshotPicker,
   ApiConfig? config,
 }) async {
@@ -41,20 +41,19 @@ Future<void> runZeMoney({
         if (screenshotPicker != null)
           screenshotPickerProvider.overrideWithValue(screenshotPicker),
       ],
-      child: const ZeMoneyApp(),
+      child: const ZowlApp(),
     ),
   );
 }
 
-class ZeMoneyApp extends ConsumerStatefulWidget {
-  const ZeMoneyApp({super.key});
+class ZowlApp extends ConsumerStatefulWidget {
+  const ZowlApp({super.key});
 
   @override
-  ConsumerState<ZeMoneyApp> createState() => _ZeMoneyAppState();
+  ConsumerState<ZowlApp> createState() => _ZowlAppState();
 }
 
-class _ZeMoneyAppState extends ConsumerState<ZeMoneyApp>
-    with WidgetsBindingObserver {
+class _ZowlAppState extends ConsumerState<ZowlApp> with WidgetsBindingObserver {
   StreamSubscription<String>? _captureRouteSubscription;
   String? _pendingCaptureRoute;
   final _shareBridge = SharedScreenshotBridge();

@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:zemoney_mobile/core/api.dart';
-import 'package:zemoney_mobile/core/l10n.dart';
-import 'package:zemoney_mobile/core/models.dart';
-import 'package:zemoney_mobile/features/common/sky.dart';
-import 'package:zemoney_mobile/features/home/home_screen.dart';
+import 'package:zowl_mobile/core/api.dart';
+import 'package:zowl_mobile/core/l10n.dart';
+import 'package:zowl_mobile/core/models.dart';
+import 'package:zowl_mobile/features/common/sky.dart';
+import 'package:zowl_mobile/features/home/home_screen.dart';
 
 import 'support/fixtures.dart';
 import 'support/test_harness.dart';

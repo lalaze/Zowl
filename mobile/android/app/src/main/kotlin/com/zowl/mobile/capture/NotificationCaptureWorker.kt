@@ -185,6 +185,7 @@ class NotificationCaptureWorker(
         }
 
     companion object {
+        // Kept from the zeMoney name so pending WorkManager upload jobs are not duplicated across upgrades.
         private const val UNIQUE_WORK = "zemoney-payment-capture-upload"
         private const val BATCH_SIZE = 20
 

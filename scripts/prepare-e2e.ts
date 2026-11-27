@@ -1,7 +1,7 @@
 import { rm } from "node:fs/promises";
 import { resolve } from "node:path";
 
-const databasePath = resolve(".data/zemoney-e2e.sqlite");
+const databasePath = resolve(".data/zowl-e2e.sqlite");
 const storagePath = resolve("storage/e2e");
 
 for (const path of [databasePath, `${databasePath}-shm`, `${databasePath}-wal`]) {

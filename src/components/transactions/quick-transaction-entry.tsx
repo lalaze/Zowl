@@ -20,6 +20,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+// Kept from the zeMoney name: renaming it would reset existing users' preferred entry mode.
+const entryModeStorageKey = "zemoney-entry-mode";
+
 function isInteractiveTarget(target: EventTarget | null) {
   return (
     target instanceof HTMLElement &&
@@ -70,7 +73,7 @@ export function QuickTransactionEntry({
   const openDialog = useCallback(() => {
     if (submitting) return;
     setSuccess(null);
-    const preferred = window.localStorage.getItem("zemoney-entry-mode");
+    const preferred = window.localStorage.getItem(entryModeStorageKey);
     setEntryMode(preferred === "screenshot" && !["mock", "unavailable"].includes(recognitionProvider.id) ? "screenshot" : "manual");
     setDirty(false);
     setDiscardPrompt(false);
@@ -276,7 +279,7 @@ export function QuickTransactionEntry({
                     )}
                     onClick={() => {
                       setEntryMode(value as "manual" | "screenshot");
-                      window.localStorage.setItem("zemoney-entry-mode", value);
+                      window.localStorage.setItem(entryModeStorageKey, value);
                       if (value === "manual") window.requestAnimationFrame(() => dialogRef.current?.querySelector<HTMLInputElement>("#amount")?.focus());
                     }}
                   >

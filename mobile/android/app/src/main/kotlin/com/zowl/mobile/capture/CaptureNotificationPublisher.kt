@@ -22,6 +22,7 @@ import com.zowl.mobile.R
  * follows the language chosen in the app; [Context] itself is kept for everything else.
  */
 object CaptureNotificationPublisher {
+    // Kept from the zeMoney name so pending notifications, intents, and stored IDs survive upgrades.
     const val ROUTE_EXTRA = "zemoney_capture_route"
     const val REMOTE_INPUT_MERCHANT = "zemoney_quick_confirm_merchant"
     private const val CHANNEL_ID = "payment_capture_review"
@@ -33,6 +34,7 @@ object CaptureNotificationPublisher {
     private const val PAYMENT_CODE_NOTIFICATION_ID = 41205
     // A question about a payment from a while ago is no longer worth asking.
     private const val PAYMENT_CODE_REMINDER_TIMEOUT = 30 * 60 * 1000L
+    // Kept from the zeMoney name so tracked notification IDs survive upgrades.
     private const val NOTIFICATION_IDS_PREFERENCES = "zemoney_capture_notification_ids"
     private const val CAPTURE_NOTIFICATION_IDS = "capture_notification_ids"
 
@@ -257,6 +259,7 @@ object CaptureNotificationPublisher {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             manager.activeNotifications
                 .filter {
+                    // Legacy group name kept from zeMoney to dismiss notifications from older builds.
                     it.notification.group == CAPTURE_GROUP ||
                         it.notification.group == "zemoney_alipay_capture_review"
                 }

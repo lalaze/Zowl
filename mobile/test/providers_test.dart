@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zemoney_mobile/core/api.dart';
-import 'package:zemoney_mobile/core/providers.dart';
-import 'package:zemoney_mobile/core/theme.dart';
+import 'package:zowl_mobile/core/api.dart';
+import 'package:zowl_mobile/core/providers.dart';
+import 'package:zowl_mobile/core/theme.dart';
 
 import 'support/fixtures.dart';
 import 'support/test_harness.dart';
@@ -84,7 +84,7 @@ void main() {
       await container.read(authControllerProvider.future);
       final controller = container.read(authControllerProvider.notifier);
 
-      await controller.login('test@zemoney.local', 'secret');
+      await controller.login('test@zowl.local', 'secret');
       expect(container.read(authControllerProvider).value, testUser);
       expect(harness.repository.loginCalls, 1);
       expect(harness.capture.configuredUserId, testUser.id);
@@ -114,7 +114,7 @@ void main() {
       await expectLater(
         container
             .read(authControllerProvider.notifier)
-            .login('test@zemoney.local', 'bad'),
+            .login('test@zowl.local', 'bad'),
         throwsA(isA<ApiException>()),
       );
       expect(container.read(authControllerProvider).value, isNull);

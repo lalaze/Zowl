@@ -6,15 +6,15 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:riverpod/misc.dart' show Override;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zemoney_mobile/core/api.dart';
-import 'package:zemoney_mobile/core/l10n.dart';
-import 'package:zemoney_mobile/core/config.dart';
-import 'package:zemoney_mobile/core/models.dart';
-import 'package:zemoney_mobile/core/payment_capture.dart';
-import 'package:zemoney_mobile/core/providers.dart';
-import 'package:zemoney_mobile/core/repository.dart';
-import 'package:zemoney_mobile/core/screenshot_picker.dart';
-import 'package:zemoney_mobile/core/theme.dart';
+import 'package:zowl_mobile/core/api.dart';
+import 'package:zowl_mobile/core/l10n.dart';
+import 'package:zowl_mobile/core/config.dart';
+import 'package:zowl_mobile/core/models.dart';
+import 'package:zowl_mobile/core/payment_capture.dart';
+import 'package:zowl_mobile/core/providers.dart';
+import 'package:zowl_mobile/core/repository.dart';
+import 'package:zowl_mobile/core/screenshot_picker.dart';
+import 'package:zowl_mobile/core/theme.dart';
 
 import 'fixtures.dart';
 
@@ -257,8 +257,8 @@ class TransactionRequest {
   final String? dateTo;
 }
 
-class FakeZeMoneyRepository extends ZeMoneyRepository {
-  FakeZeMoneyRepository(super.api, super.tokenStore);
+class FakeZowlRepository extends ZowlRepository {
+  FakeZowlRepository(super.api, super.tokenStore);
 
   SessionUser user = testUser;
   List<Category> categoryItems = const [foodCategory, salaryCategory];
@@ -642,7 +642,7 @@ class FakeZeMoneyRepository extends ZeMoneyRepository {
         Future.value(
           AdminAccount(
             id: accountId,
-            email: 'member@zemoney.local',
+            email: 'member@zowl.local',
             displayName: 'Regular account',
             role: 'member',
             disabled: disabled,
@@ -665,7 +665,7 @@ class MobileTestHarness {
   final SharedPreferences preferences;
   final FakeTokenStore tokens;
   final ApiClient api;
-  final FakeZeMoneyRepository repository;
+  final FakeZowlRepository repository;
   final FakeScreenshotPicker picker;
   final FakePaymentCaptureBridge capture;
 
@@ -683,7 +683,7 @@ class MobileTestHarness {
       preferences: preferences,
       tokens: tokens,
       api: api,
-      repository: FakeZeMoneyRepository(api, tokens),
+      repository: FakeZowlRepository(api, tokens),
       picker: FakeScreenshotPicker(),
       capture: FakePaymentCaptureBridge(),
     );

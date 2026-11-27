@@ -30,8 +30,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t("Get Zowl for Android", "下载 Zowl Android 版"),
     description: t(
-      "Download Zowl, the Android app for your zeMoney ledger, to record transactions from payment screenshots and payment pages.",
-      "下载 Zowl —— zeMoney 账本的 Android 应用，用支付截图和支付页采集轻松记下每一笔。",
+      "Download Zowl, the Android app for your Zowl ledger, to record transactions from payment screenshots and payment pages.",
+      "下载 Zowl —— Zowl 账本的 Android 应用，用支付截图和支付页采集轻松记下每一笔。",
     ),
   };
 }

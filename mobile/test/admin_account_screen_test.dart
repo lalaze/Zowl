@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zemoney_mobile/core/l10n.dart';
-import 'package:zemoney_mobile/core/models.dart';
-import 'package:zemoney_mobile/features/settings/admin_account_screen.dart';
+import 'package:zowl_mobile/core/l10n.dart';
+import 'package:zowl_mobile/core/models.dart';
+import 'package:zowl_mobile/features/settings/admin_account_screen.dart';
 
 import 'support/test_harness.dart';
 
 const adminUser = SessionUser(
   id: 'admin-user',
-  email: 'admin@zemoney.local',
+  email: 'admin@zowl.local',
   displayName: 'Administrator',
   avatarPreset: 'piggy',
   timezone: 'Asia/Shanghai',
@@ -19,7 +19,7 @@ const accountPage = AdminAccountPage(
   items: [
     AdminAccount(
       id: 'admin-user',
-      email: 'admin@zemoney.local',
+      email: 'admin@zowl.local',
       displayName: 'Administrator',
       role: 'admin',
       disabled: false,
@@ -27,7 +27,7 @@ const accountPage = AdminAccountPage(
     ),
     AdminAccount(
       id: 'member-user',
-      email: 'member@zemoney.local',
+      email: 'member@zowl.local',
       displayName: 'Regular account',
       role: 'member',
       disabled: false,
@@ -56,7 +56,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Login email'),
-      'new@zemoney.local',
+      'new@zowl.local',
     );
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Nickname (optional)'),
@@ -75,7 +75,7 @@ void main() {
 
     expect(harness.repository.adminAccountCreates, [
       {
-        'email': 'new@zemoney.local',
+        'email': 'new@zowl.local',
         'displayName': 'New account',
         'password': 'new-account-password',
       },

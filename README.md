@@ -119,7 +119,7 @@ npm run db:setup     # migrations + demo data
 npm run dev
 ```
 
-Open <http://localhost:3000> and sign in with the demo account `demo@zemoney.local` / `zemoney-demo`.
+Open <http://localhost:3000> and sign in with the demo account `demo@zowl.local` / `zowl-demo`.
 To try importing, use the sample statements in `src/services/import-service/fixtures/`.
 
 `npm install` downloads SheetJS from `cdn.sheetjs.com`, because SheetJS no longer publishes to npm.
@@ -202,13 +202,13 @@ Server settings come from environment variables. `.env.example` (development) an
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `DATABASE_URL` | `.data/zemoney.sqlite` | SQLite file. Use a persistent volume in production |
+| `DATABASE_URL` | `.data/zowl.sqlite` | SQLite file. Use a persistent volume in production |
 | `FILE_STORAGE_ROOT` | `storage` | Uploaded statements and screenshots |
 | `PUBLIC_BASE_URL` | — | External HTTPS URL. Required in production; used for same-origin checks |
 | `INITIAL_ADMIN_SETUP_TOKEN_FILE` | — | One-time secret file (≥ 32 characters) for creating the first administrator |
 | `ANDROID_RELEASE_ROOT` | — | Read-only directory with the APK and `release.json` for the download page |
 | `SESSION_TTL_DAYS` | `30` | Login session lifetime |
-| `DEMO_EMAIL` / `DEMO_PASSWORD` | `demo@zemoney.local` / `zemoney-demo` | Demo account for `db:seed`. Development only |
+| `DEMO_EMAIL` / `DEMO_PASSWORD` | `demo@zowl.local` / `zowl-demo` | Demo account for `db:seed`. Development only |
 | `RECEIPT_RECOGNITION_PROVIDER` | `mock` | `mock` or `http` |
 | `RECEIPT_RECOGNITION_HTTP_ENDPOINT` | — | HTTPS endpoint for screenshot recognition |
 | `RECEIPT_RECOGNITION_HTTP_API_KEY` | — | Bearer key for that endpoint |
@@ -266,7 +266,7 @@ become failed items that the user completes by hand.
 | `npm run test:mobile:contract` | Mobile API contract against the real server |
 | `npm run test:mobile:e2e:android` / `:ios` | Device tests on an emulator or simulator |
 
-Playwright uses its own database (`.data/zemoney-e2e.sqlite`) and storage directory, so it never touches your
+Playwright uses its own database (`.data/zowl-e2e.sqlite`) and storage directory, so it never touches your
 development data.
 
 Before changing ledger behavior, read [CONTEXT.md](CONTEXT.md) and the related [ADRs](docs/adr/). They define

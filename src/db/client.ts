@@ -13,7 +13,7 @@ function prepareDatabasePath(source: string) {
 }
 
 export function createDatabase(
-  source = process.env.DATABASE_URL ?? ".data/zemoney.sqlite",
+  source = process.env.DATABASE_URL ?? ".data/zowl.sqlite",
 ) {
   prepareDatabasePath(source);
 
@@ -32,14 +32,14 @@ export function createDatabase(
 }
 
 const globalForDatabase = globalThis as unknown as {
-  zeMoneyDatabase?: ReturnType<typeof createDatabase>;
+  zowlDatabase?: ReturnType<typeof createDatabase>;
 };
 
 export const database =
-  globalForDatabase.zeMoneyDatabase ?? createDatabase();
+  globalForDatabase.zowlDatabase ?? createDatabase();
 
 if (process.env.NODE_ENV !== "production") {
-  globalForDatabase.zeMoneyDatabase = database;
+  globalForDatabase.zowlDatabase = database;
 }
 
 export const db = database.db;

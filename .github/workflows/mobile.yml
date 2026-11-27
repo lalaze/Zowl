@@ -156,7 +156,7 @@ jobs:
         if: github.event_name != 'pull_request' && success()
         uses: actions/upload-artifact@v7
         with:
-          name: zemoney-android-debug
+          name: zowl-android-debug
           path: mobile/build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
           retention-days: 7
@@ -198,7 +198,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v7
         with:
-          name: zemoney-ios-debug
+          name: zowl-ios-debug
           path: mobile/build/ios/iphonesimulator/Runner.app
           if-no-files-found: error
           retention-days: 7

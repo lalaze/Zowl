@@ -2,8 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function login(page: Page) {
   await page.goto("/login");
-  await page.getByLabel("Email").fill("e2e@zemoney.local");
-  await page.getByLabel("Password", { exact: true }).fill("zemoney-e2e-password");
+  await page.getByLabel("Email").fill("e2e@zowl.local");
+  await page.getByLabel("Password", { exact: true }).fill("zowl-e2e-password");
   await page.getByRole("button", { name: "Open Zowl" }).click();
   await expect(page).toHaveURL(/\/$/u);
 }

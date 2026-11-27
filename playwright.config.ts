@@ -46,10 +46,10 @@ export default defineConfig({
       timeout: 120_000,
       env: {
         ...serverEnvironment,
-        DATABASE_URL: ".data/zemoney-e2e.sqlite",
+        DATABASE_URL: ".data/zowl-e2e.sqlite",
         FILE_STORAGE_ROOT: "storage/e2e",
-        DEMO_EMAIL: "e2e@zemoney.local",
-        DEMO_PASSWORD: "zemoney-e2e-password",
+        DEMO_EMAIL: "e2e@zowl.local",
+        DEMO_PASSWORD: "zowl-e2e-password",
         RECEIPT_RECOGNITION_PROVIDER: "mock",
         AI_CATEGORIZATION_PROVIDER: "off",
         AI_CATEGORIZATION_ENCRYPTION_KEY:

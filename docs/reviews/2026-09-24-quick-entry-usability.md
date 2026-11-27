@@ -85,7 +85,7 @@ The Android upload worker publishes review notifications only for candidates sti
 
 Recommendation: a quiet activity summary showing posted amount, category, and source, with **Edit** and **Void** actions. Refresh affected totals and pending counts after mutations and on relevant app resume events. Avoid adding a mandatory tap to every successfully posted payment.
 
-Evidence: [worker](../../mobile/android/app/src/main/kotlin/com/zemoney/mobile/capture/NotificationCaptureWorker.kt), [home](../../mobile/lib/features/home/home_screen.dart), [capture confirmation](../../mobile/lib/features/imports/notification_capture_screen.dart), [providers](../../mobile/lib/core/providers.dart).
+Evidence: [worker](../../mobile/android/app/src/main/kotlin/com/zowl/mobile/capture/NotificationCaptureWorker.kt), [home](../../mobile/lib/features/home/home_screen.dart), [capture confirmation](../../mobile/lib/features/imports/notification_capture_screen.dart), [providers](../../mobile/lib/core/providers.dart).
 
 ## Suggested implementation order
 

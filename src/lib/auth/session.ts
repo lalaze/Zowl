@@ -11,6 +11,7 @@ import {
   type SessionUser,
 } from "@/lib/auth/session-store";
 
+// Kept from the zeMoney name: renaming it would sign existing users out.
 const SESSION_COOKIE = "zemoney_session";
 const sessionStore = createSessionStore(db);
 

@@ -71,8 +71,8 @@ async function main() {
     throw new Error("db:seed Demo data can only be created outside production");
   }
 
-  const email = (process.env.DEMO_EMAIL ?? "demo@zemoney.local").toLowerCase();
-  const password = process.env.DEMO_PASSWORD ?? "zemoney-demo";
+  const email = (process.env.DEMO_EMAIL ?? "demo@zowl.local").toLowerCase();
+  const password = process.env.DEMO_PASSWORD ?? "zowl-demo";
   const passwordHash = await hashPassword(password);
 
   database.db

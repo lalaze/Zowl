@@ -23,10 +23,10 @@ export default async function LoginPage() {
 
   const isDevelopment = process.env.NODE_ENV === "development";
   const defaultEmail = isDevelopment
-    ? (process.env.DEMO_EMAIL ?? "demo@zemoney.local")
+    ? (process.env.DEMO_EMAIL ?? "demo@zowl.local")
     : "";
   const defaultPassword = isDevelopment
-    ? (process.env.DEMO_PASSWORD ?? "zemoney-demo")
+    ? (process.env.DEMO_PASSWORD ?? "zowl-demo")
     : "";
 
   return (

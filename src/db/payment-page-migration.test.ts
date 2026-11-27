@@ -9,7 +9,7 @@ import { createDatabase } from "@/db/client";
 import { users } from "@/db/schema";
 
 it("upgrades the existing production migration history without changing account settings or screenshot columns", () => {
-  const folder = mkdtempSync(path.join(os.tmpdir(), "zemoney-migration-test-"));
+  const folder = mkdtempSync(path.join(os.tmpdir(), "zowl-migration-test-"));
   const database = createDatabase(":memory:");
   try {
     const migrations = path.resolve("drizzle");

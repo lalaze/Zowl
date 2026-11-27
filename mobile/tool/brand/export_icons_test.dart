@@ -9,7 +9,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zemoney_mobile/features/common/brand_mark.dart';
+import 'package:zowl_mobile/features/common/brand_mark.dart';
 
 const paper = Color(0xfff1ece3);
 
@@ -51,11 +51,11 @@ void main() {
     Directory(out).createSync(recursive: true);
 
     // Full-bleed icon for iOS and legacy Android launchers.
-    await _export(tester, ColoredBox(color: paper, child: _owl(780, OwlVariant.onLight)), '$out/zemoney-owl-icon.png');
+    await _export(tester, ColoredBox(color: paper, child: _owl(780, OwlVariant.onLight)), '$out/zowl-icon.png');
     // Adaptive layers: flutter_launcher_icons insets them by 16% per side, which
     // already lands them in the launcher's safe zone, so the owl fills the canvas.
-    await _export(tester, _owl(880, OwlVariant.onLight), '$out/zemoney-owl-foreground.png');
+    await _export(tester, _owl(880, OwlVariant.onLight), '$out/zowl-foreground.png');
     // Android 13+ themed icon: the system tints this silhouette.
-    await _export(tester, _owl(880, OwlVariant.monochrome), '$out/zemoney-owl-monochrome.png');
+    await _export(tester, _owl(880, OwlVariant.monochrome), '$out/zowl-monochrome.png');
   });
 }

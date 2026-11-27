@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zemoney_mobile/core/l10n.dart';
-import 'package:zemoney_mobile/core/theme.dart';
-import 'package:zemoney_mobile/features/auth/splash_screen.dart';
-import 'package:zemoney_mobile/features/common/brand_mark.dart';
-import 'package:zemoney_mobile/features/common/owl_motion.dart';
+import 'package:zowl_mobile/core/l10n.dart';
+import 'package:zowl_mobile/core/theme.dart';
+import 'package:zowl_mobile/features/auth/splash_screen.dart';
+import 'package:zowl_mobile/features/common/brand_mark.dart';
+import 'package:zowl_mobile/features/common/owl_motion.dart';
 
 const _rest = OwlPose(gaze: Offset(-2, 0));
 

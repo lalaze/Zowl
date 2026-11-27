@@ -6,9 +6,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zemoney_mobile/core/api.dart';
-import 'package:zemoney_mobile/core/config.dart';
-import 'package:zemoney_mobile/core/repository.dart';
+import 'package:zowl_mobile/core/api.dart';
+import 'package:zowl_mobile/core/config.dart';
+import 'package:zowl_mobile/core/repository.dart';
 
 import 'support/fixtures.dart';
 import 'support/test_harness.dart';
@@ -47,7 +47,7 @@ class _RecordingAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-Future<(ZeMoneyRepository, FakeTokenStore, _RecordingAdapter)> _repository(
+Future<(ZowlRepository, FakeTokenStore, _RecordingAdapter)> _repository(
   List<_Response> responses,
 ) async {
   SharedPreferences.setMockInitialValues({});
@@ -59,7 +59,7 @@ Future<(ZeMoneyRepository, FakeTokenStore, _RecordingAdapter)> _repository(
   );
   final adapter = _RecordingAdapter(responses);
   api.dio.httpClientAdapter = adapter;
-  return (ZeMoneyRepository(api, tokens), tokens, adapter);
+  return (ZowlRepository(api, tokens), tokens, adapter);
 }
 
 void main() {
@@ -80,7 +80,7 @@ void main() {
         const _Response({'data': <String, dynamic>{}}),
       ]);
 
-      final login = await repository.login('test@zemoney.local', 'secret');
+      final login = await repository.login('test@zowl.local', 'secret');
       final current = await repository.session();
       await repository.logout();
 
@@ -95,7 +95,7 @@ void main() {
       ]);
       expect(adapter.requests.first.method, 'POST');
       expect(adapter.requests.first.data, {
-        'email': 'test@zemoney.local',
+        'email': 'test@zowl.local',
         'password': 'secret',
       });
     },
@@ -236,7 +236,7 @@ void main() {
     () async {
       const account = {
         'id': 'member-user',
-        'email': 'member@zemoney.local',
+        'email': 'member@zowl.local',
         'displayName': 'Regular account',
         'role': 'member',
         'disabled': false,
@@ -260,7 +260,7 @@ void main() {
 
       final page = await repository.adminAccounts();
       final created = await repository.createMemberAccount(
-        email: 'member@zemoney.local',
+        email: 'member@zowl.local',
         displayName: 'Regular account',
         password: 'member-account-password',
       );
@@ -274,7 +274,7 @@ void main() {
         disabled: true,
       );
 
-      expect(page.items.single.email, 'member@zemoney.local');
+      expect(page.items.single.email, 'member@zowl.local');
       expect(created.role, 'member');
       expect(reauthenticate, isFalse);
       expect(disabled.disabled, isTrue);
@@ -286,7 +286,7 @@ void main() {
       ]);
       expect(adapter.requests.first.queryParameters, {'page': 1, 'limit': 20});
       expect(adapter.requests[1].data, {
-        'email': 'member@zemoney.local',
+        'email': 'member@zowl.local',
         'displayName': 'Regular account',
         'password': 'member-account-password',
       });
@@ -301,7 +301,7 @@ void main() {
   test(
     'screenshot operations cover provider, multipart, review, and confirmation',
     () async {
-      final directory = await Directory.systemTemp.createTemp('zemoney-test-');
+      final directory = await Directory.systemTemp.createTemp('zowl-test-');
       addTearDown(() => directory.delete(recursive: true));
       final image = File('${directory.path}/payment.png');
       await image.writeAsBytes(const [137, 80, 78, 71]);

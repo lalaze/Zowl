@@ -108,7 +108,7 @@ npm run db:setup     # 迁移 + 演示数据
 npm run dev
 ```
 
-打开 <http://localhost:3000>，用演示账号 `demo@zemoney.local` / `zemoney-demo` 登录。
+打开 <http://localhost:3000>，用演示账号 `demo@zowl.local` / `zowl-demo` 登录。
 想试导入，可以用 `src/services/import-service/fixtures/` 里的示例账单。
 
 SheetJS 已不再发布到 npm，所以 `npm install` 会从 `cdn.sheetjs.com` 下载它。
@@ -185,13 +185,13 @@ iOS 版用同一个工程构建，除了自动采集（仅 Android）以外功�
 
 | 变量 | 默认值 | 说明 |
 | --- | --- | --- |
-| `DATABASE_URL` | `.data/zemoney.sqlite` | SQLite 文件。生产环境请放在持久卷上 |
+| `DATABASE_URL` | `.data/zowl.sqlite` | SQLite 文件。生产环境请放在持久卷上 |
 | `FILE_STORAGE_ROOT` | `storage` | 上传的账单和截图 |
 | `PUBLIC_BASE_URL` | — | 对外的 HTTPS 地址。生产环境必填，用于同源校验 |
 | `INITIAL_ADMIN_SETUP_TOKEN_FILE` | — | 创建首个管理员用的一次性口令文件（至少 32 个字符） |
 | `ANDROID_RELEASE_ROOT` | — | 只读目录，放 APK 和 `release.json`，供下载页使用 |
 | `SESSION_TTL_DAYS` | `30` | 登录会话有效天数 |
-| `DEMO_EMAIL` / `DEMO_PASSWORD` | `demo@zemoney.local` / `zemoney-demo` | `db:seed` 的演示账号，仅限开发 |
+| `DEMO_EMAIL` / `DEMO_PASSWORD` | `demo@zowl.local` / `zowl-demo` | `db:seed` 的演示账号，仅限开发 |
 | `RECEIPT_RECOGNITION_PROVIDER` | `mock` | `mock` 或 `http` |
 | `RECEIPT_RECOGNITION_HTTP_ENDPOINT` | — | 截图识别服务的 HTTPS 地址 |
 | `RECEIPT_RECOGNITION_HTTP_API_KEY` | — | 该服务的 Bearer Key |
@@ -225,7 +225,7 @@ iOS 版用同一个工程构建，除了自动采集（仅 Android）以外功�
 | `npm run test:mobile:contract` | 用真实服务端跑移动端 API 契约测试 |
 | `npm run test:mobile:e2e:android` / `:ios` | 在模拟器上跑设备测试 |
 
-Playwright 使用独立的数据库（`.data/zemoney-e2e.sqlite`）和存储目录，不会动你的开发数据。
+Playwright 使用独立的数据库（`.data/zowl-e2e.sqlite`）和存储目录，不会动你的开发数据。
 
 修改账本相关逻辑之前，请先读 [CONTEXT.md](CONTEXT.md) 和相关的 [ADR](docs/adr/)。它们定义了代码里用到的术语，
 也解释了那些刻意从严的决定，比如已入账的交易永不删除。问题和建议请提到 [GitHub Issues](https://github.com/lalaze/Zowl/issues)。

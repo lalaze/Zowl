@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zemoney_mobile/core/day_time.dart';
+import 'package:zowl_mobile/core/day_time.dart';
 
 /// Pins the story scene to one evening so goldens and text expectations do
 /// not change with the hour the suite runs.

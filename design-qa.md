@@ -76,8 +76,7 @@ navigation and never hides the last row.
 ### Intentional or out of scope
 
 - `/android` mentions zeMoney on purpose: it tells existing users of the old
-  zeMoney Android app how to move to Zowl. The backend, web origin and accounts
-  keep the zeMoney name.
+  zeMoney Android app how to move to Zowl.
 - Default category colors (`src/lib/default-categories.ts`) are per-user data
   that predates the Dango look; some share hex values with old tokens (for
   example `#f97316`) and were left as they are.
