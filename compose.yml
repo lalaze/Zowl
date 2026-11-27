@@ -1,12 +1,12 @@
-name: zemoney
+name: zowl
 
-x-zemoney-environment: &zemoney-environment
+x-zowl-environment: &zowl-environment
   NODE_ENV: production
-  DATABASE_URL: /var/lib/zemoney/data/zemoney.sqlite
-  FILE_STORAGE_ROOT: /var/lib/zemoney/storage
-  ANDROID_RELEASE_ROOT: /var/lib/zemoney/releases/android
+  DATABASE_URL: /var/lib/zowl/data/zowl.sqlite
+  FILE_STORAGE_ROOT: /var/lib/zowl/storage
+  ANDROID_RELEASE_ROOT: /var/lib/zowl/releases/android
   PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Set PUBLIC_BASE_URL to the public HTTPS URL}
-  INITIAL_ADMIN_SETUP_TOKEN_FILE: /run/zemoney-secrets/initial-admin-setup-token
+  INITIAL_ADMIN_SETUP_TOKEN_FILE: /run/zowl-secrets/initial-admin-setup-token
   SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
   RECEIPT_RECOGNITION_PROVIDER: ${RECEIPT_RECOGNITION_PROVIDER:-mock}
   AI_CATEGORIZATION_PROVIDER: ${AI_CATEGORIZATION_PROVIDER:-off}
@@ -19,38 +19,38 @@ x-zemoney-environment: &zemoney-environment
   # it the page cannot store a key, so a provider that needs one cannot be used.
   AI_CATEGORIZATION_ENCRYPTION_KEY: ${AI_CATEGORIZATION_ENCRYPTION_KEY:-}
 
-x-zemoney-data-volume: &zemoney-data-volume
+x-zowl-data-volume: &zowl-data-volume
   type: bind
-  source: ${ZEMONEY_DATA_DIR:-./runtime/data}
-  target: /var/lib/zemoney/data
+  source: ${ZOWL_DATA_DIR:-./runtime/data}
+  target: /var/lib/zowl/data
 
-x-zemoney-storage-volume: &zemoney-storage-volume
+x-zowl-storage-volume: &zowl-storage-volume
   type: bind
-  source: ${ZEMONEY_STORAGE_DIR:-./runtime/storage}
-  target: /var/lib/zemoney/storage
+  source: ${ZOWL_STORAGE_DIR:-./runtime/storage}
+  target: /var/lib/zowl/storage
 
 services:
   app:
-    image: ${ZEMONEY_IMAGE:-zemoney:local}
+    image: ${ZOWL_IMAGE:-zowl:local}
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      <<: *zemoney-environment
+      <<: *zowl-environment
     ports:
-      - "127.0.0.1:${ZEMONEY_PORT:-3000}:3000"
+      - "127.0.0.1:${ZOWL_PORT:-3000}:3000"
     expose:
       - "3000"
     volumes:
-      - *zemoney-data-volume
-      - *zemoney-storage-volume
+      - *zowl-data-volume
+      - *zowl-storage-volume
       - type: bind
         source: ${ANDROID_RELEASE_DIR:-./runtime/releases/android}
-        target: /var/lib/zemoney/releases/android
+        target: /var/lib/zowl/releases/android
         read_only: true
       - type: bind
-        source: ${ZEMONEY_SECRETS_DIR:?Set ZEMONEY_SECRETS_DIR to the persistent secrets directory}
-        target: /run/zemoney-secrets
+        source: ${ZOWL_SECRETS_DIR:?Set ZOWL_SECRETS_DIR to the persistent secrets directory}
+        target: /run/zowl-secrets
         read_only: true
     healthcheck:
       test:
@@ -68,11 +68,11 @@ services:
       - /tmp:size=64m,mode=1777
     labels:
       traefik.enable: "true"
-      traefik.docker.network: "${ZEMONEY_TRAEFIK_NETWORK:-traefik-proxy}"
-      traefik.http.routers.zemoney.rule: "Host(`${ZEMONEY_HOST:?Set ZEMONEY_HOST to the public host name}`)"
-      traefik.http.routers.zemoney.entrypoints: "${ZEMONEY_TRAEFIK_ENTRYPOINT:-web}"
-      traefik.http.routers.zemoney.service: "zemoney"
-      traefik.http.services.zemoney.loadbalancer.server.port: "3000"
+      traefik.docker.network: "${ZOWL_TRAEFIK_NETWORK:-traefik-proxy}"
+      traefik.http.routers.zowl.rule: "Host(`${ZOWL_HOST:?Set ZOWL_HOST to the public host name}`)"
+      traefik.http.routers.zowl.entrypoints: "${ZOWL_TRAEFIK_ENTRYPOINT:-web}"
+      traefik.http.routers.zowl.service: "zowl"
+      traefik.http.services.zowl.loadbalancer.server.port: "3000"
     networks:
       - default
       - traefik-proxy
@@ -82,4 +82,4 @@ services:
 networks:
   traefik-proxy:
     external: true
-    name: ${ZEMONEY_TRAEFIK_NETWORK:-traefik-proxy}
+    name: ${ZOWL_TRAEFIK_NETWORK:-traefik-proxy}

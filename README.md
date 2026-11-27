@@ -150,7 +150,7 @@ Serve, or similar), because the production build refuses to start without an `ht
 
 ```bash
 cp .env.docker.example .env.docker
-# Edit .env.docker: PUBLIC_BASE_URL=https://money.example.com and ZEMONEY_HOST=money.example.com
+# Edit .env.docker: PUBLIC_BASE_URL=https://money.example.com and ZOWL_HOST=money.example.com
 
 mkdir -p runtime/data runtime/storage runtime/releases/android secrets
 openssl rand -hex 32 > secrets/initial-admin-setup-token
@@ -277,9 +277,11 @@ vulnerability.
 
 ### About the name
 
-The project started as **zeMoney** and the app is now **Zowl**. Internal identifiers still use the old name:
-the npm package, `ZEMONEY_*` Docker variables, the `zemoney.sqlite` database file, the Docker image, and the
-demo account. Renaming them would break existing deployments, so they stay for now.
+The project started as **zeMoney**. Code, Docker variables, the database file, and deployment configuration now
+use **Zowl**. A few persisted values keep the old `zemoney` prefix on purpose: web session/locale cookies and
+local appearance settings, the mobile app's stored sign-in and settings keys, Android capture preferences,
+keystore alias, and background job names, and the server's AI-key encryption context. Keeping them ensures
+existing installs stay signed in and keep their settings, capture permissions, and encrypted data.
 
 ## Disclaimer
 

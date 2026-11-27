@@ -1,6 +1,6 @@
-TAILSTACK_PROJECT=zemoney
-TAILSTACK_REMOTE_DIR=.tailstack/zemoney
+TAILSTACK_PROJECT=zowl
+TAILSTACK_REMOTE_DIR=.tailstack/zowl
 TAILSTACK_ENV_TEMPLATE=.env.docker.example
 TAILSTACK_CONFIGURE_HOOK=.tailstack/hooks/configure.sh
 TAILSTACK_RELEASE_HOOK=.tailstack/hooks/release.sh
-TAILSTACK_IMAGE_NAME=zemoney-app
+TAILSTACK_IMAGE_NAME=zowl-app

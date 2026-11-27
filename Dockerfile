@@ -13,7 +13,7 @@ FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1 \
     DATABASE_URL=:memory: \
-    FILE_STORAGE_ROOT=/tmp/zemoney-build-storage
+    FILE_STORAGE_ROOT=/tmp/zowl-build-storage
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 # Git does not track empty directories; the runner copies public/ regardless.
@@ -34,14 +34,14 @@ ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     NPM_CONFIG_CACHE=/tmp/npm-cache \
     TMPDIR=/tmp \
-    DATABASE_URL=/var/lib/zemoney/data/zemoney.sqlite \
-    FILE_STORAGE_ROOT=/var/lib/zemoney/storage \
-    ANDROID_RELEASE_ROOT=/var/lib/zemoney/releases/android
+    DATABASE_URL=/var/lib/zowl/data/zowl.sqlite \
+    FILE_STORAGE_ROOT=/var/lib/zowl/storage \
+    ANDROID_RELEASE_ROOT=/var/lib/zowl/releases/android
 RUN apt-get -o Acquire::Retries=3 update \
     && apt-get -o Acquire::Retries=3 install -y --no-install-recommends ca-certificates tini \
     && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /var/lib/zemoney/data /var/lib/zemoney/storage \
-    && chown -R node:node /var/lib/zemoney
+    && mkdir -p /var/lib/zowl/data /var/lib/zowl/storage \
+    && chown -R node:node /var/lib/zowl
 COPY --chown=node:node --from=production-dependencies /app/node_modules ./node_modules
 COPY --chown=node:node --from=builder /app/.next ./.next
 COPY --chown=node:node --from=builder /app/public ./public
@@ -50,8 +50,8 @@ COPY --chown=node:node --from=builder /app/scripts ./scripts
 COPY --chown=node:node --from=builder /app/src ./src
 COPY --chown=node:node --from=builder /app/package.json /app/package-lock.json ./
 COPY --chown=node:node --from=builder /app/next.config.ts /app/tsconfig.json ./
-COPY docker/docker-entrypoint.sh /usr/local/bin/zemoney-entrypoint
-RUN chmod 0755 /usr/local/bin/zemoney-entrypoint
+COPY docker/docker-entrypoint.sh /usr/local/bin/zowl-entrypoint
+RUN chmod 0755 /usr/local/bin/zowl-entrypoint
 USER node
 EXPOSE 3000
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/zemoney-entrypoint"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/zowl-entrypoint"]

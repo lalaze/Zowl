@@ -33,7 +33,7 @@ type DeployDependencies = {
   verifyPublishedRelease?: (url: string) => Promise<void>;
 };
 
-const remoteProjectDirectory = ".tailstack/zemoney";
+const remoteProjectDirectory = ".tailstack/zowl";
 
 // Prints PUBLIC_BASE_URL from the host's shared .env, the single source of truth
 // for the public URL (the Tailstack release hook validates the same value).
@@ -134,7 +134,7 @@ export async function deployProduction(
   const run = dependencies.run ?? defaultRun;
   const makeTemporaryDirectory =
     dependencies.makeTemporaryDirectory ??
-    (() => mkdtempSync(path.join(os.tmpdir(), "zemoney-release-")));
+    (() => mkdtempSync(path.join(os.tmpdir(), "zowl-release-")));
   const verifyPublishedRelease =
     dependencies.verifyPublishedRelease ?? defaultVerifyPublishedRelease;
   const target = arguments_[0] || process.env.TAILSTACK_SSH_TARGET?.trim();

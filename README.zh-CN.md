@@ -139,7 +139,7 @@ iOS 模拟器用 `http://127.0.0.1:3000`。在真机上，debug 包还允许用�
 
 ```bash
 cp .env.docker.example .env.docker
-# 编辑 .env.docker：PUBLIC_BASE_URL=https://money.example.com，ZEMONEY_HOST=money.example.com
+# 编辑 .env.docker：PUBLIC_BASE_URL=https://money.example.com，ZOWL_HOST=money.example.com
 
 mkdir -p runtime/data runtime/storage runtime/releases/android secrets
 openssl rand -hex 32 > secrets/initial-admin-setup-token
@@ -233,8 +233,10 @@ Playwright 使用独立的数据库（`.data/zowl-e2e.sqlite`）和存储目录�
 
 ### 关于名字
 
-项目最早叫 **zeMoney**，App 现在叫 **Zowl**。内部标识仍沿用旧名：npm 包名、Docker 用的 `ZEMONEY_*` 变量、
-`zemoney.sqlite` 数据库文件、Docker 镜像和演示账号。改名会破坏已有部署，所以暂时保留。
+项目最早叫 **zeMoney**。代码、Docker 变量、数据库文件和部署配置现已改用 **Zowl**。少数持久化键名刻意保留了
+`zemoney` 前缀：网页端的会话和语言 Cookie 及本地外观设置、移动端保存的登录与设置键名、Android 采集的偏好设置、
+Keystore 别名和后台任务名，以及服务端的 AI 密钥加密上下文。保留这些键名可以让已有安装继续保持登录状态，不丢失
+设置、采集权限和已加密的数据。
 
 ## 免责声明
 

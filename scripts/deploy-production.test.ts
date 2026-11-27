@@ -19,7 +19,7 @@ const repositoryRoot = path.resolve(import.meta.dirname, "..");
 const temporaryRoots: string[] = [];
 
 function temporaryRoot() {
-  const root = mkdtempSync(path.join(os.tmpdir(), "zemoney-production-deploy-"));
+  const root = mkdtempSync(path.join(os.tmpdir(), "zowl-production-deploy-"));
   temporaryRoots.push(root);
   return root;
 }
@@ -102,7 +102,7 @@ describe("production deployment", () => {
       "sh",
       "-s",
       "--",
-      ".tailstack/zemoney",
+      ".tailstack/zowl",
     ]);
     expect(commandNames.indexOf("npm")).toBeLessThan(
       commandNames.indexOf("tailstack"),
@@ -170,7 +170,7 @@ describe("production deployment", () => {
 
   it("publishes a verified APK before atomically replacing its manifest", () => {
     const root = temporaryRoot();
-    const remoteRoot = path.join(root, ".tailstack/zemoney");
+    const remoteRoot = path.join(root, ".tailstack/zowl");
     const incoming = path.join(remoteRoot, "incoming");
     const fixture = path.join(root, "fixture");
     const mockBin = path.join(root, "bin");
@@ -220,7 +220,7 @@ describe("production deployment", () => {
       "sh",
       [
         path.join(repositoryRoot, ".tailstack/hooks/publish-android.sh"),
-        ".tailstack/zemoney",
+        ".tailstack/zowl",
         archiveName,
       ],
       {

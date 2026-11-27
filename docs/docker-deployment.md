@@ -30,12 +30,12 @@ Edit `.env.docker`:
 | Key | Purpose |
 | --- | --- |
 | `PUBLIC_BASE_URL` | The HTTPS URL users open, e.g. `https://money.example.com` |
-| `ZEMONEY_HOST` | Host name for the Traefik router rule |
-| `ZEMONEY_PORT` | Host loopback port for the app (default `3000`) |
-| `ZEMONEY_DATA_DIR` / `ZEMONEY_STORAGE_DIR` | SQLite directory and uploaded-file directory |
+| `ZOWL_HOST` | Host name for the Traefik router rule |
+| `ZOWL_PORT` | Host loopback port for the app (default `3000`) |
+| `ZOWL_DATA_DIR` / `ZOWL_STORAGE_DIR` | SQLite directory and uploaded-file directory |
 | `ANDROID_RELEASE_DIR` | Directory holding the published APK (mounted read-only) |
-| `ZEMONEY_SECRETS_DIR` | Directory holding the one-time setup token (mounted read-only) |
-| `ZEMONEY_TRAEFIK_NETWORK` / `ZEMONEY_TRAEFIK_ENTRYPOINT` | External Docker network and entry point used by Traefik (defaults `traefik-proxy` / `web`) |
+| `ZOWL_SECRETS_DIR` | Directory holding the one-time setup token (mounted read-only) |
+| `ZOWL_TRAEFIK_NETWORK` / `ZOWL_TRAEFIK_ENTRYPOINT` | External Docker network and entry point used by Traefik (defaults `traefik-proxy` / `web`) |
 | `AI_CATEGORIZATION_*`, `RECEIPT_RECOGNITION_*` | Optional providers; see the README |
 
 `compose.yml` attaches the app to an external Docker network for Traefik. Create it if it does not exist yet,
@@ -58,9 +58,9 @@ The entrypoint applies all migrations before Next.js starts. Production never ru
 
 Pick one:
 
-- **Traefik** on the same Docker network: the container already carries router labels for `ZEMONEY_HOST`.
+- **Traefik** on the same Docker network: the container already carries router labels for `ZOWL_HOST`.
   Terminate TLS in Traefik or upstream of it.
-- **Any other reverse proxy:** proxy `PUBLIC_BASE_URL` to `http://127.0.0.1:${ZEMONEY_PORT}` on the host.
+- **Any other reverse proxy:** proxy `PUBLIC_BASE_URL` to `http://127.0.0.1:${ZOWL_PORT}` on the host.
 - **Tailscale Serve** (private to your tailnet): enable HTTPS certificates for the tailnet, set
   `PUBLIC_BASE_URL` to the device's `https://<device>.<tailnet>.ts.net` address, then run
 
@@ -97,6 +97,19 @@ docker compose --env-file .env.docker ps
 
 Migrations only move forward. Rolling back to an older image does not undo them, so restore the backup if you
 need to go back.
+
+### Upgrading a deployment that used the zeMoney names
+
+If your deployment was set up before the `ZEMONEY_*` settings and database file were renamed to Zowl:
+
+1. Back up `runtime/data` and `runtime/storage` first (see below).
+2. Stop the old Compose project: `docker compose -p zemoney down`.
+3. Rename all `ZEMONEY_*` variables to `ZOWL_*` in `.env.docker`.
+4. In your data directory, rename `zemoney.sqlite` (along with any `zemoney.sqlite-wal` and `zemoney.sqlite-shm`
+   files) to `zowl.sqlite` (`zowl.sqlite-wal`, `zowl.sqlite-shm`).
+5. Start the container again with `docker compose --env-file .env.docker up -d --build app`.
+
+Uploaded files in `runtime/storage` need no changes, because storage keys are relative.
 
 ## Publish the Android APK
 
@@ -163,14 +176,14 @@ separate tool that ships a Git commit to a host over Tailscale SSH, builds one i
 before migrating, and rolls back on failure. Tailstack is not published yet, so you don't need any of this to
 self-host. It is documented here for reference.
 
-- `tailstack init <host>` creates `~/.tailstack/zemoney/shared/.env` on the host from `.env.docker.example`, but
+- `tailstack init <host>` creates `~/.tailstack/zowl/shared/.env` on the host from `.env.docker.example`, but
   only if that file does not exist yet. Set `PUBLIC_BASE_URL` there. That file is the only place the public URL
   is configured.
 - Every deploy runs `.tailstack/hooks/release.sh`. It refuses to continue while `PUBLIC_BASE_URL` is missing,
-  not HTTPS, or still the example value. If `ZEMONEY_HOST` is unset or still the example, the hook sets it to
+  not HTTPS, or still the example value. If `ZOWL_HOST` is unset or still the example, the hook sets it to
   the host of `PUBLIC_BASE_URL`.
-- Host-specific overrides also go in that file: `ZEMONEY_PORT`, `ZEMONEY_TRAEFIK_NETWORK`,
-  `ZEMONEY_TRAEFIK_ENTRYPOINT`, and `ZEMONEY_TAILSCALE_SERVE_HTTPS_PORT`. The last one defaults to `443`; set it
+- Host-specific overrides also go in that file: `ZOWL_PORT`, `ZOWL_TRAEFIK_NETWORK`,
+  `ZOWL_TRAEFIK_ENTRYPOINT`, and `ZOWL_TAILSCALE_SERVE_HTTPS_PORT`. The last one defaults to `443`; set it
   to another port, or to `off` when the host's own proxy already owns 443.
 - `npm run deploy:production -- <host> [git-ref]` deploys the clean, checked-out `HEAD`. It reads
   `PUBLIC_BASE_URL` from the host over SSH and builds the signed APK for that URL with the keystore variables

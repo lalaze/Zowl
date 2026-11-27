@@ -16,7 +16,7 @@ const repositoryRoot = path.resolve(import.meta.dirname, "..");
 const temporaryRoots: string[] = [];
 
 function createHarness() {
-  const root = mkdtempSync(path.join(os.tmpdir(), "zemoney-deployment-hooks-"));
+  const root = mkdtempSync(path.join(os.tmpdir(), "zowl-deployment-hooks-"));
   const bin = path.join(root, "bin");
   const chownLog = path.join(root, "chown.log");
   const tailscaleLog = path.join(root, "tailscale.log");
@@ -85,7 +85,7 @@ function runReleaseDeploy(
         TAILSTACK_RELEASE_DIR: release,
         TAILSTACK_ENV_FILE: path.join(shared, ".env"),
         TAILSTACK_BACKUP_DIR: backups,
-        TAILSTACK_IMAGE: "zemoney-app:test-release",
+        TAILSTACK_IMAGE: "zowl-app:test-release",
       },
       stdio: "pipe",
     },
@@ -135,7 +135,7 @@ describe("Tailstack deployment hooks", () => {
       path.join(shared, "runtime/releases/android"),
     );
     expect(readFileSync(environmentFile, "utf8")).toContain(
-      `ZEMONEY_SECRETS_DIR=${path.join(shared, "secrets")}`,
+      `ZOWL_SECRETS_DIR=${path.join(shared, "secrets")}`,
     );
     expect(readFileSync(environmentFile, "utf8")).toContain(
       "PUBLIC_BASE_URL=https://money.example.com",
@@ -170,7 +170,7 @@ describe("Tailstack deployment hooks", () => {
           TAILSTACK_RELEASE_DIR: release,
           TAILSTACK_ENV_FILE: path.join(shared, ".env"),
           TAILSTACK_BACKUP_DIR: backups,
-          TAILSTACK_IMAGE: "zemoney-app:test-release",
+          TAILSTACK_IMAGE: "zowl-app:test-release",
         },
       },
     );
@@ -187,7 +187,7 @@ describe("Tailstack deployment hooks", () => {
       path.join(shared, "runtime/releases/android"),
     );
     expect(readFileSync(path.join(shared, ".env"), "utf8")).toContain(
-      `ZEMONEY_SECRETS_DIR=${path.join(shared, "secrets")}`,
+      `ZOWL_SECRETS_DIR=${path.join(shared, "secrets")}`,
     );
     expect(readFileSync(path.join(shared, ".env"), "utf8")).toContain(
       "PUBLIC_BASE_URL=https://ledger.example.net\n",
@@ -198,15 +198,15 @@ describe("Tailstack deployment hooks", () => {
     const harness = createHarness();
     runReleaseDeploy(
       harness,
-      "PUBLIC_BASE_URL=https://ledger.example.net:8443/\nZEMONEY_HOST=money.example.com\n",
+      "PUBLIC_BASE_URL=https://ledger.example.net:8443/\nZOWL_HOST=money.example.com\n",
     );
 
     const environment = readFileSync(
       path.join(harness.root, "shared/.env"),
       "utf8",
     );
-    expect(environment).toContain("ZEMONEY_HOST=ledger.example.net\n");
-    expect(environment).not.toContain("ZEMONEY_HOST=money.example.com");
+    expect(environment).toContain("ZOWL_HOST=ledger.example.net\n");
+    expect(environment).not.toContain("ZOWL_HOST=money.example.com");
     expect(environment).toContain(
       "PUBLIC_BASE_URL=https://ledger.example.net:8443/\n",
     );
@@ -216,16 +216,16 @@ describe("Tailstack deployment hooks", () => {
     const harness = createHarness();
     runReleaseDeploy(
       harness,
-      "PUBLIC_BASE_URL=https://ledger.example.net\nZEMONEY_HOST=internal.example.net\n",
+      "PUBLIC_BASE_URL=https://ledger.example.net\nZOWL_HOST=internal.example.net\n",
     );
 
     expect(
       readFileSync(path.join(harness.root, "shared/.env"), "utf8"),
-    ).toContain("ZEMONEY_HOST=internal.example.net\n");
+    ).toContain("ZOWL_HOST=internal.example.net\n");
   });
 
   it.each([
-    ["missing", "ZEMONEY_HOST=ledger.example.net\n"],
+    ["missing", "ZOWL_HOST=ledger.example.net\n"],
     ["plain HTTP", "PUBLIC_BASE_URL=http://ledger.example.net\n"],
     ["the example value", "PUBLIC_BASE_URL=https://money.example.com\n"],
   ])("refuses to deploy with a %s public URL", (_label, environment) => {
@@ -241,19 +241,19 @@ describe("Tailstack deployment hooks", () => {
     );
 
     expect(compose).toContain(
-      'traefik.http.routers.zemoney.rule: "Host(`${ZEMONEY_HOST:?Set ZEMONEY_HOST to the public host name}`)"',
+      'traefik.http.routers.zowl.rule: "Host(`${ZOWL_HOST:?Set ZOWL_HOST to the public host name}`)"',
     );
     expect(compose).toContain(
-      'traefik.http.services.zemoney.loadbalancer.server.port: "3000"',
+      'traefik.http.services.zowl.loadbalancer.server.port: "3000"',
     );
     expect(compose).toContain(
-      'traefik.docker.network: "${ZEMONEY_TRAEFIK_NETWORK:-traefik-proxy}"',
+      'traefik.docker.network: "${ZOWL_TRAEFIK_NETWORK:-traefik-proxy}"',
     );
     expect(compose).toContain(
-      'traefik.http.routers.zemoney.entrypoints: "${ZEMONEY_TRAEFIK_ENTRYPOINT:-web}"',
+      'traefik.http.routers.zowl.entrypoints: "${ZOWL_TRAEFIK_ENTRYPOINT:-web}"',
     );
     expect(compose).toMatch(
-      /networks:\n\s+traefik-proxy:\n\s+external: true\n\s+name: \$\{ZEMONEY_TRAEFIK_NETWORK:-traefik-proxy\}/u,
+      /networks:\n\s+traefik-proxy:\n\s+external: true\n\s+name: \$\{ZOWL_TRAEFIK_NETWORK:-traefik-proxy\}/u,
     );
   });
 
@@ -271,7 +271,7 @@ describe("Tailstack deployment hooks", () => {
   it("publishes the tailnet health endpoint on a configured HTTPS port", () => {
     const tailscaleCalls = runReleaseDeploy(
       createHarness(),
-      "PUBLIC_BASE_URL=https://ledger.example.net\nZEMONEY_TAILSCALE_SERVE_HTTPS_PORT=8443\n",
+      "PUBLIC_BASE_URL=https://ledger.example.net\nZOWL_TAILSCALE_SERVE_HTTPS_PORT=8443\n",
     );
 
     expect(tailscaleCalls).toContain(
@@ -283,7 +283,7 @@ describe("Tailstack deployment hooks", () => {
   it("leaves Tailscale Serve untouched when the endpoint is off", () => {
     const tailscaleCalls = runReleaseDeploy(
       createHarness(),
-      "PUBLIC_BASE_URL=https://ledger.example.net\nZEMONEY_TAILSCALE_SERVE_HTTPS_PORT=off\n",
+      "PUBLIC_BASE_URL=https://ledger.example.net\nZOWL_TAILSCALE_SERVE_HTTPS_PORT=off\n",
     );
 
     expect(tailscaleCalls).not.toContain("serve");
@@ -293,7 +293,7 @@ describe("Tailstack deployment hooks", () => {
     expect(() =>
       runReleaseDeploy(
         createHarness(),
-        "PUBLIC_BASE_URL=https://ledger.example.net\nZEMONEY_TAILSCALE_SERVE_HTTPS_PORT=44x\n",
+        "PUBLIC_BASE_URL=https://ledger.example.net\nZOWL_TAILSCALE_SERVE_HTTPS_PORT=44x\n",
       ),
     ).toThrow();
   });

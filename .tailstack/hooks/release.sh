@@ -5,7 +5,7 @@ umask 077
 cd "$TAILSTACK_RELEASE_DIR"
 
 compose() {
-  ZEMONEY_IMAGE="$TAILSTACK_IMAGE" \
+  ZOWL_IMAGE="$TAILSTACK_IMAGE" \
     docker compose --env-file "$TAILSTACK_ENV_FILE" "$@"
 }
 
@@ -60,13 +60,13 @@ set_env_value() {
 
 configure_serve() {
   # Hosts whose own reverse proxy already owns tailnet port 443 set
-  # ZEMONEY_TAILSCALE_SERVE_HTTPS_PORT to another port, or to "off".
-  serve_https_port="$(read_env_value ZEMONEY_TAILSCALE_SERVE_HTTPS_PORT)"
+  # ZOWL_TAILSCALE_SERVE_HTTPS_PORT to another port, or to "off".
+  serve_https_port="$(read_env_value ZOWL_TAILSCALE_SERVE_HTTPS_PORT)"
   serve_https_port="${serve_https_port:-443}"
   case "$serve_https_port" in
     off) ;;
     ""|*[!0-9]*)
-      printf 'Invalid ZEMONEY_TAILSCALE_SERVE_HTTPS_PORT: %s\n' \
+      printf 'Invalid ZOWL_TAILSCALE_SERVE_HTTPS_PORT: %s\n' \
         "$serve_https_port" >&2
       return 1
       ;;
@@ -153,17 +153,17 @@ case "$TAILSTACK_ACTION" in
     public_host="${public_base_url#https://}"
     public_host="${public_host%%/*}"
     public_host="${public_host%%:*}"
-    configured_host="$(read_env_value ZEMONEY_HOST)"
+    configured_host="$(read_env_value ZOWL_HOST)"
     if [ -z "$configured_host" ] ||
-      [ "$configured_host" = "$(read_example_value ZEMONEY_HOST)" ]; then
-      set_env_value ZEMONEY_HOST "$public_host"
+      [ "$configured_host" = "$(read_example_value ZOWL_HOST)" ]; then
+      set_env_value ZOWL_HOST "$public_host"
       printf 'Configured Traefik host: %s\n' "$public_host"
     fi
 
-    configured_secrets_dir="$(read_env_value ZEMONEY_SECRETS_DIR)"
+    configured_secrets_dir="$(read_env_value ZOWL_SECRETS_DIR)"
     case "$configured_secrets_dir" in
       ""|"./secrets")
-        set_env_value ZEMONEY_SECRETS_DIR "$secrets_dir"
+        set_env_value ZOWL_SECRETS_DIR "$secrets_dir"
         printf 'Configured persistent secrets directory: %s\n' "$secrets_dir"
         ;;
     esac
