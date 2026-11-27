@@ -111,6 +111,9 @@ If your deployment was set up before the `ZEMONEY_*` settings and database file 
 
 Uploaded files in `runtime/storage` need no changes, because storage keys are relative.
 
+On a Tailstack host, also move `~/.tailstack/zemoney` to `~/.tailstack/zowl` (and update absolute paths in its
+`shared/.env`) before the next deploy. Otherwise Tailstack starts from an empty `shared/.env` and runtime.
+
 ## Publish the Android APK
 
 The server can host the APK for your users at `/android`. Build a signed release from a machine with Flutter,

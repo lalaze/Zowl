@@ -279,7 +279,7 @@ vulnerability.
 
 The project started as **zeMoney**. Code, Docker variables, the database file, and deployment configuration now
 use **Zowl**. A few persisted values keep the old `zemoney` prefix on purpose: web session/locale cookies and
-local appearance settings, the mobile app's stored sign-in and settings keys, Android capture preferences,
+local browser preferences, the mobile app's stored sign-in and settings keys, Android capture preferences,
 keystore alias, and background job names, and the server's AI-key encryption context. Keeping them ensures
 existing installs stay signed in and keep their settings, capture permissions, and encrypted data.
 
